@@ -47,12 +47,8 @@ const INCOME_TAX_BRACKETS: { threshold: number; rate: number }[] = [
   { threshold: 40_000_000, rate: 0.45 },
 ];
 
-/**
- * 所得税の概算（円）。課税所得に簡易累進ブラケットを適用する。
- * @param grossSalary 給与の税込年収
- */
-export function estimateIncomeTax(grossSalary: number): number {
-  const taxable = estimateTaxableIncome(grossSalary);
+/** 課税所得に簡易累進ブラケットを適用した所得税額（円）。 */
+export function applyIncomeTaxBrackets(taxable: number): number {
   if (taxable <= 0) return 0;
 
   let tax = 0;
@@ -69,6 +65,14 @@ export function estimateIncomeTax(grossSalary: number): number {
   return Math.round(tax);
 }
 
+/**
+ * 所得税の概算（円）。課税所得に簡易累進ブラケットを適用する。
+ * @param grossSalary 給与の税込年収
+ */
+export function estimateIncomeTax(grossSalary: number): number {
+  return applyIncomeTaxBrackets(estimateTaxableIncome(grossSalary));
+}
+
 /** 住民税の概算率（課税所得比、おおよそ一律10%） */
 const RESIDENCE_TAX_RATE = 0.1;
 
@@ -79,4 +83,37 @@ const RESIDENCE_TAX_RATE = 0.1;
 export function estimateResidenceTax(grossSalary: number): number {
   const taxable = estimateTaxableIncome(grossSalary);
   return Math.round(taxable * RESIDENCE_TAX_RATE);
+}
+
+/**
+ * 上場株式等の運用益（譲渡益・配当）に対する概算税率。
+ * 所得税15.315%＋住民税5%の合算（NISA/iDeCo 等の非課税口座には課さない）。
+ */
+export const CAPITAL_GAINS_RATE = 0.20315;
+
+/** 退職所得控除（円）。勤続年数に応じた非課税枠。 */
+function retirementIncomeDeduction(serviceYears: number): number {
+  const years = Math.max(1, serviceYears);
+  return years <= 20 ? 400_000 * years : 8_000_000 + 700_000 * (years - 20);
+}
+
+/**
+ * 退職一時金にかかる税の概算（円）。
+ * 退職所得控除を差し引き、1/2 にした課税退職所得へ所得税＋住民税10%を適用する
+ * （分離課税の簡易版。復興特別所得税などは省略）。
+ * @param benefit 退職一時金の額面
+ * @param serviceYears 勤続年数
+ */
+export function estimateRetirementIncomeTax(
+  benefit: number,
+  serviceYears: number,
+): number {
+  if (benefit <= 0) return 0;
+  const taxable = Math.max(
+    0,
+    (benefit - retirementIncomeDeduction(serviceYears)) / 2,
+  );
+  return (
+    applyIncomeTaxBrackets(taxable) + Math.round(taxable * RESIDENCE_TAX_RATE)
+  );
 }

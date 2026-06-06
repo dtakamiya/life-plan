@@ -19,7 +19,7 @@ function toChartData(results: YearlyResult[]) {
   return results.map((r) => ({
     year: r.year,
     収入: r.netIncome,
-    支出: -(r.livingExpense + r.tax + r.socialInsurance),
+    支出: -(r.livingExpense + r.loanPayment),
     収支: r.cashFlow,
   }));
 }

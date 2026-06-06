@@ -11,9 +11,12 @@ const columns: { key: keyof YearlyResult; label: string }[] = [
   { key: "socialInsurance", label: "社会保険" },
   { key: "netIncome", label: "手取り" },
   { key: "livingExpense", label: "生活費" },
+  { key: "loanPayment", label: "ローン返済" },
   { key: "eventNet", label: "イベント" },
+  { key: "retirementBenefit", label: "退職金" },
   { key: "cashFlow", label: "収支" },
   { key: "assets", label: "純資産" },
+  { key: "taxFreeAssets", label: "うち非課税" },
 ];
 
 /** 金額列はキーごとに円フォーマットし、年・年齢はそのまま表示する。 */

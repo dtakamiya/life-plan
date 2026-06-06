@@ -87,6 +87,39 @@ export function PercentField({
   );
 }
 
+/** 選択肢から1つ選ぶプルダウン。option の値は文字列。 */
+export function SelectField<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: BaseProps & {
+  value: T;
+  options: readonly T[];
+  onChange: (value: T) => void;
+}) {
+  const id = useId();
+  return (
+    <label htmlFor={id} className="block">
+      <span className="mb-1 block text-xs font-medium text-slate-600">
+        {label}
+      </span>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value as T)}
+        className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 /** テキスト入力。 */
 export function TextField({
   label,

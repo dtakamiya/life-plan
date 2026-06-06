@@ -6,9 +6,18 @@
  */
 
 import type { Person, PlanInput, YearlyResult } from "./types";
-import { estimateIncomeTax, estimateResidenceTax } from "./tax";
+import {
+  estimateIncomeTax,
+  estimateResidenceTax,
+  estimateRetirementIncomeTax,
+  CAPITAL_GAINS_RATE,
+} from "./tax";
 import { estimateSocialInsurance } from "./socialInsurance";
-import { CHILD_DEPENDENT_MAX_AGE, CHILD_ANNUAL_COST } from "./defaults";
+import { loanPaymentForYear } from "./loan";
+import { childAnnualCost } from "./education";
+
+/** 退職所得控除の勤続年数を見積もるための、就労開始年齢の前提。 */
+const WORK_START_AGE = 22;
 
 /** ある年における個人の収入内訳。 */
 type PersonYearIncome = {
@@ -51,15 +60,30 @@ function computePersonYearIncome(
 }
 
 /**
- * 指定年における子の教育・養育費の合計（円）。
- * 扶養対象年齢（0〜CHILD_DEPENDENT_MAX_AGE）の子の人数 × 年額。
+ * 指定年における子の養育・教育費の合計（円）。
+ * 各子について基礎養育費＋進路別の教育費（childAnnualCost）を合算する。
  */
 function computeChildCost(input: PlanInput, year: number): number {
-  const dependents = input.children.filter((child) => {
-    const age = year - child.birthYear;
-    return age >= 0 && age <= CHILD_DEPENDENT_MAX_AGE;
-  });
-  return dependents.length * CHILD_ANNUAL_COST;
+  return input.children.reduce(
+    (sum, child) => sum + childAnnualCost(child, year - child.birthYear),
+    0,
+  );
+}
+
+/**
+ * 指定年に受け取る退職一時金の手取り合計（円）。
+ * 退職年齢に到達した年に額面を受け取り、退職所得課税の概算を差し引く。
+ */
+function computeRetirementBenefit(people: Person[], year: number): number {
+  return people.reduce((sum, person) => {
+    const age = year - person.birthYear;
+    if (age !== person.retirementAge || person.retirementBenefit <= 0) {
+      return sum;
+    }
+    const serviceYears = person.retirementAge - WORK_START_AGE;
+    const tax = estimateRetirementIncomeTax(person.retirementBenefit, serviceYears);
+    return sum + person.retirementBenefit - tax;
+  }, 0);
 }
 
 /**
@@ -68,9 +92,13 @@ function computeChildCost(input: PlanInput, year: number): number {
  */
 export function runSimulation(input: PlanInput): YearlyResult[] {
   const results: YearlyResult[] = [];
-  const { startYear, endYear, self, spouse, expenses, assets, events } = input;
+  const { startYear, endYear, self, spouse, expenses, assets, events, loans } =
+    input;
 
-  let prevAssets = assets.initialAssets;
+  const { annualReturnRate: returnRate, annualTaxFreeContribution: contribution } =
+    assets;
+  let prevTaxable = assets.taxableAssets;
+  let prevTaxFree = assets.taxFreeAssets;
 
   for (let year = startYear; year <= endYear; year++) {
     const yearsElapsed = year - startYear;
@@ -103,10 +131,28 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       .filter((event) => event.year === year)
       .reduce((sum, event) => sum + event.amount, 0);
 
-    const cashFlow = netIncome - livingExpense + eventNet;
-    const yearEndAssets = Math.round(
-      prevAssets * (1 + assets.annualReturnRate) + cashFlow,
+    const loanPayment = Math.round(loanPaymentForYear(loans, year));
+
+    const retirementBenefit = Math.round(
+      computeRetirementBenefit(people, year),
     );
+
+    const cashFlow =
+      netIncome - livingExpense + eventNet - loanPayment + retirementBenefit;
+
+    // 資産運用: まず非課税口座へ年間積立を移し、課税口座の運用益にのみ課税する。
+    // 年間収支は課税口座に入る（その年は複利を効かせない、従来どおりの簡易扱い）。
+    const taxableBase = prevTaxable - contribution;
+    const taxFreeBase = prevTaxFree + contribution;
+    const taxableGain = taxableBase * returnRate;
+    const investmentTax =
+      taxableGain > 0 ? Math.round(taxableGain * CAPITAL_GAINS_RATE) : 0;
+
+    const taxFreeEnd = Math.round(taxFreeBase * (1 + returnRate));
+    const taxableEnd = Math.round(
+      taxableBase + taxableGain - investmentTax + cashFlow,
+    );
+    const yearEndAssets = taxableEnd + taxFreeEnd;
 
     results.push({
       year,
@@ -115,15 +161,21 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       grossIncome,
       tax,
       socialInsurance,
+      investmentTax,
       pension,
       netIncome,
       livingExpense,
       eventNet,
+      loanPayment,
+      retirementBenefit,
       cashFlow,
       assets: yearEndAssets,
+      taxableAssets: taxableEnd,
+      taxFreeAssets: taxFreeEnd,
     });
 
-    prevAssets = yearEndAssets;
+    prevTaxable = taxableEnd;
+    prevTaxFree = taxFreeEnd;
   }
 
   return results;
