@@ -3,13 +3,93 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --paper: #faf8f4;
+  --paper-deep: #f3efe7;
+  --ink: #17283b;
+  --brand: #0f766e;
+  --gold: #a9712a;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
-    "Hiragino Sans", Meiryo, sans-serif;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    color: var(--ink);
+    background-color: var(--paper);
+    /* 温かいペーパー + ごく淡い奥行き（上部のティール/ゴールドの光と微細なグリッド） */
+    background-image:
+      radial-gradient(
+        60rem 32rem at 88% -8%,
+        rgba(15, 118, 110, 0.07),
+        transparent 60%
+      ),
+      radial-gradient(
+        52rem 30rem at 0% 0%,
+        rgba(169, 113, 42, 0.06),
+        transparent 55%
+      ),
+      linear-gradient(rgba(23, 40, 59, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 40, 59, 0.025) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+    background-attachment: fixed;
+    font-family: var(--font-sans, "Zen Kaku Gothic New", system-ui, sans-serif);
+    font-feature-settings: "palt";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 数値は等幅で揃える */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 数値入力のネイティブスピナーを隠す（サフィックス表示と干渉させない。
+     キーボード ↑↓ での step 増減は引き続き有効）。 */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+@layer utilities {
+  /* セクション上の小さなアイブロウ（ゴールドの細線 + 大文字風の小ラベル） */
+  .eyebrow {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-mute;
+  }
+}
+
+/* 控えめなスクロールバー（テーブルなど） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cdbfa9 transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #d8ccba;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #c2b29a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

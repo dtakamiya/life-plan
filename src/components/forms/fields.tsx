@@ -1,29 +1,33 @@
 "use client";
 
 import { useId } from "react";
+import { Panel } from "@/components/ui/Panel";
 
 type BaseProps = {
   label: string;
   hint?: string;
 };
 
+const inputClass =
+  "w-full rounded-lg border border-line bg-paper/50 px-3 py-2 text-sm text-ink shadow-[inset_0_1px_2px_rgba(23,40,59,0.04)] transition-colors placeholder:text-ink-mute focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand/25";
+
+const labelClass = "mb-1 block text-xs font-medium text-ink-soft";
+
 export function Section({
   title,
   children,
   action,
+  eyebrow,
 }: {
   title: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  eyebrow?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
-        {action}
-      </div>
+    <Panel title={title} action={action} eyebrow={eyebrow}>
       {children}
-    </section>
+    </Panel>
   );
 }
 
@@ -44,21 +48,23 @@ export function NumberField({
   const id = useId();
   return (
     <label htmlFor={id} className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-600">
-        {label}
-      </span>
-      <span className="flex items-center gap-1">
+      <span className={labelClass}>{label}</span>
+      <span className="relative flex items-center">
         <input
           id={id}
           type="number"
           step={step}
           value={Number.isFinite(value) ? value : 0}
           onChange={(e) => onChange(e.target.valueAsNumber)}
-          className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm tabular-nums focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className={`${inputClass} tabular-nums ${suffix ? "pr-9" : ""}`}
         />
-        {suffix && <span className="text-xs text-slate-500">{suffix}</span>}
+        {suffix && (
+          <span className="pointer-events-none absolute right-3 text-xs text-ink-mute">
+            {suffix}
+          </span>
+        )}
       </span>
-      {hint && <span className="mt-0.5 block text-[10px] text-slate-400">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-ink-mute">{hint}</span>}
     </label>
   );
 }
@@ -101,21 +107,31 @@ export function SelectField<T extends string>({
   const id = useId();
   return (
     <label htmlFor={id} className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-600">
-        {label}
-      </span>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value as T)}
-        className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
+      <span className={labelClass}>{label}</span>
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value as T)}
+          className={`${inputClass} cursor-pointer appearance-none pr-8`}
+        >
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <svg
+          aria-hidden
+          viewBox="0 0 20 20"
+          className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-mute"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
     </label>
   );
 }
@@ -132,15 +148,13 @@ export function TextField({
   const id = useId();
   return (
     <label htmlFor={id} className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-600">
-        {label}
-      </span>
+      <span className={labelClass}>{label}</span>
       <input
         id={id}
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className={inputClass}
       />
     </label>
   );

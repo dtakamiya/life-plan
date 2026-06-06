@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
+import { Panel } from "@/components/ui/Panel";
+import { Button } from "@/components/ui/Button";
 
 /**
  * 現在の入力をスナップショットとして保存し、保存済みプランの読込・削除を行うバー。
@@ -20,47 +22,40 @@ export function ScenarioBar() {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <Panel eyebrow="Scenarios" title="プラン比較">
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="mr-1 text-sm font-semibold text-slate-800">
-          プラン比較
-        </h2>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
           placeholder="プラン名（任意）"
-          className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="min-w-0 flex-1 rounded-lg border border-line bg-paper/50 px-3 py-2 text-sm text-ink shadow-[inset_0_1px_2px_rgba(23,40,59,0.04)] transition-colors placeholder:text-ink-mute focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand/25"
         />
-        <button
-          type="button"
-          onClick={handleSave}
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-        >
+        <Button variant="primary" size="md" onClick={handleSave}>
           現在のプランを保存
-        </button>
+        </Button>
       </div>
 
-      {snapshots.length > 0 && (
+      {snapshots.length > 0 ? (
         <ul className="mt-3 flex flex-wrap gap-2">
           {snapshots.map((snap) => (
             <li
               key={snap.id}
-              className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 py-1 pl-3 pr-1 text-xs text-slate-700"
+              className="flex items-center gap-1 rounded-full border border-line bg-paper/60 py-1 pl-3 pr-1 text-xs text-ink-soft"
             >
-              <span className="font-medium">{snap.name}</span>
+              <span className="font-medium text-ink">{snap.name}</span>
               <button
                 type="button"
                 onClick={() => loadSnapshot(snap.id)}
-                className="rounded-full px-2 py-0.5 text-blue-600 hover:bg-blue-50"
+                className="rounded-full px-2 py-0.5 font-medium text-brand-700 transition-colors hover:bg-brand-50"
               >
                 読込
               </button>
               <button
                 type="button"
                 onClick={() => removeSnapshot(snap.id)}
-                className="rounded-full px-2 py-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+                className="grid h-5 w-5 place-items-center rounded-full text-ink-mute transition-colors hover:bg-danger-50 hover:text-danger"
                 aria-label={`${snap.name}を削除`}
               >
                 ✕
@@ -68,7 +63,11 @@ export function ScenarioBar() {
             </li>
           ))}
         </ul>
+      ) : (
+        <p className="mt-3 text-[11px] text-ink-mute">
+          現在の入力を保存すると、純資産推移を重ねて比較できます。
+        </p>
       )}
-    </div>
+    </Panel>
   );
 }
