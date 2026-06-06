@@ -7,14 +7,25 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type {
   Child,
   LifeEvent,
+  Loan,
   Person,
   PlanInput,
 } from "@/lib/simulation/types";
 import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
 import { planInputSchema } from "@/lib/schema";
+
+/** 名前付きで保存した計画のスナップショット（比較用）。 */
+export type Snapshot = {
+  id: string;
+  name: string;
+  input: PlanInput;
+};
 
 type PlanState = {
   input: PlanInput;
+  /** 比較用に保存した計画のスナップショット一覧。 */
+  snapshots: Snapshot[];
   setRange: (startYear: number, endYear: number) => void;
   updateSelf: (patch: Partial<Person>) => void;
   /** 配偶者の有無を切り替える。enabled=true で未設定なら本人を雛形に作成。 */
@@ -28,6 +39,15 @@ type PlanState = {
   addEvent: () => void;
   updateEvent: (id: string, patch: Partial<LifeEvent>) => void;
   removeEvent: (id: string) => void;
+  addLoan: () => void;
+  updateLoan: (id: string, patch: Partial<Loan>) => void;
+  removeLoan: (id: string) => void;
+  /** 現在の入力を名前付きスナップショットとして保存する。 */
+  saveSnapshot: (name: string) => void;
+  /** スナップショットを削除する。 */
+  removeSnapshot: (id: string) => void;
+  /** スナップショットの内容を現在の入力に読み込む。 */
+  loadSnapshot: (id: string) => void;
   reset: () => void;
 };
 
@@ -44,6 +64,7 @@ export const usePlanStore = create<PlanState>()(
   persist(
     (set) => ({
       input: defaultPlanInput,
+      snapshots: [],
 
       setRange: (startYear, endYear) =>
         set((s) => ({ input: { ...s.input, startYear, endYear } })),
@@ -87,6 +108,7 @@ export const usePlanStore = create<PlanState>()(
             id: makeId("child"),
             name: "子",
             birthYear: s.input.startYear,
+            education: DEFAULT_EDUCATION,
           };
           return { input: { ...s.input, children: [...s.input.children, child] } };
         }),
@@ -138,18 +160,91 @@ export const usePlanStore = create<PlanState>()(
           },
         })),
 
+      addLoan: () =>
+        set((s) => {
+          const loan: Loan = {
+            id: makeId("loan"),
+            label: "ローン",
+            startYear: s.input.startYear,
+            principal: 30_000_000,
+            annualRate: 0.01,
+            termYears: 35,
+          };
+          return { input: { ...s.input, loans: [...s.input.loans, loan] } };
+        }),
+
+      updateLoan: (id, patch) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            loans: s.input.loans.map((l) =>
+              l.id === id ? { ...l, ...patch } : l,
+            ),
+          },
+        })),
+
+      removeLoan: (id) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            loans: s.input.loans.filter((l) => l.id !== id),
+          },
+        })),
+
+      saveSnapshot: (name) =>
+        set((s) => {
+          const snapshot: Snapshot = {
+            id: makeId("snap"),
+            name,
+            input: structuredClone(s.input),
+          };
+          return { snapshots: [...s.snapshots, snapshot] };
+        }),
+
+      removeSnapshot: (id) =>
+        set((s) => ({
+          snapshots: s.snapshots.filter((snap) => snap.id !== id),
+        })),
+
+      loadSnapshot: (id) =>
+        set((s) => {
+          const snapshot = s.snapshots.find((snap) => snap.id === id);
+          return snapshot ? { input: structuredClone(snapshot.input) } : s;
+        }),
+
       reset: () => set({ input: defaultPlanInput }),
     }),
     {
       name: "life-plan/v1",
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      // 永続化された入力を zod で検証し、壊れていれば既定値へフォールバックする。
+      // 永続化された入力・スナップショットを zod で検証し、壊れた部分は
+      // 既定値（入力）／除外（スナップショット）でフォールバックする。
       merge: (persisted, current) => {
-        const parsed = planInputSchema.safeParse(
-          (persisted as { input?: unknown } | undefined)?.input,
-        );
-        return { ...current, input: parsed.success ? parsed.data : defaultPlanInput };
+        const p = persisted as
+          | { input?: unknown; snapshots?: unknown }
+          | undefined;
+
+        const parsedInput = planInputSchema.safeParse(p?.input);
+        const input = parsedInput.success ? parsedInput.data : defaultPlanInput;
+
+        const snapshots: Snapshot[] = Array.isArray(p?.snapshots)
+          ? p.snapshots.flatMap((raw) => {
+              const snap = raw as {
+                id?: unknown;
+                name?: unknown;
+                input?: unknown;
+              };
+              const parsed = planInputSchema.safeParse(snap.input);
+              return parsed.success &&
+                typeof snap.id === "string" &&
+                typeof snap.name === "string"
+                ? [{ id: snap.id, name: snap.name, input: parsed.data }]
+                : [];
+            })
+          : [];
+
+        return { ...current, input, snapshots };
       },
     },
   ),

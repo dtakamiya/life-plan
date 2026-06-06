@@ -1,8 +1,22 @@
 "use client";
 
-import type { Person } from "@/lib/simulation/types";
+import type {
+  Child,
+  Person,
+  SchoolType,
+  UniversityType,
+} from "@/lib/simulation/types";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { NumberField, Section, TextField } from "./fields";
+import { EDUCATION_PRESETS } from "@/lib/simulation/education";
+import { NumberField, Section, SelectField, TextField } from "./fields";
+
+const SCHOOL_OPTIONS: readonly SchoolType[] = ["公立", "私立"];
+const UNIVERSITY_OPTIONS: readonly UniversityType[] = [
+  "なし",
+  "国公立",
+  "私立文系",
+  "私立理系",
+];
 
 /** 本人・配偶者で共通の個人入力欄。 */
 function PersonFields({
@@ -50,6 +64,98 @@ function PersonFields({
         value={person.annualPension}
         onChange={(annualPension) => onChange({ annualPension })}
       />
+      <NumberField
+        label="退職一時金"
+        hint="退職年齢で受取"
+        suffix="円"
+        step={1_000_000}
+        value={person.retirementBenefit}
+        onChange={(retirementBenefit) => onChange({ retirementBenefit })}
+      />
+    </div>
+  );
+}
+
+/** 子1人分の入力（基本情報＋進路プラン）。 */
+function ChildCard({
+  child,
+  onChange,
+  onRemove,
+}: {
+  child: Child;
+  onChange: (patch: Partial<Child>) => void;
+  onRemove: () => void;
+}) {
+  const { education } = child;
+  return (
+    <div className="rounded-lg border border-slate-200 p-2">
+      <div className="flex items-end gap-2">
+        <div className="grid flex-1 grid-cols-2 gap-2">
+          <TextField
+            label="名前"
+            value={child.name}
+            onChange={(name) => onChange({ name })}
+          />
+          <NumberField
+            label="生年（西暦）"
+            value={child.birthYear}
+            onChange={(birthYear) => onChange({ birthYear })}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="mb-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
+        >
+          削除
+        </button>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-1">
+        {EDUCATION_PRESETS.map((preset) => (
+          <button
+            key={preset.key}
+            type="button"
+            onClick={() => onChange({ education: preset.value })}
+            className="rounded-full border border-slate-300 px-2 py-0.5 text-[10px] text-slate-600 hover:bg-slate-100"
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <SelectField
+          label="幼稚園"
+          value={education.kindergarten}
+          options={SCHOOL_OPTIONS}
+          onChange={(v) => onChange({ education: { ...education, kindergarten: v } })}
+        />
+        <SelectField
+          label="小学校"
+          value={education.elementary}
+          options={SCHOOL_OPTIONS}
+          onChange={(v) => onChange({ education: { ...education, elementary: v } })}
+        />
+        <SelectField
+          label="中学校"
+          value={education.juniorHigh}
+          options={SCHOOL_OPTIONS}
+          onChange={(v) => onChange({ education: { ...education, juniorHigh: v } })}
+        />
+        <SelectField
+          label="高校"
+          value={education.highSchool}
+          options={SCHOOL_OPTIONS}
+          onChange={(v) => onChange({ education: { ...education, highSchool: v } })}
+        />
+        <SelectField
+          label="大学"
+          value={education.university}
+          options={UNIVERSITY_OPTIONS}
+          onChange={(v) => onChange({ education: { ...education, university: v } })}
+        />
+      </div>
     </div>
   );
 }
@@ -123,27 +229,12 @@ export function HouseholdForm() {
         ) : (
           <div className="space-y-2">
             {children.map((child) => (
-              <div key={child.id} className="flex items-end gap-2">
-                <div className="grid flex-1 grid-cols-2 gap-2">
-                  <TextField
-                    label="名前"
-                    value={child.name}
-                    onChange={(name) => updateChild(child.id, { name })}
-                  />
-                  <NumberField
-                    label="生年（西暦）"
-                    value={child.birthYear}
-                    onChange={(birthYear) => updateChild(child.id, { birthYear })}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeChild(child.id)}
-                  className="mb-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
-                >
-                  削除
-                </button>
-              </div>
+              <ChildCard
+                key={child.id}
+                child={child}
+                onChange={(patch) => updateChild(child.id, patch)}
+                onRemove={() => removeChild(child.id)}
+              />
             ))}
           </div>
         )}

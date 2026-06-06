@@ -4,12 +4,7 @@
 
 import type { PlanInput } from "./types";
 import { estimateAnnualPension } from "./pension";
-
-/** 子を扶養（教育費の対象）とみなす上限年齢 */
-export const CHILD_DEPENDENT_MAX_AGE = 22;
-
-/** 扶養対象の子1人あたりの年間費用の概算（円） */
-export const CHILD_ANNUAL_COST = 1_200_000;
+import { DEFAULT_EDUCATION } from "./education";
 
 /** 現在の西暦年（クライアント・サーバーで安定させるため初期化時に固定）。 */
 const CURRENT_YEAR = new Date().getFullYear();
@@ -32,6 +27,7 @@ export const defaultPlanInput: PlanInput = {
     retirementAge: 65,
     pensionStartAge: 65,
     annualPension: estimateAnnualPension(5_000_000),
+    retirementBenefit: 20_000_000,
   },
   spouse: {
     name: "配偶者",
@@ -41,12 +37,14 @@ export const defaultPlanInput: PlanInput = {
     retirementAge: 65,
     pensionStartAge: 65,
     annualPension: estimateAnnualPension(3_000_000),
+    retirementBenefit: 10_000_000,
   },
   children: [
     {
       id: "child-1",
       name: "子",
       birthYear: CURRENT_YEAR - 3,
+      education: DEFAULT_EDUCATION,
     },
   ],
   expenses: {
@@ -54,8 +52,10 @@ export const defaultPlanInput: PlanInput = {
     inflationRate: 0.01,
   },
   assets: {
-    initialAssets: 5_000_000,
+    taxableAssets: 5_000_000,
+    taxFreeAssets: 0,
     annualReturnRate: 0.03,
+    annualTaxFreeContribution: 480_000,
   },
   events: [
     {
@@ -63,6 +63,16 @@ export const defaultPlanInput: PlanInput = {
       year: CURRENT_YEAR + 5,
       label: "住宅購入（頭金）",
       amount: -5_000_000,
+    },
+  ],
+  loans: [
+    {
+      id: "loan-1",
+      label: "住宅ローン",
+      startYear: CURRENT_YEAR + 5,
+      principal: 30_000_000,
+      annualRate: 0.01,
+      termYears: 35,
     },
   ],
 };

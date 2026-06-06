@@ -8,9 +8,12 @@ import { HouseholdForm } from "@/components/forms/HouseholdForm";
 import { ExpenseForm } from "@/components/forms/ExpenseForm";
 import { AssetForm } from "@/components/forms/AssetForm";
 import { EventForm } from "@/components/forms/EventForm";
+import { LoanForm } from "@/components/forms/LoanForm";
 import { NetWorthChart } from "@/components/charts/NetWorthChart";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
+import { ComparisonChart } from "@/components/charts/ComparisonChart";
 import { ResultTable } from "@/components/ResultTable";
+import { ScenarioBar } from "@/components/ScenarioBar";
 import type { YearlyResult } from "@/lib/simulation/types";
 
 /** サマリーカード（最終純資産・最小純資産・赤字転落年）。 */
@@ -53,6 +56,7 @@ function Summary({ results }: { results: YearlyResult[] }) {
 
 export default function Home() {
   const input = usePlanStore((s) => s.input);
+  const snapshots = usePlanStore((s) => s.snapshots);
   const reset = usePlanStore((s) => s.reset);
 
   // localStorage からの復元（ハイドレーション）後にのみ結果を描画し、
@@ -92,6 +96,7 @@ export default function Home() {
           <HouseholdForm />
           <ExpenseForm />
           <AssetForm />
+          <LoanForm />
           <EventForm />
         </div>
 
@@ -99,6 +104,15 @@ export default function Home() {
           {hydrated ? (
             <>
               <Summary results={results} />
+              <ScenarioBar />
+              {snapshots.length > 0 && (
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <h2 className="mb-2 text-sm font-semibold text-slate-800">
+                    プラン比較（純資産推移）
+                  </h2>
+                  <ComparisonChart current={results} snapshots={snapshots} />
+                </div>
+              )}
               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-2 text-sm font-semibold text-slate-800">
                   純資産推移
