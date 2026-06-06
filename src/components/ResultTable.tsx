@@ -31,14 +31,14 @@ function renderCell(row: YearlyResult, key: keyof YearlyResult): string {
 
 export function ResultTable({ results }: { results: YearlyResult[] }) {
   return (
-    <div className="max-h-96 overflow-auto rounded-lg border border-slate-200">
-      <table className="w-full border-collapse text-right text-xs">
-        <thead className="sticky top-0 bg-slate-100">
+    <div className="max-h-96 overflow-auto rounded-xl border border-line">
+      <table className="w-full border-collapse text-right text-xs tabular-nums">
+        <thead className="sticky top-0 z-10 bg-paper-deep/95 backdrop-blur">
           <tr>
             {columns.map((c) => (
               <th
                 key={c.key}
-                className="whitespace-nowrap px-3 py-2 font-medium text-slate-600"
+                className="whitespace-nowrap border-b border-line px-3 py-2.5 text-[11px] font-semibold tracking-wide text-ink-soft"
               >
                 {c.label}
               </th>
@@ -47,14 +47,19 @@ export function ResultTable({ results }: { results: YearlyResult[] }) {
         </thead>
         <tbody>
           {results.map((row) => (
-            <tr key={row.year} className="border-t border-slate-100">
+            <tr
+              key={row.year}
+              className="border-t border-line-soft transition-colors odd:bg-paper/40 hover:bg-brand-50/60"
+            >
               {columns.map((c) => (
                 <td
                   key={c.key}
                   className={`whitespace-nowrap px-3 py-1.5 ${
-                    c.key === "assets" && row.assets < 0
-                      ? "font-semibold text-red-600"
-                      : "text-slate-700"
+                    c.key === "year"
+                      ? "font-medium text-ink"
+                      : c.key === "assets" && row.assets < 0
+                        ? "font-semibold text-danger"
+                        : "text-ink-soft"
                   }`}
                 >
                   {renderCell(row, c.key)}

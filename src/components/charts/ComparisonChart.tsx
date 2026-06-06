@@ -5,6 +5,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -14,16 +15,13 @@ import type { YearlyResult } from "@/lib/simulation/types";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { Snapshot } from "@/lib/store/usePlanStore";
 import { formatManYen, formatYen } from "@/lib/format";
-
-/** 各系列に割り当てる色（現在＝先頭の青、以降はスナップショット）。 */
-const COLORS = [
-  "#2563eb",
-  "#16a34a",
-  "#db2777",
-  "#d97706",
-  "#7c3aed",
-  "#0891b2",
-];
+import {
+  axisTick,
+  chartColors,
+  legendStyle,
+  seriesPalette,
+  tooltipStyle,
+} from "./chartTheme";
 
 /**
  * 現在の計画と保存済みスナップショットの純資産推移を重ね描きする。
@@ -61,30 +59,35 @@ export function ComparisonChart({
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+          <XAxis dataKey="year" tick={axisTick} tickLine={false} axisLine={{ stroke: chartColors.grid }} />
           <YAxis
             tickFormatter={(v: number) => formatManYen(v)}
-            tick={{ fontSize: 12 }}
+            tick={axisTick}
+            tickLine={false}
+            axisLine={false}
             width={64}
           />
+          <ReferenceLine y={0} stroke={chartColors.zeroLine} />
           <Tooltip
+            {...tooltipStyle}
             formatter={(value: number, key) => [
               formatYen(value),
               nameByKey[key as string] ?? key,
             ]}
             labelFormatter={(label) => `${label}年`}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={legendStyle} iconType="plainline" iconSize={14} />
           {series.map((s, i) => (
             <Line
               key={s.key}
               type="monotone"
               dataKey={s.key}
               name={s.name}
-              stroke={COLORS[i % COLORS.length]}
-              strokeWidth={2}
+              stroke={seriesPalette[i % seriesPalette.length]}
+              strokeWidth={i === 0 ? 2.5 : 2}
               dot={false}
+              activeDot={{ r: 4, strokeWidth: 0 }}
             />
           ))}
         </LineChart>

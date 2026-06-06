@@ -1,6 +1,7 @@
 "use client";
 
 import { usePlanStore } from "@/lib/store/usePlanStore";
+import { Button } from "@/components/ui/Button";
 import { NumberField, Section, TextField } from "./fields";
 
 export function EventForm() {
@@ -13,19 +14,15 @@ export function EventForm() {
     <Section
       title="ライフイベント"
       action={
-        <button
-          type="button"
-          onClick={addEvent}
-          className="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
-        >
+        <Button variant="primary" size="sm" onClick={addEvent}>
           ＋追加
-        </button>
+        </Button>
       }
     >
       {events.length === 0 ? (
-        <p className="text-xs text-slate-400">イベントなし</p>
+        <p className="text-xs text-ink-mute">イベントなし</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {events.map((event) => (
             <div key={event.id} className="flex items-end gap-2">
               <div className="grid flex-1 grid-cols-3 gap-2">
@@ -47,13 +44,14 @@ export function EventForm() {
                   onChange={(amount) => updateEvent(event.id, { amount })}
                 />
               </div>
-              <button
-                type="button"
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={() => removeEvent(event.id)}
-                className="mb-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
+                className="mb-px"
               >
                 削除
-              </button>
+              </Button>
             </div>
           ))}
         </div>

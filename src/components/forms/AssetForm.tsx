@@ -41,7 +41,8 @@ export function AssetForm() {
           }
         />
       </div>
-      <p className="mt-2 text-[10px] text-slate-400">
+      <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-ink-mute">
+        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold/70" aria-hidden />
         課税口座の運用益には約20%課税。非課税口座（NISA/iDeCo）は運用益非課税です。
       </p>
     </Section>

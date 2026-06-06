@@ -8,6 +8,7 @@ import type {
 } from "@/lib/simulation/types";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { EDUCATION_PRESETS } from "@/lib/simulation/education";
+import { Button } from "@/components/ui/Button";
 import { NumberField, Section, SelectField, TextField } from "./fields";
 
 const SCHOOL_OPTIONS: readonly SchoolType[] = ["公立", "私立"];
@@ -88,7 +89,7 @@ function ChildCard({
 }) {
   const { education } = child;
   return (
-    <div className="rounded-lg border border-slate-200 p-2">
+    <div className="rounded-xl border border-line bg-paper/40 p-3">
       <div className="flex items-end gap-2">
         <div className="grid flex-1 grid-cols-2 gap-2">
           <TextField
@@ -102,29 +103,25 @@ function ChildCard({
             onChange={(birthYear) => onChange({ birthYear })}
           />
         </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="mb-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
-        >
+        <Button variant="danger" size="sm" onClick={onRemove} className="mb-px">
           削除
-        </button>
+        </Button>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {EDUCATION_PRESETS.map((preset) => (
           <button
             key={preset.key}
             type="button"
             onClick={() => onChange({ education: preset.value })}
-            className="rounded-full border border-slate-300 px-2 py-0.5 text-[10px] text-slate-600 hover:bg-slate-100"
+            className="rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-ink-soft transition-colors hover:border-brand hover:bg-brand-50 hover:text-brand-700"
           >
             {preset.label}
           </button>
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         <SelectField
           label="幼稚園"
           value={education.kindergarten}
@@ -195,11 +192,12 @@ export function HouseholdForm() {
       <Section
         title="配偶者"
         action={
-          <label className="flex items-center gap-1 text-xs text-slate-600">
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-ink-soft">
             <input
               type="checkbox"
               checked={input.spouse !== null}
               onChange={(e) => toggleSpouse(e.target.checked)}
+              className="h-4 w-4 cursor-pointer rounded border-line text-brand accent-brand focus:ring-brand/30"
             />
             あり
           </label>
@@ -208,24 +206,20 @@ export function HouseholdForm() {
         {input.spouse ? (
           <PersonFields person={input.spouse} onChange={updateSpouse} />
         ) : (
-          <p className="text-xs text-slate-400">配偶者なし</p>
+          <p className="text-xs text-ink-mute">配偶者なし</p>
         )}
       </Section>
 
       <Section
         title="子"
         action={
-          <button
-            type="button"
-            onClick={addChild}
-            className="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
-          >
+          <Button variant="primary" size="sm" onClick={addChild}>
             ＋追加
-          </button>
+          </Button>
         }
       >
         {children.length === 0 ? (
-          <p className="text-xs text-slate-400">子なし</p>
+          <p className="text-xs text-ink-mute">子なし</p>
         ) : (
           <div className="space-y-2">
             {children.map((child) => (
