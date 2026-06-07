@@ -6,6 +6,7 @@ import { runSimulation } from "@/lib/simulation/engine";
 import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { HouseholdForm } from "@/components/forms/HouseholdForm";
 import { ExpenseForm } from "@/components/forms/ExpenseForm";
 import { AssetForm } from "@/components/forms/AssetForm";
@@ -76,10 +77,7 @@ function Summary({ results }: { results: YearlyResult[] }) {
             className={`absolute inset-y-0 left-0 w-1 ${toneAccent[c.tone]}`}
             aria-hidden
           />
-          <div className="eyebrow">
-            <span className="h-px w-4 bg-gold/70" aria-hidden />
-            {c.label}
-          </div>
+          <Eyebrow>{c.label}</Eyebrow>
           <div
             className={`mt-2 font-display text-[28px] font-semibold leading-tight tabular-nums ${toneText[c.tone]}`}
           >
@@ -134,10 +132,7 @@ export default function Home() {
             </svg>
           </span>
           <div>
-            <span className="eyebrow">
-              <span className="h-px w-4 bg-gold/70" aria-hidden />
-              Life Plan Simulator
-            </span>
+            <Eyebrow>Life Plan Simulator</Eyebrow>
             <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-ink sm:text-[34px]">
               ライフプラン・シミュレーター
             </h1>
