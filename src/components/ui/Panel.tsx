@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Eyebrow } from "./Eyebrow";
 
 /**
  * テーマ統一のパネル（カード）。
@@ -24,12 +25,7 @@ export function Panel({
       {(title || action || eyebrow) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            {eyebrow && (
-              <span className="eyebrow mb-1.5 flex">
-                <span className="h-px w-4 bg-gold/70" aria-hidden />
-                {eyebrow}
-              </span>
-            )}
+            {eyebrow && <Eyebrow className="mb-1.5 flex">{eyebrow}</Eyebrow>}
             {title && (
               <h2 className="text-[15px] font-bold tracking-tight text-ink">
                 {title}
