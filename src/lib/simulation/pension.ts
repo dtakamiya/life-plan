@@ -11,10 +11,10 @@
 export const BASIC_PENSION_ANNUAL = 780_000;
 
 /** 厚生年金の概算係数（現役年収に対する割合） */
-const EARNINGS_RELATED_FACTOR = 0.12;
+export const EARNINGS_RELATED_FACTOR = 0.12;
 
 /** 厚生年金相当部分の概算上限（円） */
-const EARNINGS_RELATED_CAP = 1_500_000;
+export const EARNINGS_RELATED_CAP = 1_500_000;
 
 /**
  * 受給開始後の公的年金の概算年額（円）。
