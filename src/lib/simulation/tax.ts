@@ -8,7 +8,7 @@
 import { estimateSocialInsurance } from "./socialInsurance";
 
 /** 基礎控除の概算（円） */
-const BASIC_DEDUCTION = 480_000;
+export const BASIC_DEDUCTION = 480_000;
 
 /**
  * 給与所得控除の概算（円）。
@@ -37,7 +37,7 @@ export function estimateTaxableIncome(grossSalary: number): number {
 }
 
 /** 所得税の簡易累進ブラケット（課税所得の下限と限界税率）。 */
-const INCOME_TAX_BRACKETS: { threshold: number; rate: number }[] = [
+export const INCOME_TAX_BRACKETS: { threshold: number; rate: number }[] = [
   { threshold: 0, rate: 0.05 },
   { threshold: 1_950_000, rate: 0.1 },
   { threshold: 3_300_000, rate: 0.2 },
@@ -74,7 +74,7 @@ export function estimateIncomeTax(grossSalary: number): number {
 }
 
 /** 住民税の概算率（課税所得比、おおよそ一律10%） */
-const RESIDENCE_TAX_RATE = 0.1;
+export const RESIDENCE_TAX_RATE = 0.1;
 
 /**
  * 住民税の概算（円）。課税所得に一律10%を適用する。

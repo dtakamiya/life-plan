@@ -16,6 +16,7 @@ import { NetWorthChart } from "@/components/charts/NetWorthChart";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { ComparisonChart } from "@/components/charts/ComparisonChart";
 import { ResultTable } from "@/components/ResultTable";
+import { AssumptionsPanel } from "@/components/AssumptionsPanel";
 import { ScenarioBar } from "@/components/ScenarioBar";
 import type { YearlyResult } from "@/lib/simulation/types";
 
@@ -192,6 +193,10 @@ export default function Home() {
                 <Panel eyebrow="Detail" title="年次明細">
                   <ResultTable results={results} />
                 </Panel>
+              </div>
+
+              <div className="animate-fade-up" style={{ animationDelay: "450ms" }}>
+                <AssumptionsPanel input={input} />
               </div>
             </>
           ) : (
