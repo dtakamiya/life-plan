@@ -35,11 +35,12 @@ export function ComparisonChart({
   snapshots: Snapshot[];
 }) {
   const series = [
-    { key: "current", name: "現在", results: current },
+    { key: "current", name: "現在", results: current, dashed: false },
     ...snapshots.map((snap) => ({
       key: snap.id,
-      name: snap.name,
+      name: snap.origin === "game" ? `${snap.name}（ゲーム）` : snap.name,
       results: runSimulation(snap.input),
+      dashed: snap.origin === "game",
     })),
   ];
 
@@ -86,6 +87,7 @@ export function ComparisonChart({
               name={s.name}
               stroke={seriesPalette[i % seriesPalette.length]}
               strokeWidth={i === 0 ? 2.5 : 2}
+              strokeDasharray={s.dashed ? "6 4" : undefined}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
