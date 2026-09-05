@@ -19,7 +19,7 @@ import type {
 import { deriveStages, stageOptionsFor } from "./stages";
 import { GAME_EVENTS, pickEvent } from "./events";
 import { stageRng } from "./rng";
-import { toLifeEvents } from "./project";
+import { projectInputFromApplied } from "./project";
 
 /** ステージごとにイベントが発生する確率。 */
 export const EVENT_RATE = 0.6;
@@ -67,10 +67,7 @@ function assetsAtStageEnd(
   applied: AppliedEffect[],
   stage: Stage,
 ): number {
-  const results = runSimulation({
-    ...baseInput,
-    events: [...baseInput.events, ...toLifeEvents(applied)],
-  });
+  const results = runSimulation(projectInputFromApplied(baseInput, applied));
   const row = results.find((r) => r.year === stage.endYear) ?? results.at(-1);
   return row ? row.assets : 0;
 }

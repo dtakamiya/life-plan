@@ -7,12 +7,14 @@ import { Eyebrow } from "./Eyebrow";
  */
 export function Panel({
   title,
+  titleId,
   eyebrow,
   action,
   children,
   className = "",
 }: {
   title?: ReactNode;
+  titleId?: string;
   eyebrow?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
@@ -27,7 +29,10 @@ export function Panel({
           <div>
             {eyebrow && <Eyebrow className="mb-1.5 flex">{eyebrow}</Eyebrow>}
             {title && (
-              <h2 className="text-[15px] font-bold tracking-tight text-ink">
+              <h2
+                id={titleId}
+                className="text-[15px] font-bold tracking-tight text-ink"
+              >
                 {title}
               </h2>
             )}

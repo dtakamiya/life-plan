@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { projectInput, toLifeEvents } from "./project";
+import { projectInput, projectInputFromApplied, toLifeEvents } from "./project";
 import { runSimulation } from "@/lib/simulation/engine";
 import { defaultPlanInput } from "@/lib/simulation/defaults";
 import type { GameState, AppliedEffect } from "./types";
@@ -112,5 +112,24 @@ describe("projectInput", () => {
     expect(events[0].label).toBe("テスト効果");
     expect(events[0].year).toBe(2030);
     expect(events[0].amount).toBe(-100);
+  });
+});
+
+describe("projectInputFromApplied", () => {
+  it("効果が空なら projectInput と同じ結果になる（射影ロジックの共有）", () => {
+    const base = defaultPlanInput;
+    expect(projectInputFromApplied(base, [])).toEqual(
+      projectInput(base, makeState([])),
+    );
+    expect(runSimulation(projectInputFromApplied(base, []))).toEqual(
+      runSimulation(base),
+    );
+  });
+
+  it("baseInput を破壊しない", () => {
+    const base = defaultPlanInput;
+    const before = structuredClone(base);
+    projectInputFromApplied(base, [effect("g1", base.startYear + 3, -200_000)]);
+    expect(base).toEqual(before);
   });
 });

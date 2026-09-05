@@ -42,6 +42,15 @@ export function StageCard({
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // 入力欄での打鍵は横取りしない（将来この画面に入力欄が増えても安全）。
+      const t = e.target;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        (t instanceof HTMLElement && t.isContentEditable)
+      ) {
+        return;
+      }
       if (e.key >= "1" && e.key <= String(Math.min(9, choices.length))) {
         setSelected(Number(e.key) - 1);
         e.preventDefault();
@@ -61,11 +70,15 @@ export function StageCard({
 
   const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
+  // 同時にマウントされる StageCard は 1 枚だけなので固定 id で問題ない。
+  const titleId = "stage-card-title";
+
   return (
-    <Panel eyebrow={eyebrow} title={title}>
+    <Panel eyebrow={eyebrow} title={title} titleId={titleId}>
       <p
         ref={headingRef}
         tabIndex={-1}
+        aria-labelledby={titleId}
         className="text-sm leading-relaxed text-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
       >
         {description}

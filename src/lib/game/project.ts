@@ -23,10 +23,21 @@ export function toLifeEvents(applied: AppliedEffect[]): LifeEvent[] {
     }));
 }
 
-/** ベース入力にゲームの効果を足した PlanInput を返す（baseInput は破壊しない）。 */
-export function projectInput(baseInput: PlanInput, state: GameState): PlanInput {
+/**
+ * ベース入力に適用済み効果を足した PlanInput を返す（baseInput は破壊しない）。
+ * projectInput と assetsAtStageEnd の両方から使う共通の射影ロジック。
+ */
+export function projectInputFromApplied(
+  baseInput: PlanInput,
+  applied: AppliedEffect[],
+): PlanInput {
   return {
     ...baseInput,
-    events: [...baseInput.events, ...toLifeEvents(state.applied)],
+    events: [...baseInput.events, ...toLifeEvents(applied)],
   };
+}
+
+/** ベース入力にゲームの効果を足した PlanInput を返す（baseInput は破壊しない）。 */
+export function projectInput(baseInput: PlanInput, state: GameState): PlanInput {
+  return projectInputFromApplied(baseInput, state.applied);
 }

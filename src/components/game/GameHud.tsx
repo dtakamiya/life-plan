@@ -108,7 +108,7 @@ export function GameHud({
           <Row
             label="資産寿命"
             value={`${stats.assetLifeAge}歳`}
-            note="この先で資産が尽きる"
+            note="この年で資産が尽きる"
           />
         )}
         <SatisfactionBar value={satisfaction} />

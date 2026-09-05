@@ -222,7 +222,20 @@ export const usePlanStore = create<PlanState>()(
       loadSnapshot: (id) =>
         set((s) => {
           const snapshot = s.snapshots.find((snap) => snap.id === id);
-          return snapshot ? { input: structuredClone(snapshot.input) } : s;
+          if (!snapshot) return s;
+          const input = structuredClone(snapshot.input);
+          // ゲーム由来の乱数イベントが本体入力に無標識で混ざるのを防ぐ
+          // （免責節の要件）。game- で始まる id のイベント label に「（ゲーム）」
+          // を前置する。既に前置済みなら二重付与しない（冪等）。
+          if (snapshot.origin === "game") {
+            const PREFIX = "（ゲーム）";
+            input.events = input.events.map((e) =>
+              e.id.startsWith("game-") && !e.label.startsWith(PREFIX)
+                ? { ...e, label: `${PREFIX}${e.label}` }
+                : e,
+            );
+          }
+          return { input };
         }),
 
       reset: () => set({ input: defaultPlanInput }),

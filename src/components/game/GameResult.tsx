@@ -65,6 +65,9 @@ export function GameResult({
   ).size;
 
   const assetDiff = stats.finalAssets - baseStats.finalAssets;
+  // 符号付きの差分であることを示す（正なら + を前置。負は formatYen が - / △ を付ける）。
+  const assetDiffText =
+    assetDiff > 0 ? `+${formatYen(assetDiff)}` : formatYen(assetDiff);
   const lifeDiff = stats.assetLifeAge - baseStats.assetLifeAge;
 
   return (
@@ -90,7 +93,7 @@ export function GameResult({
 
       <Panel eyebrow="Compare" title="基本計画との違い">
         <ul className="space-y-2 text-sm leading-relaxed text-ink">
-          <li>最終資産 {formatYen(assetDiff)}</li>
+          <li>最終資産 {assetDiffText}</li>
           {(stats.depletionAge !== null || baseStats.depletionAge !== null) && (
             <li>
               {lifeDiff === 0
