@@ -13,13 +13,17 @@ import type {
 } from "@/lib/simulation/types";
 import { defaultPlanInput } from "@/lib/simulation/defaults";
 import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
-import { planInputSchema } from "@/lib/schema";
+import { planInputSchema, snapshotSchema } from "@/lib/schema";
+
+/** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
+export type SnapshotOrigin = "manual" | "game";
 
 /** 名前付きで保存した計画のスナップショット（比較用）。 */
 export type Snapshot = {
   id: string;
   name: string;
   input: PlanInput;
+  origin: SnapshotOrigin;
 };
 
 type PlanState = {
@@ -42,8 +46,16 @@ type PlanState = {
   addLoan: () => void;
   updateLoan: (id: string, patch: Partial<Loan>) => void;
   removeLoan: (id: string) => void;
-  /** 現在の入力を名前付きスナップショットとして保存する。 */
-  saveSnapshot: (name: string) => void;
+  /**
+   * 計画を名前付きスナップショットとして保存する。
+   * input を省略すると現在の入力を複製する。ゲームモードは
+   * 射影済みの PlanInput と origin: "game" を渡す。
+   */
+  saveSnapshot: (
+    name: string,
+    input?: PlanInput,
+    origin?: SnapshotOrigin,
+  ) => void;
   /** スナップショットを削除する。 */
   removeSnapshot: (id: string) => void;
   /** スナップショットの内容を現在の入力に読み込む。 */
@@ -191,12 +203,13 @@ export const usePlanStore = create<PlanState>()(
           },
         })),
 
-      saveSnapshot: (name) =>
+      saveSnapshot: (name, input, origin = "manual") =>
         set((s) => {
           const snapshot: Snapshot = {
             id: makeId("snap"),
             name,
-            input: structuredClone(s.input),
+            input: structuredClone(input ?? s.input),
+            origin,
           };
           return { snapshots: [...s.snapshots, snapshot] };
         }),
@@ -209,7 +222,20 @@ export const usePlanStore = create<PlanState>()(
       loadSnapshot: (id) =>
         set((s) => {
           const snapshot = s.snapshots.find((snap) => snap.id === id);
-          return snapshot ? { input: structuredClone(snapshot.input) } : s;
+          if (!snapshot) return s;
+          const input = structuredClone(snapshot.input);
+          // ゲーム由来の乱数イベントが本体入力に無標識で混ざるのを防ぐ
+          // （免責節の要件）。game- で始まる id のイベント label に「（ゲーム）」
+          // を前置する。既に前置済みなら二重付与しない（冪等）。
+          if (snapshot.origin === "game") {
+            const PREFIX = "（ゲーム）";
+            input.events = input.events.map((e) =>
+              e.id.startsWith("game-") && !e.label.startsWith(PREFIX)
+                ? { ...e, label: `${PREFIX}${e.label}` }
+                : e,
+            );
+          }
+          return { input };
         }),
 
       reset: () => set({ input: defaultPlanInput }),
@@ -230,17 +256,8 @@ export const usePlanStore = create<PlanState>()(
 
         const snapshots: Snapshot[] = Array.isArray(p?.snapshots)
           ? p.snapshots.flatMap((raw) => {
-              const snap = raw as {
-                id?: unknown;
-                name?: unknown;
-                input?: unknown;
-              };
-              const parsed = planInputSchema.safeParse(snap.input);
-              return parsed.success &&
-                typeof snap.id === "string" &&
-                typeof snap.name === "string"
-                ? [{ id: snap.id, name: snap.name, input: parsed.data }]
-                : [];
+              const parsed = snapshotSchema.safeParse(raw);
+              return parsed.success ? [parsed.data] : [];
             })
           : [];
 

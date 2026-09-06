@@ -45,6 +45,14 @@ export function ScenarioBar() {
               className="flex items-center gap-1 rounded-full border border-line bg-paper/60 py-1 pl-3 pr-1 text-xs text-ink-soft"
             >
               <span className="font-medium text-ink">{snap.name}</span>
+              {snap.origin === "game" && (
+                <span
+                  className="rounded-full border border-gold/40 bg-gold/10 px-1.5 py-px text-[10px] font-medium text-gold"
+                  title="ゲームモードの進行から保存されたプランです"
+                >
+                  ゲーム
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => loadSnapshot(snap.id)}
