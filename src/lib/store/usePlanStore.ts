@@ -238,7 +238,20 @@ export const usePlanStore = create<PlanState>()(
           return { input };
         }),
 
-      reset: () => set({ input: defaultPlanInput }),
+      /**
+       * 全入力ステートを既定値へ戻す。
+       * 対象は「入力」のみ: self / spouse / children / loans / events /
+       * assets（taxable・taxFree）に加え、保存済み比較プラン（snapshots）も
+       * 空に戻す。これにより前ペルソナのローン・イベント・保存プランが
+       * 次のペルソナ入力へ混入しない。
+       * 前提: これは入力の全消去であり、テーマ等の UI 設定や
+       * localStorage 上の別キーには一切触れない（persist の "life-plan/v1"
+       * キー内の input / snapshots のみを初期化する）。
+       * defaultPlanInput は共有参照のため structuredClone して、
+       * 以降の編集が既定値オブジェクトを汚染しないようにする。
+       */
+      reset: () =>
+        set({ input: structuredClone(defaultPlanInput), snapshots: [] }),
     }),
     {
       name: "life-plan/v1",
