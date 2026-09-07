@@ -6,7 +6,12 @@ import type { GameStats } from "@/lib/game/stats";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { formatYen } from "@/lib/format";
-import { EVENT_DISCLAIMER, SATISFACTION_DISCLAIMER } from "./GameHud";
+import {
+  EVENT_DISCLAIMER,
+  SATISFACTION_DEFINITION,
+  SATISFACTION_DISCLAIMER,
+} from "./GameHud";
+import type { SatisfactionSummary } from "@/lib/game/satisfaction";
 import { STAGE_OPTION_TABLE } from "@/lib/game/stages";
 
 /** 方針カードのログを 1 行に要約する。 */
@@ -38,6 +43,7 @@ export function GameResult({
   state,
   stats,
   baseStats,
+  satisfaction,
   onSave,
   onRestart,
 }: {
@@ -46,6 +52,8 @@ export function GameResult({
   stats: GameStats;
   /** 選択を一切反映しないベースプランの統計 */
   baseStats: GameStats;
+  /** 満足度指標の単一ソース（ヘッダ HUD と同じ値） */
+  satisfaction: SatisfactionSummary;
   onSave: (name: string) => void;
   onRestart: () => void;
 }) {
@@ -53,16 +61,9 @@ export function GameResult({
   const [saved, setSaved] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const satisfactionValues = state.log.map((l) => l.satisfaction);
-  const averageSatisfaction =
-    satisfactionValues.length === 0
-      ? state.satisfaction
-      : Math.round(
-          satisfactionValues.reduce((a, b) => a + b, 0) / satisfactionValues.length,
-        );
-  const lowStages = new Set(
-    state.log.filter((l) => l.satisfaction < 30).map((l) => l.stageIndex),
-  ).size;
+  // 満足度はヘッダ HUD と同じ単一ソース（summarizeSatisfaction）から受け取る。
+  const averageSatisfaction = satisfaction.value;
+  const lowStages = satisfaction.lowStages;
 
   const assetDiff = stats.finalAssets - baseStats.finalAssets;
   // 符号付きの差分であることを示す（正なら + を前置。負は formatYen が - / △ を付ける）。
@@ -89,6 +90,11 @@ export function GameResult({
             {lowStages > 0 && `／満足度が 30 を割ったステージ ${lowStages} 回`}
           </li>
         </ul>
+        <p className="mt-3 text-[11px] leading-relaxed text-ink-mute">
+          {SATISFACTION_DEFINITION}
+          {satisfaction.confirmedStages > 0 &&
+            `（今回の母数は ${satisfaction.confirmedStages} ステージ）`}
+        </p>
       </Panel>
 
       <Panel eyebrow="Compare" title="基本計画との違い">

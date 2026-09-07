@@ -21,6 +21,7 @@ import {
 import { stageOptionsFor } from "@/lib/game/stages";
 import { projectInput } from "@/lib/game/project";
 import { computeStats } from "@/lib/game/stats";
+import { summarizeSatisfaction } from "@/lib/game/satisfaction";
 import type { GameState } from "@/lib/game/types";
 
 /** seed を作る。SSR とクライアントで食い違わないよう、レンダー本体では呼ばない。 */
@@ -49,6 +50,8 @@ export default function GamePage() {
   // 進行中はステージ末まで、終了後は全期間で集計する。
   const stats = computeStats(results, stage ? stage.endYear : undefined);
   const baseStats = computeStats(baseResults);
+  // ヘッダ HUD と結果テキストが参照する満足度指標の単一ソース。
+  const satisfaction = summarizeSatisfaction(game?.log ?? []);
 
   const event = game ? pendingGameEvent(game) : null;
 
@@ -123,7 +126,7 @@ export default function GamePage() {
               stage={stage}
               stageCount={game.stages.length}
               stats={stats}
-              satisfaction={game.satisfaction}
+              satisfaction={satisfaction}
             />
           </div>
 
@@ -155,6 +158,7 @@ export default function GamePage() {
                 state={game}
                 stats={stats}
                 baseStats={baseStats}
+                satisfaction={satisfaction}
                 onSave={(name) =>
                   saveSnapshot(name, projectInput(game.baseInput, game), "game")
                 }

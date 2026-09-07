@@ -3,6 +3,10 @@
 import type { PlanInput } from "@/lib/simulation/types";
 import type { Stage } from "@/lib/game/types";
 import type { GameStats } from "@/lib/game/stats";
+import {
+  satisfactionMark,
+  type SatisfactionSummary,
+} from "@/lib/game/satisfaction";
 import { Panel } from "@/components/ui/Panel";
 import { formatYen } from "@/lib/format";
 
@@ -13,6 +17,10 @@ export const EVENT_DISCLAIMER =
 /** 満足度が金融的な指標ではない旨の注記。 */
 export const SATISFACTION_DISCLAIMER =
   "満足度はゲーム上の演出で、金融的な指標ではありません。";
+
+/** 満足度の定義。ヘッダ・結果画面で同じ文言を使う。 */
+export const SATISFACTION_DEFINITION =
+  "満足度＝各ステージ確定時のスコアの平均（母数は確定したステージ）。0〜100 で、30 未満を「低い」、60 以上を「高い」とします。";
 
 /** ラベルと値を並べる 1 行。 */
 function Row({
@@ -38,10 +46,11 @@ function Row({
 /**
  * 満足度のバー。バー自体は aria-hidden にし、数値をテキストで併記する。
  * 状態は色だけでなく記号とテキストでも示す。
+ * 表示値・区分は summarizeSatisfaction の戻り値だけを参照する（単一ソース）。
  */
-function SatisfactionBar({ value }: { value: number }) {
-  const level = value >= 60 ? "高い" : value >= 30 ? "ふつう" : "低い";
-  const mark = value >= 60 ? "◎" : value >= 30 ? "○" : "△";
+function SatisfactionBar({ summary }: { summary: SatisfactionSummary }) {
+  const { value, level } = summary;
+  const mark = satisfactionMark(value);
   return (
     <div
       role="progressbar"
@@ -79,7 +88,8 @@ export function GameHud({
   stage: Stage | null;
   stageCount: number;
   stats: GameStats;
-  satisfaction: number;
+  /** 満足度指標の単一ソース（summarizeSatisfaction の戻り値） */
+  satisfaction: SatisfactionSummary;
 }) {
   const activeLoans = input.loans.filter(
     (loan) =>
@@ -111,8 +121,11 @@ export function GameHud({
             note="この年で資産が尽きる"
           />
         )}
-        <SatisfactionBar value={satisfaction} />
+        <SatisfactionBar summary={satisfaction} />
         <p className="mt-2 text-[11px] leading-relaxed text-ink-mute">
+          {SATISFACTION_DEFINITION}
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-ink-mute">
           {SATISFACTION_DISCLAIMER}
         </p>
       </Panel>
