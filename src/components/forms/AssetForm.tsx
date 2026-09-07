@@ -27,6 +27,7 @@ export function AssetForm() {
         />
         <PercentField
           label="運用利回り"
+          signed
           value={assets.annualReturnRate}
           onChange={(annualReturnRate) => updateAssets({ annualReturnRate })}
         />
