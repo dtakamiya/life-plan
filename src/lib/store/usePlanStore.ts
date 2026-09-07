@@ -13,6 +13,7 @@ import type {
 } from "@/lib/simulation/types";
 import { defaultPlanInput } from "@/lib/simulation/defaults";
 import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
+import { newLoan } from "./newLoan";
 import { planInputSchema, snapshotSchema } from "@/lib/schema";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
@@ -174,14 +175,9 @@ export const usePlanStore = create<PlanState>()(
 
       addLoan: () =>
         set((s) => {
-          const loan: Loan = {
-            id: makeId("loan"),
-            label: "ローン",
-            startYear: s.input.startYear,
-            principal: 30_000_000,
-            annualRate: 0.01,
-            termYears: 35,
-          };
+          // 新規行は 0 円始まり（借入額・金利・期間すべて 0）。ユーザーが値を
+          // 入れるまで返済額に寄与しない。既定値の定義は newLoan を参照。
+          const loan: Loan = newLoan(makeId("loan"), s.input.startYear);
           return { input: { ...s.input, loans: [...s.input.loans, loan] } };
         }),
 
