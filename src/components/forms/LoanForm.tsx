@@ -47,6 +47,11 @@ export function LoanForm() {
                   削除
                 </Button>
               </div>
+              {/*
+                新規追加直後のローン行は借入額・金利・返済期間がすべて 0 で、
+                返済には寄与しない（ユーザーが値を入力するまで）。返済期間が 0 の
+                間はシミュレーションの年次系列に負債が混入しない。
+              */}
               <div className="grid grid-cols-2 gap-2">
                 <NumberField
                   label="返済開始年"
@@ -56,6 +61,7 @@ export function LoanForm() {
                 <NumberField
                   label="返済期間"
                   suffix="年"
+                  hint="未入力（0）の間は返済に計上されません"
                   value={loan.termYears}
                   onChange={(termYears) => updateLoan(loan.id, { termYears })}
                 />
@@ -63,6 +69,7 @@ export function LoanForm() {
                   label="借入額"
                   suffix="円"
                   step={1_000_000}
+                  hint="0 円のうちは返済額に寄与しません"
                   value={loan.principal}
                   onChange={(principal) => updateLoan(loan.id, { principal })}
                 />
