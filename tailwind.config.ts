@@ -15,7 +15,9 @@ const config: Config = {
         ink: {
           DEFAULT: "#17283b",
           soft: "#45566b",
-          mute: "#8493a5",
+          // lp-ui-ux-audit-fix / FR1.1: WCAG AA (4.5:1) を満たす値に変更
+          // （paper #faf8f4 比 約5.16:1 / surface #ffffff 比 約5.47:1）。
+          mute: "#5a6b7e",
         },
         line: {
           DEFAULT: "#e7e0d6",

@@ -25,10 +25,26 @@ function toChartData(results: YearlyResult[]) {
   }));
 }
 
-export function CashFlowChart({ results }: { results: YearlyResult[] }) {
+/**
+ * lp-ui-ux-audit-fix / FR6.1: `aria-describedby` で既存の `ResultTable`
+ * （数値表）と明示的に関連付け、スクリーンリーダー利用者がグラフの内容を
+ * 数値表から取得できるようにする。
+ */
+export function CashFlowChart({
+  results,
+  describedById = "result-table",
+}: {
+  results: YearlyResult[];
+  describedById?: string;
+}) {
   const data = toChartData(results);
   return (
-    <div className="h-72 w-full">
+    <div
+      className="h-72 w-full"
+      role="img"
+      aria-label="年次キャッシュフロー（収入・支出・収支）の棒グラフ"
+      aria-describedby={describedById}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />

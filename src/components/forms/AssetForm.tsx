@@ -9,7 +9,7 @@ export function AssetForm() {
 
   return (
     <Section title="資産運用">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <NumberField
           label="課税口座 初期資産"
           suffix="円"

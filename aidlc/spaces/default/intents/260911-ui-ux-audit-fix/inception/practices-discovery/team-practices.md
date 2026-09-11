@@ -1,9 +1,4 @@
-# Team-Level Rules
-
-> This team's affirmed practices and corrections. Loaded after `org.md` as
-> strict-additive guidance; contradictions with broader policy are rejected.
-> Populated by the practices-discovery affirmation gate. Edit at the gate,
-> not directly.
+# Team Practices
 
 ## Way of Working
 
@@ -43,10 +38,6 @@
   を実行する。lint・型チェック単体ステップ・カバレッジ閾値のCI組み込みは、今回の
   ワークフロー（`ci-pipeline` ステージはSKIP）のスコープ外とする。
 
-## Change Control
-
-<!-- Affirmed by the team. Mode: strict or relaxed. Strict here holds for every intent and cannot be changed from chat. -->
-
 ## Deployment
 
 - **手元でビルドし、ローカル環境または自宅サーバーで運用する**。Vercel 等の
@@ -74,14 +65,3 @@
   する言語規約を維持する。
 - フォーマッタは Prettier 等を個別導入せず、ESLint（`next/core-web-vitals`,
   `next/typescript` の継承のみ、カスタムルールなし）に委ねる既定を維持する。
-## Forbidden
-
-<!-- Team-specific forbidden patterns -->
-
-## Mandated
-
-<!-- Team-specific mandates -->
-
-## Corrections
-
-<!-- Self-learning loop appends here. -->

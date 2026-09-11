@@ -5,6 +5,7 @@ import type { GameState } from "@/lib/game/types";
 import type { GameStats } from "@/lib/game/stats";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { formatYen } from "@/lib/format";
 import {
   EVENT_DISCLAIMER,
@@ -59,7 +60,7 @@ export function GameResult({
 }) {
   const [name, setName] = useState("ゲームの結果");
   const [saved, setSaved] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const confirmRef = useRef<ConfirmDialogHandle>(null);
 
   // 満足度はヘッダ HUD と同じ単一ソース（summarizeSatisfaction）から受け取る。
   const averageSatisfaction = satisfaction.value;
@@ -154,38 +155,18 @@ export function GameResult({
       </Panel>
 
       <div>
-        <Button variant="danger" onClick={() => dialogRef.current?.showModal()}>
+        <Button variant="danger" onClick={() => confirmRef.current?.open()}>
           もう一度はじめる
         </Button>
       </div>
 
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="restart-title"
-        className="rounded-2xl border border-line bg-surface p-5 text-ink shadow-panel backdrop:bg-ink/30"
-      >
-        <h2 id="restart-title" className="text-[15px] font-bold text-ink">
-          もう一度はじめますか？
-        </h2>
-        <p className="mt-2 max-w-xs text-xs leading-relaxed text-ink-soft">
-          いまの進行は保存されず、失われます。保存済みのシナリオには影響しません。
-        </p>
-        <div className="mt-4 flex justify-end gap-2">
-          {/* 確認ボタンには初期フォーカスを当てない（autofocus は「閉じる」側） */}
-          <Button autoFocus onClick={() => dialogRef.current?.close()}>
-            閉じる
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => {
-              dialogRef.current?.close();
-              onRestart();
-            }}
-          >
-            進行を捨ててやり直す
-          </Button>
-        </div>
-      </dialog>
+      <ConfirmDialog
+        ref={confirmRef}
+        title="もう一度はじめますか？"
+        description="いまの進行は保存されず、失われます。保存済みのシナリオには影響しません。"
+        confirmLabel="進行を捨ててやり直す"
+        onConfirm={onRestart}
+      />
     </div>
   );
 }
