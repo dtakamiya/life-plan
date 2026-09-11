@@ -40,6 +40,7 @@ export function EventForm() {
                   label="金額(+収/−支)"
                   suffix="円"
                   step={100_000}
+                  signed
                   value={event.amount}
                   onChange={(amount) => updateEvent(event.id, { amount })}
                 />

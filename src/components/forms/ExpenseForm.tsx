@@ -21,6 +21,7 @@ export function ExpenseForm() {
         />
         <PercentField
           label="物価上昇率"
+          signed
           value={expenses.inflationRate}
           onChange={(inflationRate) => updateExpenses({ inflationRate })}
         />
