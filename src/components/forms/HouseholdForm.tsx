@@ -6,9 +6,11 @@ import type {
   SchoolType,
   UniversityType,
 } from "@/lib/simulation/types";
+import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { EDUCATION_PRESETS } from "@/lib/simulation/education";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, Section, SelectField, TextField } from "./fields";
 
 const SCHOOL_OPTIONS: readonly SchoolType[] = ["公立", "私立"];
@@ -28,7 +30,7 @@ function PersonFields({
   onChange: (patch: Partial<Person>) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <TextField
         label="名前"
         value={person.name}
@@ -91,7 +93,7 @@ function ChildCard({
   return (
     <div className="rounded-xl border border-line bg-paper/40 p-3">
       <div className="flex items-end gap-2">
-        <div className="grid flex-1 grid-cols-2 gap-2">
+        <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
           <TextField
             label="名前"
             value={child.name}
@@ -109,19 +111,30 @@ function ChildCard({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {EDUCATION_PRESETS.map((preset) => (
-          <button
-            key={preset.key}
-            type="button"
-            onClick={() => onChange({ education: preset.value })}
-            className="rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-ink-soft transition-colors hover:border-brand hover:bg-brand-50 hover:text-brand-700"
-          >
-            {preset.label}
-          </button>
-        ))}
+        {EDUCATION_PRESETS.map((preset) => {
+          // lp-ui-ux-audit-fix / FR5.1: 現在の進路と一致するプリセットを
+          // 選択中として aria-pressed + 視覚的ハイライトで示す。
+          const isSelected =
+            JSON.stringify(education) === JSON.stringify(preset.value);
+          return (
+            <button
+              key={preset.key}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => onChange({ education: preset.value })}
+              className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                isSelected
+                  ? "border-brand bg-brand-50 font-medium text-brand-700"
+                  : "border-line bg-surface text-ink-soft hover:border-brand hover:bg-brand-50 hover:text-brand-700"
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <SelectField
           label="幼稚園"
           value={education.kindergarten}
@@ -168,10 +181,14 @@ export function HouseholdForm() {
   const removeChild = usePlanStore((s) => s.removeChild);
   const setRange = usePlanStore((s) => s.setRange);
 
+  // lp-ui-ux-audit-fix / FR4.1: 子カードの削除は確認ダイアログを経由する
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const confirmRef = useRef<ConfirmDialogHandle>(null);
+
   return (
     <div className="space-y-4">
       <Section title="シミュレーション期間">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <NumberField
             label="開始年"
             value={input.startYear}
@@ -192,14 +209,22 @@ export function HouseholdForm() {
       <Section
         title="配偶者"
         action={
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-ink-soft">
+          // lp-ui-ux-audit-fix / FR7.1: StageCard のカード選択・教育プリセットの
+          // ピル型ボタンと視覚的に揃える（native checkbox は sr-only で維持）。
+          <label
+            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+              input.spouse !== null
+                ? "border-brand bg-brand-50 text-brand-700"
+                : "border-line bg-surface text-ink-soft hover:border-brand hover:bg-brand-50 hover:text-brand-700"
+            }`}
+          >
             <input
               type="checkbox"
               checked={input.spouse !== null}
               onChange={(e) => toggleSpouse(e.target.checked)}
-              className="h-4 w-4 cursor-pointer rounded border-line text-brand accent-brand focus:ring-brand/30"
+              className="sr-only"
             />
-            あり
+            配偶者あり
           </label>
         }
       >
@@ -227,12 +252,24 @@ export function HouseholdForm() {
                 key={child.id}
                 child={child}
                 onChange={(patch) => updateChild(child.id, patch)}
-                onRemove={() => removeChild(child.id)}
+                onRemove={() => {
+                  setPendingDeleteId(child.id);
+                  confirmRef.current?.open();
+                }}
               />
             ))}
           </div>
         )}
       </Section>
+
+      <ConfirmDialog
+        ref={confirmRef}
+        title="この子の情報を削除しますか？"
+        description="削除すると元に戻せません。"
+        onConfirm={() => {
+          if (pendingDeleteId) removeChild(pendingDeleteId);
+        }}
+      />
     </div>
   );
 }

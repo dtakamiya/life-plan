@@ -4,15 +4,65 @@ import { useId, useState } from "react";
 import { Panel } from "@/components/ui/Panel";
 import { normalizeNumberInput } from "./number-input";
 
+/**
+ * フォームバリデーション可視化（lp-ui-ux-audit-fix / FR2.1〜FR2.3）:
+ * - `error` を渡すとエラーメッセージを表示し、`aria-invalid` /
+ *   `aria-describedby` で入力欄と関連付ける（`try`/`catch` は使わず、
+ *   呼び出し側が判定した文字列を渡すだけの戻り値ベースの表現）。
+ * - `required` を渡すとラベルに視覚的な必須マーク（*）を付ける。
+ */
 type BaseProps = {
   label: string;
   hint?: string;
+  /** 入力エラーメッセージ。存在する間は aria-invalid + aria-describedby を付与する。 */
+  error?: string;
+  /** true でラベルに必須マーク（*）を表示する（見た目のみ、送信時の必須判定はしない）。 */
+  required?: boolean;
 };
 
 const inputClass =
   "w-full rounded-lg border border-line bg-paper/50 px-3 py-2 text-sm text-ink shadow-[inset_0_1px_2px_rgba(23,40,59,0.04)] transition-colors placeholder:text-ink-mute focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand/25";
 
+const inputErrorClass =
+  "border-danger focus:border-danger focus:ring-danger/25";
+
 const labelClass = "mb-1 block text-xs font-medium text-ink-soft";
+
+function RequiredMark() {
+  return (
+    <span className="ml-0.5 text-danger" aria-hidden>
+      *
+    </span>
+  );
+}
+
+function FieldMessages({
+  hintId,
+  hint,
+  errorId,
+  error,
+}: {
+  hintId: string;
+  hint?: string;
+  errorId: string;
+  error?: string;
+}) {
+  return (
+    <>
+      {error ? (
+        <span id={errorId} role="alert" className="mt-1 block text-[11px] text-danger">
+          {error}
+        </span>
+      ) : (
+        hint && (
+          <span id={hintId} className="mt-1 block text-[11px] text-ink-mute">
+            {hint}
+          </span>
+        )
+      )}
+    </>
+  );
+}
 
 export function Section({
   title,
@@ -49,6 +99,8 @@ export function Section({
 export function NumberField({
   label,
   hint,
+  error,
+  required = false,
   value,
   onChange,
   suffix,
@@ -63,6 +115,8 @@ export function NumberField({
   signed?: boolean;
 }) {
   const id = useId();
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
   // null = 非編集（外部 value を表示） / 文字列 = 編集中の生入力
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -71,13 +125,18 @@ export function NumberField({
 
   return (
     <label htmlFor={id} className="block">
-      <span className={labelClass}>{label}</span>
+      <span className={labelClass}>
+        {label}
+        {required && <RequiredMark />}
+      </span>
       <span className="relative flex items-center">
         <input
           id={id}
           type="text"
           inputMode={signed ? "text" : "numeric"}
           value={display}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? errorId : hint ? hintId : undefined}
           onChange={(e) => {
             const raw = e.target.value;
             const { text, value: next } = normalizeNumberInput(raw, { signed });
@@ -94,7 +153,7 @@ export function NumberField({
             onChange(next ?? 0);
             setDraft(null);
           }}
-          className={`${inputClass} tabular-nums ${suffix ? "pr-9" : ""}`}
+          className={`${inputClass} tabular-nums ${suffix ? "pr-9" : ""} ${error ? inputErrorClass : ""}`}
         />
         {suffix && (
           <span className="pointer-events-none absolute right-3 text-xs text-ink-mute">
@@ -102,7 +161,7 @@ export function NumberField({
           </span>
         )}
       </span>
-      {hint && <span className="mt-1 block text-[11px] text-ink-mute">{hint}</span>}
+      <FieldMessages hintId={hintId} hint={hint} errorId={errorId} error={error} />
     </label>
   );
 }
@@ -117,6 +176,8 @@ export function NumberField({
 export function PercentField({
   label,
   hint,
+  error,
+  required = false,
   value,
   onChange,
   signed = false,
@@ -130,6 +191,8 @@ export function PercentField({
     <NumberField
       label={label}
       hint={hint}
+      error={error}
+      required={required}
       suffix="%"
       step={0.1}
       signed={signed}
@@ -144,6 +207,9 @@ export function PercentField({
 /** 選択肢から1つ選ぶプルダウン。option の値は文字列。 */
 export function SelectField<T extends string>({
   label,
+  hint,
+  error,
+  required = false,
   value,
   options,
   onChange,
@@ -153,15 +219,22 @@ export function SelectField<T extends string>({
   onChange: (value: T) => void;
 }) {
   const id = useId();
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
   return (
     <label htmlFor={id} className="block">
-      <span className={labelClass}>{label}</span>
+      <span className={labelClass}>
+        {label}
+        {required && <RequiredMark />}
+      </span>
       <div className="relative">
         <select
           id={id}
           value={value}
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? errorId : hint ? hintId : undefined}
           onChange={(e) => onChange(e.target.value as T)}
-          className={`${inputClass} cursor-pointer appearance-none pr-8`}
+          className={`${inputClass} cursor-pointer appearance-none pr-8 ${error ? inputErrorClass : ""}`}
         >
           {options.map((option) => (
             <option key={option} value={option}>
@@ -180,6 +253,7 @@ export function SelectField<T extends string>({
           <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
+      <FieldMessages hintId={hintId} hint={hint} errorId={errorId} error={error} />
     </label>
   );
 }
@@ -187,6 +261,9 @@ export function SelectField<T extends string>({
 /** テキスト入力。 */
 export function TextField({
   label,
+  hint,
+  error,
+  required = false,
   value,
   onChange,
 }: BaseProps & {
@@ -194,16 +271,24 @@ export function TextField({
   onChange: (value: string) => void;
 }) {
   const id = useId();
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
   return (
     <label htmlFor={id} className="block">
-      <span className={labelClass}>{label}</span>
+      <span className={labelClass}>
+        {label}
+        {required && <RequiredMark />}
+      </span>
       <input
         id={id}
         type="text"
         value={value}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errorId : hint ? hintId : undefined}
         onChange={(e) => onChange(e.target.value)}
-        className={inputClass}
+        className={`${inputClass} ${error ? inputErrorClass : ""}`}
       />
+      <FieldMessages hintId={hintId} hint={hint} errorId={errorId} error={error} />
     </label>
   );
 }

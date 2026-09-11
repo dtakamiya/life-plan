@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, Section, TextField } from "./fields";
 
 export function EventForm() {
@@ -9,6 +11,10 @@ export function EventForm() {
   const addEvent = usePlanStore((s) => s.addEvent);
   const updateEvent = usePlanStore((s) => s.updateEvent);
   const removeEvent = usePlanStore((s) => s.removeEvent);
+
+  // lp-ui-ux-audit-fix / FR4.1: 削除は確認ダイアログを経由する
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const confirmRef = useRef<ConfirmDialogHandle>(null);
 
   return (
     <Section
@@ -25,7 +31,7 @@ export function EventForm() {
         <div className="space-y-2.5">
           {events.map((event) => (
             <div key={event.id} className="flex items-end gap-2">
-              <div className="grid flex-1 grid-cols-3 gap-2">
+              <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
                 <NumberField
                   label="年"
                   value={event.year}
@@ -48,7 +54,10 @@ export function EventForm() {
               <Button
                 variant="danger"
                 size="sm"
-                onClick={() => removeEvent(event.id)}
+                onClick={() => {
+                  setPendingDeleteId(event.id);
+                  confirmRef.current?.open();
+                }}
                 className="mb-px"
               >
                 削除
@@ -57,6 +66,14 @@ export function EventForm() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        ref={confirmRef}
+        title="このライフイベントを削除しますか？"
+        description="削除すると元に戻せません。"
+        onConfirm={() => {
+          if (pendingDeleteId) removeEvent(pendingDeleteId);
+        }}
+      />
     </Section>
   );
 }

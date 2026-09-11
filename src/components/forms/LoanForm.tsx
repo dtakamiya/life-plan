@@ -1,9 +1,11 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { annualLoanPayment } from "@/lib/simulation/loan";
 import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, PercentField, Section, TextField } from "./fields";
 
 export function LoanForm() {
@@ -11,6 +13,10 @@ export function LoanForm() {
   const addLoan = usePlanStore((s) => s.addLoan);
   const updateLoan = usePlanStore((s) => s.updateLoan);
   const removeLoan = usePlanStore((s) => s.removeLoan);
+
+  // lp-ui-ux-audit-fix / FR4.1: 削除は確認ダイアログを経由する
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const confirmRef = useRef<ConfirmDialogHandle>(null);
 
   return (
     <Section
@@ -41,7 +47,10 @@ export function LoanForm() {
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => removeLoan(loan.id)}
+                  onClick={() => {
+                    setPendingDeleteId(loan.id);
+                    confirmRef.current?.open();
+                  }}
                   className="mb-px"
                 >
                   削除
@@ -52,7 +61,7 @@ export function LoanForm() {
                 返済には寄与しない（ユーザーが値を入力するまで）。返済期間が 0 の
                 間はシミュレーションの年次系列に負債が混入しない。
               */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <NumberField
                   label="返済開始年"
                   value={loan.startYear}
@@ -91,6 +100,14 @@ export function LoanForm() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        ref={confirmRef}
+        title="このローンを削除しますか？"
+        description="削除すると元に戻せません。"
+        onConfirm={() => {
+          if (pendingDeleteId) removeLoan(pendingDeleteId);
+        }}
+      />
     </Section>
   );
 }

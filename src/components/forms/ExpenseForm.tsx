@@ -9,7 +9,7 @@ export function ExpenseForm() {
 
   return (
     <Section title="支出">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <NumberField
           label="基礎生活費（年額）"
           suffix="円"

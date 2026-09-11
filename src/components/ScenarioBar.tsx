@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 
 /**
  * 現在の入力をスナップショットとして保存し、保存済みプランの読込・削除を行うバー。
@@ -15,6 +16,13 @@ export function ScenarioBar() {
   const removeSnapshot = usePlanStore((s) => s.removeSnapshot);
   const loadSnapshot = usePlanStore((s) => s.loadSnapshot);
   const [name, setName] = useState("");
+
+  // lp-ui-ux-audit-fix / FR4.1: 保存済みプランの削除は確認ダイアログを経由する
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const confirmRef = useRef<ConfirmDialogHandle>(null);
 
   const handleSave = () => {
     saveSnapshot(name.trim() || `プラン${snapshots.length + 1}`);
@@ -62,7 +70,10 @@ export function ScenarioBar() {
               </button>
               <button
                 type="button"
-                onClick={() => removeSnapshot(snap.id)}
+                onClick={() => {
+                  setPendingDelete({ id: snap.id, name: snap.name });
+                  confirmRef.current?.open();
+                }}
                 className="grid h-5 w-5 place-items-center rounded-full text-ink-mute transition-colors hover:bg-danger-50 hover:text-danger"
                 aria-label={`${snap.name}を削除`}
               >
@@ -76,6 +87,19 @@ export function ScenarioBar() {
           現在の入力を保存すると、純資産推移を重ねて比較できます。
         </p>
       )}
+
+      <ConfirmDialog
+        ref={confirmRef}
+        title="このプランを削除しますか？"
+        description={
+          pendingDelete
+            ? `「${pendingDelete.name}」を削除すると元に戻せません。`
+            : "削除すると元に戻せません。"
+        }
+        onConfirm={() => {
+          if (pendingDelete) removeSnapshot(pendingDelete.id);
+        }}
+      />
     </Panel>
   );
 }

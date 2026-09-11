@@ -29,9 +29,19 @@ function renderCell(row: YearlyResult, key: keyof YearlyResult): string {
   return formatYen(value as number);
 }
 
-export function ResultTable({ results }: { results: YearlyResult[] }) {
+/**
+ * lp-ui-ux-audit-fix / FR6.1: id はチャート側の aria-describedby から
+ * 参照される（既定は "result-table"）。
+ */
+export function ResultTable({
+  results,
+  id = "result-table",
+}: {
+  results: YearlyResult[];
+  id?: string;
+}) {
   return (
-    <div className="max-h-96 overflow-auto rounded-xl border border-line">
+    <div id={id} className="max-h-96 overflow-auto rounded-xl border border-line">
       <table className="w-full border-collapse text-right text-xs tabular-nums">
         <thead className="sticky top-0 z-10 bg-paper-deep/95 backdrop-blur">
           <tr>

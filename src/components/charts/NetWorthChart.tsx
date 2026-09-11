@@ -14,9 +14,24 @@ import type { YearlyResult } from "@/lib/simulation/types";
 import { formatManYen, formatYen } from "@/lib/format";
 import { axisTick, chartColors, tooltipStyle } from "./chartTheme";
 
-export function NetWorthChart({ results }: { results: YearlyResult[] }) {
+/**
+ * lp-ui-ux-audit-fix / FR6.1: `aria-describedby` で既存の `ResultTable`
+ * （数値表）と明示的に関連付ける。
+ */
+export function NetWorthChart({
+  results,
+  describedById = "result-table",
+}: {
+  results: YearlyResult[];
+  describedById?: string;
+}) {
   return (
-    <div className="h-72 w-full">
+    <div
+      className="h-72 w-full"
+      role="img"
+      aria-label="純資産推移の面グラフ"
+      aria-describedby={describedById}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={results} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
           <defs>

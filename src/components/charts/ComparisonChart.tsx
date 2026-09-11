@@ -27,12 +27,18 @@ import {
  * 現在の計画と保存済みスナップショットの純資産推移を重ね描きする。
  * 系列のキーには衝突しない一意な id を使い、表示名は name で出す。
  */
+/**
+ * lp-ui-ux-audit-fix / FR6.1: `aria-describedby` で既存の `ResultTable`
+ * （現在のプランの数値表）と明示的に関連付ける。
+ */
 export function ComparisonChart({
   current,
   snapshots,
+  describedById = "result-table",
 }: {
   current: YearlyResult[];
   snapshots: Snapshot[];
+  describedById?: string;
 }) {
   const series = [
     { key: "current", name: "現在", results: current, dashed: false },
@@ -57,7 +63,12 @@ export function ComparisonChart({
   const nameByKey = Object.fromEntries(series.map((s) => [s.key, s.name]));
 
   return (
-    <div className="h-72 w-full">
+    <div
+      className="h-72 w-full"
+      role="img"
+      aria-label="プラン比較（純資産推移）の折れ線グラフ"
+      aria-describedby={describedById}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
