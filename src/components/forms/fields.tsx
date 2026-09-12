@@ -2,7 +2,11 @@
 
 import { useId, useState } from "react";
 import { Panel } from "@/components/ui/Panel";
-import { normalizeNumberInput } from "./number-input";
+import { formatManYenLabel } from "@/lib/format";
+import { formatGroupedNumber, normalizeNumberInput } from "./number-input";
+
+/** 万円換算の併記を出す下限。これ未満は桁の読み間違いが起きにくいので出さない。 */
+const MAN_YEN_HINT_THRESHOLD = 10_000;
 
 /**
  * フォームバリデーション可視化（lp-ui-ux-audit-fix / FR2.1〜FR2.3）:
@@ -95,6 +99,13 @@ export function Section({
  *   `./number-input` の純関数に切り出し、単体テスト済み）。
  * - 編集中（draft !== null）は外部 value の変化を無視し、ユーザーの入力途中の
  *   文字列とキャレットを保つ。blur で draft を破棄し、以後は外部 value を表示。
+ *
+ * 金額の可読性（lp-022 / #16）:
+ * - `grouped` を指定したフィールドは、非編集時の表示だけ 3 桁区切りにする。
+ *   編集中は生の数字のまま扱い、キャレット位置を乱さない（カンマ付きの貼り付けは
+ *   `sanitizeNumberDraft` が除去する）。
+ * - あわせて 1 万円以上のとき万円換算を併記し、桁の読み間違いを防ぐ。
+ * - 年・年齢・年数・率など「桁区切りが意味を持たない値」では指定しない。
  */
 export function NumberField({
   label,
@@ -105,6 +116,7 @@ export function NumberField({
   onChange,
   suffix,
   signed = false,
+  grouped = false,
 }: BaseProps & {
   value: number;
   onChange: (value: number) => void;
@@ -113,15 +125,35 @@ export function NumberField({
   suffix?: string;
   /** true のときだけ負値（先頭 `-`）を許可する。既定は 0 以上のみ。 */
   signed?: boolean;
+  /** true で金額として扱い、3 桁区切り表示と万円換算の併記を行う。 */
+  grouped?: boolean;
 }) {
   const id = useId();
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
+  const manYenId = `${id}-manyen`;
   // null = 非編集（外部 value を表示） / 文字列 = 編集中の生入力
   const [draft, setDraft] = useState<string | null>(null);
 
   const display =
-    draft !== null ? draft : Number.isFinite(value) ? String(value) : "";
+    draft !== null
+      ? draft
+      : Number.isFinite(value)
+        ? grouped
+          ? formatGroupedNumber(value)
+          : String(value)
+        : "";
+
+  // 編集中も value は確定分が入るため、打ちながら万円換算を確認できる
+  const manYen =
+    grouped && Number.isFinite(value) && Math.abs(value) >= MAN_YEN_HINT_THRESHOLD
+      ? formatManYenLabel(value)
+      : null;
+
+  const describedBy =
+    [error ? errorId : hint ? hintId : null, manYen ? manYenId : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <label htmlFor={id} className="block">
@@ -136,7 +168,7 @@ export function NumberField({
           inputMode={signed ? "text" : "numeric"}
           value={display}
           aria-invalid={error ? "true" : undefined}
-          aria-describedby={error ? errorId : hint ? hintId : undefined}
+          aria-describedby={describedBy}
           onChange={(e) => {
             const raw = e.target.value;
             const { text, value: next } = normalizeNumberInput(raw, { signed });
@@ -162,6 +194,14 @@ export function NumberField({
         )}
       </span>
       <FieldMessages hintId={hintId} hint={hint} errorId={errorId} error={error} />
+      {manYen && (
+        <span
+          id={manYenId}
+          className="mt-1 block text-right text-[11px] tabular-nums text-ink-mute"
+        >
+          = {manYen}
+        </span>
+      )}
     </label>
   );
 }

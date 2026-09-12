@@ -62,6 +62,21 @@ export function sanitizeNumberDraft(
 }
 
 /**
+ * 表示用に整数部を 3 桁区切りへ整形する（lp-022 / #16）。
+ *
+ * 「非編集時の表示」専用。編集中の draft には適用しない（キャレットを乱さないため）。
+ * 小数部は区切らずそのまま残す。有限でない値は空文字を返し、0 を捏造しない。
+ * 整形結果は `normalizeNumberInput`（カンマを除去する）で元の数値へ戻せる。
+ */
+export function formatGroupedNumber(value: number): string {
+  if (!Number.isFinite(value)) return "";
+  const negative = value < 0;
+  const [integer, fraction] = Math.abs(value).toString().split(".");
+  const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${negative ? "-" : ""}${grouped}${fraction ? `.${fraction}` : ""}`;
+}
+
+/**
  * 入力文字列を number へ正規化する純関数。
  * 未確定（空 / 符号のみ / 小数点のみ）のときは value=null を返す。
  */

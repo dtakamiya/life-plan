@@ -45,6 +45,7 @@ export function EventForm() {
                 <NumberField
                   label="金額(+収/−支)"
                   suffix="円"
+                  grouped
                   step={100_000}
                   signed
                   value={event.amount}

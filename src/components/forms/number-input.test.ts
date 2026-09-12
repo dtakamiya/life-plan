@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  formatGroupedNumber,
   normalizeNumberInput,
   sanitizeNumberDraft,
 } from "./number-input";
@@ -60,6 +61,38 @@ describe("normalizeNumberInput — 境界値（AC#7）", () => {
     );
     // 1e12 は安全整数域に収まる
     expect(1e12).toBeLessThan(Number.MAX_SAFE_INTEGER);
+  });
+});
+
+/**
+ * lp-022 / #16: 金額欄の 3 桁区切り表示。
+ * 表示専用の整形で、入力の正規化（sanitize/normalize）とは往復できることが条件。
+ */
+describe("formatGroupedNumber — 3桁区切りの表示整形（#16）", () => {
+  const table: Array<[number, string]> = [
+    [0, "0"],
+    [100, "100"],
+    [1000, "1,000"],
+    [30_000_000, "30,000,000"],
+    [-3_000_000, "-3,000,000"],
+    [1234.56, "1,234.56"], // 小数部は区切らない
+    [1e12, "1,000,000,000,000"],
+  ];
+
+  it.each(table)("%j → %j", (input, expected) => {
+    expect(formatGroupedNumber(input)).toBe(expected);
+  });
+
+  it("整形後の文字列は normalizeNumberInput で元の数値へ戻せる", () => {
+    for (const [value] of table) {
+      const text = formatGroupedNumber(value);
+      expect(normalizeNumberInput(text, { signed: true }).value).toBe(value);
+    }
+  });
+
+  it("有限でない値は空文字を返す（0 を捏造しない）", () => {
+    expect(formatGroupedNumber(Number.NaN)).toBe("");
+    expect(formatGroupedNumber(Number.POSITIVE_INFINITY)).toBe("");
   });
 });
 

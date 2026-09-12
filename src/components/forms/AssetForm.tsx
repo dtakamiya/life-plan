@@ -13,6 +13,7 @@ export function AssetForm() {
         <NumberField
           label="課税口座 初期資産"
           suffix="円"
+          grouped
           step={100_000}
           value={assets.taxableAssets}
           onChange={(taxableAssets) => updateAssets({ taxableAssets })}
@@ -21,6 +22,7 @@ export function AssetForm() {
           label="非課税口座 初期資産"
           hint="NISA/iDeCo 等"
           suffix="円"
+          grouped
           step={100_000}
           value={assets.taxFreeAssets}
           onChange={(taxFreeAssets) => updateAssets({ taxFreeAssets })}
@@ -35,6 +37,7 @@ export function AssetForm() {
           label="非課税口座へ年間積立"
           hint="課税口座から移す"
           suffix="円"
+          grouped
           step={100_000}
           value={assets.annualTaxFreeContribution}
           onChange={(annualTaxFreeContribution) =>
