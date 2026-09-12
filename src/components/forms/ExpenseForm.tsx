@@ -13,6 +13,7 @@ export function ExpenseForm() {
         <NumberField
           label="基礎生活費（年額）"
           suffix="円"
+          grouped
           step={100_000}
           value={expenses.baseAnnualLivingExpense}
           onChange={(baseAnnualLivingExpense) =>

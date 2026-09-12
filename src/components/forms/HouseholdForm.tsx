@@ -44,6 +44,7 @@ function PersonFields({
       <NumberField
         label="年収（税込）"
         suffix="円"
+        grouped
         step={100_000}
         value={person.grossAnnualIncome}
         onChange={(grossAnnualIncome) => onChange({ grossAnnualIncome })}
@@ -63,6 +64,7 @@ function PersonFields({
       <NumberField
         label="年金（年額）"
         suffix="円"
+        grouped
         step={100_000}
         value={person.annualPension}
         onChange={(annualPension) => onChange({ annualPension })}
@@ -71,6 +73,7 @@ function PersonFields({
         label="退職一時金"
         hint="退職年齢で受取"
         suffix="円"
+        grouped
         step={1_000_000}
         value={person.retirementBenefit}
         onChange={(retirementBenefit) => onChange({ retirementBenefit })}

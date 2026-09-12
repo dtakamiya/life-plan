@@ -77,6 +77,7 @@ export function LoanForm() {
                 <NumberField
                   label="借入額"
                   suffix="円"
+                  grouped
                   step={1_000_000}
                   hint="0 円のうちは返済額に寄与しません"
                   value={loan.principal}

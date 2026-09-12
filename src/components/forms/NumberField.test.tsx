@@ -25,14 +25,22 @@ afterEach(() => {
 function Harness({
   initial,
   signed,
+  grouped,
 }: {
   initial: number;
   signed?: boolean;
+  grouped?: boolean;
 }) {
   const [v, setV] = useState(initial);
   return (
     <>
-      <NumberField label="金額" value={v} onChange={setV} signed={signed} />
+      <NumberField
+        label="金額"
+        value={v}
+        onChange={setV}
+        signed={signed}
+        grouped={grouped}
+      />
       <output data-testid="val">{String(v)}</output>
     </>
   );
@@ -115,6 +123,63 @@ describe("NumberField — 符号なしフィールド（AC#3）", () => {
     const { input, out } = mount(<Harness initial={0} />);
     type(input, "-3000000");
     expect(out.textContent).toBe("3000000");
+  });
+});
+
+/**
+ * lp-022 / #16: 金額欄の 3 桁区切り表示と万円換算の補助表示。
+ * 区切りは「非編集時の表示」だけに効かせ、編集中の生入力・キャレットには触れない。
+ */
+describe("NumberField — 金額の3桁区切り表示（#16）", () => {
+  it("grouped 指定時、非編集の表示は3桁区切りになる", () => {
+    const { input } = mount(<Harness initial={30_000_000} grouped />);
+    expect(input.value).toBe("30,000,000");
+  });
+
+  it("grouped 未指定（年・年齢など）はカンマを付けない", () => {
+    const { input } = mount(<Harness initial={2031} />);
+    expect(input.value).toBe("2031");
+    expect(container.textContent).not.toContain("万円");
+  });
+
+  it("編集中は生の数字を表示し、フォーカスアウトで3桁区切りへ戻る", () => {
+    const { input, out } = mount(<Harness initial={30_000_000} grouped />);
+    type(input, "3000000");
+    expect(input.value).toBe("3000000"); // 入力途中にカンマを差し込まない
+    expect(out.textContent).toBe("3000000");
+    blur(input);
+    expect(input.value).toBe("3,000,000");
+  });
+
+  it("カンマ付きの文字列を貼り付けても値が正しく取り込まれる", () => {
+    const { input, out } = mount(<Harness initial={0} grouped />);
+    type(input, "3,000,000");
+    expect(out.textContent).toBe("3000000");
+    blur(input);
+    expect(input.value).toBe("3,000,000");
+  });
+
+  it("1万円以上のとき万円換算を併記し、入力欄から aria-describedby で参照する", () => {
+    const { input } = mount(<Harness initial={30_000_000} grouped />);
+    expect(container.textContent).toContain("3,000万円");
+    const describedBy = input.getAttribute("aria-describedby") ?? "";
+    const referenced = describedBy
+      .split(" ")
+      .filter(Boolean)
+      // useId の値には `:` が含まれ querySelector では扱えないので getElementById を使う
+      .map((id) => document.getElementById(id)?.textContent ?? "")
+      .join(" ");
+    expect(referenced).toContain("3,000万円");
+  });
+
+  it("端数があるときは「約」を付けて概算であることを示す", () => {
+    mount(<Harness initial={1_234_567} grouped />);
+    expect(container.textContent).toContain("約123万円");
+  });
+
+  it("1万円未満では万円換算を表示しない", () => {
+    mount(<Harness initial={9_999} grouped />);
+    expect(container.textContent).not.toContain("万円");
   });
 });
 
