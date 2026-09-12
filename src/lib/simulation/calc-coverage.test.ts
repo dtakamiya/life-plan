@@ -59,6 +59,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
       annualTaxFreeContribution: 0,
     },
     events: [],
+    recurringExpenses: [],
     loans: [],
     ...overrides,
   };

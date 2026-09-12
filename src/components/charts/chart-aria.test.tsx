@@ -41,6 +41,7 @@ const results: YearlyResult[] = [
     livingExpense: 3_600_000,
     loanPayment: 0,
     eventNet: 0,
+    recurringExpense: 0,
     retirementBenefit: 0,
     cashFlow: 700_000,
     assets: 5_700_000,

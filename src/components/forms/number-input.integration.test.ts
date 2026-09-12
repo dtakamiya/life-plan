@@ -37,6 +37,7 @@ function makeInput(eventAmount: number): PlanInput {
     events: [
       { id: "e1", year: 2031, label: "大型出費", amount: eventAmount },
     ],
+    recurringExpenses: [],
     loans: [],
   };
 }

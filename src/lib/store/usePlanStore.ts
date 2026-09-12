@@ -10,10 +10,12 @@ import type {
   Loan,
   Person,
   PlanInput,
+  RecurringExpense,
 } from "@/lib/simulation/types";
 import { defaultPlanInput } from "@/lib/simulation/defaults";
 import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
 import { newLoan } from "./newLoan";
+import { newRecurringExpense } from "./newRecurringExpense";
 import { nextChildName } from "./nextChildName";
 import { planInputSchema, snapshotSchema } from "@/lib/schema";
 import { correctDateRange } from "@/lib/simulation/dateRange";
@@ -52,6 +54,12 @@ type PlanState = {
   addEvent: () => void;
   updateEvent: (id: string, patch: Partial<LifeEvent>) => void;
   removeEvent: (id: string) => void;
+  addRecurringExpense: () => void;
+  updateRecurringExpense: (
+    id: string,
+    patch: Partial<RecurringExpense>,
+  ) => void;
+  removeRecurringExpense: (id: string) => void;
   addLoan: () => void;
   updateLoan: (id: string, patch: Partial<Loan>) => void;
   removeLoan: (id: string) => void;
@@ -255,6 +263,41 @@ export const usePlanStore = create<PlanState>()(
           },
         })),
 
+      // 新規行は年額 0 円・当年開始/終了。ユーザーが値を入れるまで収支に寄与しない。
+      addRecurringExpense: () =>
+        set((s) => {
+          const item: RecurringExpense = newRecurringExpense(
+            makeId("rec"),
+            s.input.startYear,
+          );
+          return {
+            input: {
+              ...s.input,
+              recurringExpenses: [...s.input.recurringExpenses, item],
+            },
+          };
+        }),
+
+      updateRecurringExpense: (id, patch) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            recurringExpenses: s.input.recurringExpenses.map((r) =>
+              r.id === id ? { ...r, ...patch } : r,
+            ),
+          },
+        })),
+
+      removeRecurringExpense: (id) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            recurringExpenses: s.input.recurringExpenses.filter(
+              (r) => r.id !== id,
+            ),
+          },
+        })),
+
       addLoan: () =>
         set((s) => {
           // 新規行は 0 円始まり（借入額・金利・期間すべて 0）。ユーザーが値を
@@ -319,7 +362,7 @@ export const usePlanStore = create<PlanState>()(
       /**
        * 全入力ステートを既定値へ戻す。
        * 対象は「入力」のみ: self / spouse / children / loans / events /
-       * assets（taxable・taxFree）に加え、保存済み比較プラン（snapshots）も
+       * recurringExpenses / assets（taxable・taxFree）に加え、保存済み比較プラン（snapshots）も
        * 空に戻す。これにより前ペルソナのローン・イベント・保存プランが
        * 次のペルソナ入力へ混入しない。
        * 前提: これは入力の全消去であり、テーマ等の UI 設定や

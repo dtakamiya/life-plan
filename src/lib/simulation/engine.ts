@@ -15,6 +15,7 @@ import {
 import { estimateSocialInsurance } from "./socialInsurance";
 import { loanPaymentForYear } from "./loan";
 import { childAnnualCost } from "./education";
+import { recurringExpenseForYear } from "./recurringExpense";
 
 /** 退職所得控除の勤続年数を見積もるための、就労開始年齢の前提。 */
 const WORK_START_AGE = 22;
@@ -92,8 +93,17 @@ function computeRetirementBenefit(people: Person[], year: number): number {
  */
 export function runSimulation(input: PlanInput): YearlyResult[] {
   const results: YearlyResult[] = [];
-  const { startYear, endYear, self, spouse, expenses, assets, events, loans } =
-    input;
+  const {
+    startYear,
+    endYear,
+    self,
+    spouse,
+    expenses,
+    assets,
+    events,
+    loans,
+    recurringExpenses,
+  } = input;
 
   const { annualReturnRate: returnRate, annualTaxFreeContribution: contribution } =
     assets;
@@ -133,12 +143,22 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
 
     const loanPayment = Math.round(loanPaymentForYear(loans, year));
 
+    // 期間指定の継続支出（家賃など）。ローン返済と同じく名目固定で計上する。
+    const recurringExpense = Math.round(
+      recurringExpenseForYear(recurringExpenses, year),
+    );
+
     const retirementBenefit = Math.round(
       computeRetirementBenefit(people, year),
     );
 
     const cashFlow =
-      netIncome - livingExpense + eventNet - loanPayment + retirementBenefit;
+      netIncome -
+      livingExpense +
+      eventNet -
+      loanPayment -
+      recurringExpense +
+      retirementBenefit;
 
     // 資産運用: まず非課税口座へ年間積立を移し、課税口座の運用益にのみ課税する。
     // 年間収支は課税口座に入る（その年は複利を効かせない、従来どおりの簡易扱い）。
@@ -166,6 +186,7 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       netIncome,
       livingExpense,
       eventNet,
+      recurringExpense,
       loanPayment,
       retirementBenefit,
       cashFlow,

@@ -63,6 +63,22 @@ export type LifeEvent = {
 };
 
 /**
+ * 期間指定の継続支出（例: 住宅購入までの賃貸家賃）。
+ * 開始年から終了年まで（両端を含む）、毎年 annualAmount を支出計上する。
+ * ローン返済と同じく名目固定で扱い、物価上昇率による調整はしない。
+ */
+export type RecurringExpense = {
+  id: string;
+  label: string;
+  /** 計上開始年（西暦） */
+  startYear: number;
+  /** 計上終了年（西暦、この年も計上する） */
+  endYear: number;
+  /** 年額（円、正の値が支出） */
+  annualAmount: number;
+};
+
+/**
  * ローン・借入。元利均等返済を前提に、返済期間中だけ年間返済額を支出計上する。
  * 借入元本の受取（物件費・頭金など）は LifeEvent 側で表現し、ここでは
  * 毎年の返済負担のみを扱う（金融純資産モデルでの二重計上を避けるため）。
@@ -107,6 +123,7 @@ export type PlanInput = {
   expenses: ExpenseSettings;
   assets: AssetSettings;
   events: LifeEvent[];
+  recurringExpenses: RecurringExpense[];
   loans: Loan[];
 };
 
@@ -131,6 +148,8 @@ export type YearlyResult = {
   livingExpense: number;
   /** その年のライフイベント合計（円） */
   eventNet: number;
+  /** その年の期間指定の継続支出の合計（円、支出） */
+  recurringExpense: number;
   /** その年のローン返済額の合計（円、支出） */
   loanPayment: number;
   /** その年に受け取った退職一時金（手取り、円） */

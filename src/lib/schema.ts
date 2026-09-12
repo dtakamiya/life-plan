@@ -44,6 +44,14 @@ export const lifeEventSchema = z.object({
   amount: z.number(),
 });
 
+export const recurringExpenseSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  startYear: z.number().int(),
+  endYear: z.number().int(),
+  annualAmount: z.number(),
+});
+
 export const loanSchema = z.object({
   id: z.string(),
   label: z.string(),
@@ -84,6 +92,8 @@ export const planInputSchema = z.object({
   expenses: expenseSchema,
   assets: assetSchema,
   events: z.array(lifeEventSchema),
+  // 既存の保存データ（recurringExpenses を持たない v1）でも検証を通すため既定で空配列。
+  recurringExpenses: z.array(recurringExpenseSchema).default([]),
   // 既存の保存データ（loans を持たない v1）でも検証を通すため既定で空配列。
   loans: z.array(loanSchema).default([]),
 });

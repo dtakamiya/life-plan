@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { runSimulation } from "./engine";
-import type { Child, PlanInput, Person } from "./types";
+import type { Child, PlanInput, Person, RecurringExpense } from "./types";
 import {
   estimateIncomeTax,
   estimateResidenceTax,
@@ -41,6 +41,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
     expenses: { baseAnnualLivingExpense: 3_000_000, inflationRate: 0 },
     assets: assets(1_000_000, 0),
     events: [],
+    recurringExpenses: [],
     loans: [],
     ...overrides,
   };
@@ -336,5 +337,69 @@ describe("runSimulation", () => {
     const snapshot = JSON.parse(JSON.stringify(input));
     runSimulation(input);
     expect(input).toEqual(snapshot);
+  });
+
+  it("継続支出は期間中の年だけ収支から引かれ、recurringExpense に出る", () => {
+    const rent: RecurringExpense = {
+      id: "rec-1",
+      label: "賃貸家賃",
+      startYear: 2031,
+      endYear: 2032,
+      annualAmount: 1_200_000,
+    };
+    const withRent = runSimulation(
+      makeInput({ startYear: 2030, endYear: 2033, recurringExpenses: [rent] }),
+    );
+    const withoutRent = runSimulation(
+      makeInput({ startYear: 2030, endYear: 2033, recurringExpenses: [] }),
+    );
+
+    expect(withRent.map((r) => r.recurringExpense)).toEqual([
+      0, 1_200_000, 1_200_000, 0,
+    ]);
+    // 期間中の年だけ収支が年額分だけ小さくなる
+    expect(withRent[0].cashFlow).toBe(withoutRent[0].cashFlow);
+    expect(withRent[1].cashFlow).toBe(withoutRent[1].cashFlow - 1_200_000);
+    expect(withRent[2].cashFlow).toBe(withoutRent[2].cashFlow - 1_200_000);
+    expect(withRent[3].cashFlow).toBe(withoutRent[3].cashFlow);
+  });
+
+  it("継続支出は生活費と別枠で計上する（livingExpense を変えない）", () => {
+    const rent: RecurringExpense = {
+      id: "rec-1",
+      label: "賃貸家賃",
+      startYear: 2030,
+      endYear: 2030,
+      annualAmount: 1_200_000,
+    };
+    const withRent = runSimulation(
+      makeInput({ startYear: 2030, endYear: 2030, recurringExpenses: [rent] }),
+    );
+    const withoutRent = runSimulation(
+      makeInput({ startYear: 2030, endYear: 2030, recurringExpenses: [] }),
+    );
+    expect(withRent[0].livingExpense).toBe(withoutRent[0].livingExpense);
+    expect(withRent[0].recurringExpense).toBe(1_200_000);
+  });
+
+  it("継続支出は物価上昇率の影響を受けない（名目固定）", () => {
+    const rent: RecurringExpense = {
+      id: "rec-1",
+      label: "賃貸家賃",
+      startYear: 2030,
+      endYear: 2032,
+      annualAmount: 1_000_000,
+    };
+    const results = runSimulation(
+      makeInput({
+        startYear: 2030,
+        endYear: 2032,
+        expenses: { baseAnnualLivingExpense: 3_000_000, inflationRate: 0.1 },
+        recurringExpenses: [rent],
+      }),
+    );
+    expect(results.map((r) => r.recurringExpense)).toEqual([
+      1_000_000, 1_000_000, 1_000_000,
+    ]);
   });
 });

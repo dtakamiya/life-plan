@@ -24,6 +24,7 @@ const columns: {
   { key: "socialInsurance", label: "社会保険" },
   { key: "netIncome", label: "手取り" },
   { key: "livingExpense", label: "生活費" },
+  { key: "recurringExpense", label: "継続支出" },
   { key: "loanPayment", label: "ローン返済" },
   { key: "eventNet", label: "イベント" },
   { key: "retirementBenefit", label: "退職金" },

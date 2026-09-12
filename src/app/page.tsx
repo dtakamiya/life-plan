@@ -11,6 +11,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { HouseholdForm } from "@/components/forms/HouseholdForm";
 import { ExpenseForm } from "@/components/forms/ExpenseForm";
+import { RecurringExpenseForm } from "@/components/forms/RecurringExpenseForm";
 import { AssetForm } from "@/components/forms/AssetForm";
 import { EventForm } from "@/components/forms/EventForm";
 import { LoanForm } from "@/components/forms/LoanForm";
@@ -186,6 +187,7 @@ export default function Home() {
         <div className="space-y-4">
           <HouseholdForm />
           <ExpenseForm />
+          <RecurringExpenseForm />
           <AssetForm />
           <LoanForm />
           <EventForm />

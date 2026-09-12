@@ -66,6 +66,7 @@ export const defaultPlanInput: PlanInput = {
       amount: -5_000_000,
     },
   ],
+  recurringExpenses: [],
   loans: [
     {
       id: "loan-1",

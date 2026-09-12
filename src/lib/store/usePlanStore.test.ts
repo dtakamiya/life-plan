@@ -257,3 +257,35 @@ describe("usePlanStore.addChild — 既定名の連番化（lp-021 / issue #21�
     ]);
   });
 });
+
+describe("継続支出のアクション（#18）", () => {
+  it("追加・更新・削除ができる", () => {
+    usePlanStore.getState().reset();
+    expect(usePlanStore.getState().input.recurringExpenses).toEqual([]);
+
+    usePlanStore.getState().addRecurringExpense();
+    const added = usePlanStore.getState().input.recurringExpenses;
+    expect(added).toHaveLength(1);
+    expect(added[0].annualAmount).toBe(0);
+    expect(added[0].startYear).toBe(usePlanStore.getState().input.startYear);
+
+    const id = added[0].id;
+    usePlanStore
+      .getState()
+      .updateRecurringExpense(id, { label: "賃貸家賃", annualAmount: 1_200_000 });
+    const updated = usePlanStore.getState().input.recurringExpenses[0];
+    expect(updated.label).toBe("賃貸家賃");
+    expect(updated.annualAmount).toBe(1_200_000);
+    expect(updated.id).toBe(id);
+
+    usePlanStore.getState().removeRecurringExpense(id);
+    expect(usePlanStore.getState().input.recurringExpenses).toEqual([]);
+  });
+
+  it("reset で継続支出も初期値（空配列）に戻る", () => {
+    usePlanStore.getState().addRecurringExpense();
+    expect(usePlanStore.getState().input.recurringExpenses).toHaveLength(1);
+    usePlanStore.getState().reset();
+    expect(usePlanStore.getState().input.recurringExpenses).toEqual([]);
+  });
+});

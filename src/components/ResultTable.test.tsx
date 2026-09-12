@@ -4,6 +4,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { YearlyResult } from "@/lib/simulation/types";
 import { ResultTable } from "./ResultTable";
+import { formatYen } from "@/lib/format";
 
 // react-dom の act(...) を有効化する
 (
@@ -47,6 +48,7 @@ function makeRow(overrides: Partial<YearlyResult> = {}): YearlyResult {
     netIncome: 4_300_000,
     livingExpense: 3_000_000,
     eventNet: 0,
+    recurringExpense: 0,
     loanPayment: 0,
     retirementBenefit: 0,
     cashFlow: 1_300_000,
@@ -182,5 +184,25 @@ describe("ResultTable の sticky 列（issue #20）", () => {
       // 角セル（縦横とも固定される th）は固定 td より必ず前面に出る。
       expect(stickyThZ as number).toBeGreaterThan(tdZ as number);
     }
+  });
+});
+
+describe("ResultTable — 継続支出の列（#18）", () => {
+  it("「継続支出」列の見出しと値を表示する", () => {
+    const el = mount(<ResultTable results={[makeRow({ recurringExpense: 1_200_000 })]} />);
+    const headers = [...el.querySelectorAll("th")].map((th) => th.textContent);
+    expect(headers).toContain("継続支出");
+
+    const index = headers.indexOf("継続支出");
+    const cells = [...el.querySelectorAll("tbody tr td")].map(
+      (td) => td.textContent,
+    );
+    expect(cells[index]).toBe(formatYen(1_200_000));
+  });
+
+  it("「継続支出」列は「生活費」の直後に並ぶ", () => {
+    const el = mount(<ResultTable results={[makeRow()]} />);
+    const headers = [...el.querySelectorAll("th")].map((th) => th.textContent);
+    expect(headers.indexOf("継続支出")).toBe(headers.indexOf("生活費") + 1);
   });
 });
