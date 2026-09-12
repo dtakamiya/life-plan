@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { usePlanStore } from "./usePlanStore";
+import { usePlanStore, mergePersistedPlanState } from "./usePlanStore";
 import { defaultPlanInput } from "@/lib/simulation/defaults";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { YearlyResult } from "@/lib/simulation/types";
@@ -119,5 +119,91 @@ describe("usePlanStore.reset", () => {
 
     const afterReset = runSimulation(usePlanStore.getState().input);
     expect(afterReset).toEqual(BASELINE_SERIES);
+  });
+});
+
+/**
+ * lp-019 / QA#1: setRange の自動補正と rangeAutoCorrected フラグの回帰テスト。
+ */
+describe("usePlanStore.setRange — 期間の自動補正", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("正常な期間を指定した場合は補正されず、rangeAutoCorrected は false", () => {
+    usePlanStore.getState().setRange(2026, 2091);
+    const state = usePlanStore.getState();
+    expect(state.input.startYear).toBe(2026);
+    expect(state.input.endYear).toBe(2091);
+    expect(state.rangeAutoCorrected).toBe(false);
+  });
+
+  it("開始年 > 終了年を指定すると endYear = startYear + 1 に補正され、rangeAutoCorrected が true になる", () => {
+    usePlanStore.getState().setRange(2040, 2020);
+    const state = usePlanStore.getState();
+    expect(state.input.startYear).toBe(2040);
+    expect(state.input.endYear).toBe(2041);
+    expect(state.rangeAutoCorrected).toBe(true);
+  });
+
+  it("補正後に正常な期間を指定し直すと rangeAutoCorrected は false に戻る", () => {
+    usePlanStore.getState().setRange(2040, 2020);
+    expect(usePlanStore.getState().rangeAutoCorrected).toBe(true);
+
+    usePlanStore.getState().setRange(2026, 2091);
+    expect(usePlanStore.getState().rangeAutoCorrected).toBe(false);
+  });
+});
+
+/**
+ * lp-019 / QA#1: 永続化復元時（persist の merge）の自動補正の回帰テスト。
+ * zustand persist は `localStorage` の無い実行環境（本プロジェクトのテストの
+ * 既定 `environment: "node"` を含む）では merge を呼び出さない実装のため、
+ * merge ロジックを切り出した純粋関数 `mergePersistedPlanState` を直接検証する。
+ */
+describe("usePlanStore — 永続化復元時の期間自動補正", () => {
+  const currentFragment = {
+    input: defaultPlanInput,
+    snapshots: [],
+    rangeAutoCorrected: false,
+  };
+
+  it("復元データの期間が無効（開始年>終了年）なら merge 時に補正され、rangeAutoCorrected が true になる", () => {
+    const persistedInput = {
+      ...defaultPlanInput,
+      startYear: 2040,
+      endYear: 2020,
+    };
+    const merged = mergePersistedPlanState(
+      { input: persistedInput, snapshots: [] },
+      currentFragment,
+    );
+
+    expect(merged.input.startYear).toBe(2040);
+    expect(merged.input.endYear).toBe(2041);
+    expect(merged.rangeAutoCorrected).toBe(true);
+  });
+
+  it("復元データの期間が有効なら merge 時に補正されず、rangeAutoCorrected が false になる", () => {
+    const persistedInput = {
+      ...defaultPlanInput,
+      startYear: 2026,
+      endYear: 2091,
+    };
+    const merged = mergePersistedPlanState(
+      { input: persistedInput, snapshots: [] },
+      currentFragment,
+    );
+
+    expect(merged.input.startYear).toBe(2026);
+    expect(merged.input.endYear).toBe(2091);
+    expect(merged.rangeAutoCorrected).toBe(false);
+  });
+
+  it("永続化データが存在しない場合は既定入力にフォールバックし、rangeAutoCorrected は false になる", () => {
+    const merged = mergePersistedPlanState(undefined, currentFragment);
+
+    expect(merged.input).toEqual(defaultPlanInput);
+    expect(merged.rangeAutoCorrected).toBe(false);
   });
 });

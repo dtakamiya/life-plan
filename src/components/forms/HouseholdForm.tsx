@@ -180,6 +180,8 @@ export function HouseholdForm() {
   const updateChild = usePlanStore((s) => s.updateChild);
   const removeChild = usePlanStore((s) => s.removeChild);
   const setRange = usePlanStore((s) => s.setRange);
+  // lp-019 / QA#1: setRange・永続化復元での期間自動補正をユーザーへ知らせる
+  const rangeAutoCorrected = usePlanStore((s) => s.rangeAutoCorrected);
 
   // lp-ui-ux-audit-fix / FR4.1: 子カードの削除は確認ダイアログを経由する
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -198,6 +200,16 @@ export function HouseholdForm() {
             label="終了年"
             value={input.endYear}
             onChange={(endYear) => setRange(input.startYear, endYear)}
+            // lp-019 / QA#1: 開始年>終了年、または期間1年未満の入力は
+            // ストア側（correctDateRange）で自動補正される。ここでは
+            // rangeAutoCorrected を購読し、既存の error 表示機構
+            // （aria-invalid / aria-describedby）でその旨を知らせるだけで、
+            // 独自の検証や例外処理は行わない。
+            error={
+              rangeAutoCorrected
+                ? "終了年を自動調整しました（開始年より後、かつ1年以上の期間が必要です）"
+                : undefined
+            }
           />
         </div>
       </Section>

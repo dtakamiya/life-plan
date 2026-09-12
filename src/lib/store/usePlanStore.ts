@@ -15,6 +15,7 @@ import { defaultPlanInput } from "@/lib/simulation/defaults";
 import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
 import { newLoan } from "./newLoan";
 import { planInputSchema, snapshotSchema } from "@/lib/schema";
+import { correctDateRange } from "@/lib/simulation/dateRange";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";
@@ -31,6 +32,12 @@ type PlanState = {
   input: PlanInput;
   /** 比較用に保存した計画のスナップショット一覧。 */
   snapshots: Snapshot[];
+  /**
+   * lp-019 / QA#1: `setRange` または永続化復元で開始年・終了年の組が
+   * 無効（開始年>終了年、または期間1年未満）だったため自動補正した直後は
+   * true。以降の正常な `setRange` 呼び出しで false に戻る。
+   */
+  rangeAutoCorrected: boolean;
   setRange: (startYear: number, endYear: number) => void;
   updateSelf: (patch: Partial<Person>) => void;
   /** 配偶者の有無を切り替える。enabled=true で未設定なら本人を雛形に作成。 */
@@ -64,6 +71,61 @@ type PlanState = {
   reset: () => void;
 };
 
+/**
+ * 永続化復元（persist の merge）で使う、復元後の input / snapshots / の
+ * 断片型。`rangeAutoCorrected` を含む点が PlanState 全体と異なる。
+ */
+type RestoredPersistFragment = {
+  input: PlanInput;
+  snapshots: Snapshot[];
+  rangeAutoCorrected: boolean;
+};
+
+/**
+ * lp-019 / QA#1: persist の `merge` オプション本体。
+ * zustand の persist ミドルウェアは、実行環境に `localStorage` が
+ * 無い場合（本プロジェクトのテストの既定 `environment: "node"` を含む）は
+ * `merge` を一切呼び出さない実装のため、単体テストで直接呼び出せるよう
+ * 純粋関数として切り出す（例外は投げない）。
+ *
+ * 永続化された入力・スナップショットを zod で検証し、壊れた部分は
+ * 既定値（入力）／除外（スナップショット）でフォールバックする。
+ * さらに、復元した期間（startYear/endYear）が無効
+ * （開始年>終了年、または期間1年未満）なら `correctDateRange` で
+ * setRange と同じ補正を行い、`rangeAutoCorrected` に反映する。
+ */
+export function mergePersistedPlanState<T extends RestoredPersistFragment>(
+  persisted: unknown,
+  current: T,
+): T {
+  const p = persisted as { input?: unknown; snapshots?: unknown } | undefined;
+
+  const parsedInput = planInputSchema.safeParse(p?.input);
+  const restoredInput = parsedInput.success ? parsedInput.data : defaultPlanInput;
+
+  const rangeCorrection = correctDateRange(
+    restoredInput.startYear,
+    restoredInput.endYear,
+  );
+  const input = rangeCorrection.corrected
+    ? { ...restoredInput, endYear: rangeCorrection.endYear }
+    : restoredInput;
+
+  const snapshots: Snapshot[] = Array.isArray(p?.snapshots)
+    ? p.snapshots.flatMap((raw) => {
+        const parsed = snapshotSchema.safeParse(raw);
+        return parsed.success ? [parsed.data] : [];
+      })
+    : [];
+
+  return {
+    ...current,
+    input,
+    snapshots,
+    rangeAutoCorrected: rangeCorrection.corrected,
+  };
+}
+
 /** ランダムな id を生成する（crypto があれば利用）。 */
 function makeId(prefix: string): string {
   const rand =
@@ -78,9 +140,27 @@ export const usePlanStore = create<PlanState>()(
     (set) => ({
       input: defaultPlanInput,
       snapshots: [],
+      rangeAutoCorrected: false,
 
+      /**
+       * lp-019 / QA#1: 開始年・終了年を更新する。`correctDateRange`
+       * （純粋関数、例外を投げない）で相互検証し、無効な組み合わせ
+       * （開始年>終了年、または期間1年未満）は endYear を自動補正する。
+       * `rangeAutoCorrected` に補正の有無を反映し、UI 側（HouseholdForm）が
+       * 注意文言の表示に利用する。
+       */
       setRange: (startYear, endYear) =>
-        set((s) => ({ input: { ...s.input, startYear, endYear } })),
+        set((s) => {
+          const corrected = correctDateRange(startYear, endYear);
+          return {
+            input: {
+              ...s.input,
+              startYear: corrected.startYear,
+              endYear: corrected.endYear,
+            },
+            rangeAutoCorrected: corrected.corrected,
+          };
+        }),
 
       updateSelf: (patch) =>
         set((s) => ({ input: { ...s.input, self: { ...s.input.self, ...patch } } })),
@@ -247,31 +327,17 @@ export const usePlanStore = create<PlanState>()(
        * 以降の編集が既定値オブジェクトを汚染しないようにする。
        */
       reset: () =>
-        set({ input: structuredClone(defaultPlanInput), snapshots: [] }),
+        set({
+          input: structuredClone(defaultPlanInput),
+          snapshots: [],
+          rangeAutoCorrected: false,
+        }),
     }),
     {
       name: "life-plan/v1",
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      // 永続化された入力・スナップショットを zod で検証し、壊れた部分は
-      // 既定値（入力）／除外（スナップショット）でフォールバックする。
-      merge: (persisted, current) => {
-        const p = persisted as
-          | { input?: unknown; snapshots?: unknown }
-          | undefined;
-
-        const parsedInput = planInputSchema.safeParse(p?.input);
-        const input = parsedInput.success ? parsedInput.data : defaultPlanInput;
-
-        const snapshots: Snapshot[] = Array.isArray(p?.snapshots)
-          ? p.snapshots.flatMap((raw) => {
-              const parsed = snapshotSchema.safeParse(raw);
-              return parsed.success ? [parsed.data] : [];
-            })
-          : [];
-
-        return { ...current, input, snapshots };
-      },
+      merge: mergePersistedPlanState,
     },
   ),
 );

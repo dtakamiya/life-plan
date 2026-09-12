@@ -5,5 +5,12 @@
     "dirName": "260911-ui-ux-audit-fix",
     "scope": "ui-ux-audit-fix",
     "status": "complete"
+  },
+  {
+    "uuid": "01a093ca-71de-7e99-91b2-a8d703270eb7",
+    "slug": "start-end-year-validatio",
+    "dirName": "260912-start-end-year-validatio",
+    "scope": "bugfix",
+    "status": "complete"
   }
 ]
