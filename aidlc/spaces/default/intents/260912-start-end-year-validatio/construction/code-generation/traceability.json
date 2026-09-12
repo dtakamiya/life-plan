@@ -1,0 +1,67 @@
+{
+  "stage": "code-generation",
+  "upstream_ids": [
+    "FR1.1",
+    "FR1.2",
+    "FR1.3",
+    "FR1.4",
+    "FR2.1",
+    "FR2.2",
+    "FR3.1",
+    "FR3.2",
+    "FR4.1",
+    "FR4.2"
+  ],
+  "coverage": [
+    {
+      "id": "FR1.1",
+      "status": "OK",
+      "target": "src/lib/simulation/dateRange.ts (correctDateRange), src/lib/simulation/dateRange.test.ts"
+    },
+    {
+      "id": "FR1.2",
+      "status": "OK",
+      "target": "src/lib/simulation/dateRange.ts (correctDateRange), src/lib/simulation/dateRange.test.ts"
+    },
+    {
+      "id": "FR1.3",
+      "status": "OK",
+      "target": "src/lib/store/usePlanStore.ts (mergePersistedPlanState), src/lib/store/usePlanStore.test.ts (永続化復元時の期間自動補正)"
+    },
+    {
+      "id": "FR1.4",
+      "status": "OK",
+      "target": "src/lib/store/usePlanStore.ts (setRange), src/lib/store/usePlanStore.test.ts (setRange — 期間の自動補正)"
+    },
+    {
+      "id": "FR2.1",
+      "status": "OK",
+      "target": "src/components/forms/HouseholdForm.tsx (終了年 NumberField の error prop 接続), src/components/forms/HouseholdForm.test.tsx"
+    },
+    {
+      "id": "FR2.2",
+      "status": "OK",
+      "target": "src/components/forms/HouseholdForm.tsx (「終了年を自動調整しました（開始年より後、かつ1年以上の期間が必要です）」文言), src/components/forms/HouseholdForm.test.tsx"
+    },
+    {
+      "id": "FR3.1",
+      "status": "OK",
+      "target": "src/lib/store/usePlanStore.ts (setRange / mergePersistedPlanState が単一の補正源), src/lib/game/stages.ts (確認コメント、deriveStages は usePlanStore 由来の補正済み PlanInput を利用)"
+    },
+    {
+      "id": "FR3.2",
+      "status": "OK",
+      "target": "src/lib/game/stages.ts (deriveStages — 個別バリデーション・補正ロジックを追加しないことを確認するコメント)"
+    },
+    {
+      "id": "FR4.1",
+      "status": "OK",
+      "target": "src/app/page.tsx (EmptyResultsNotice, results.length === 0 分岐), src/app/page.test.tsx"
+    },
+    {
+      "id": "FR4.2",
+      "status": "OK",
+      "target": "src/app/page.tsx (results.length === 0 の分岐表示のみで例外処理機構を追加していない)"
+    }
+  ]
+}

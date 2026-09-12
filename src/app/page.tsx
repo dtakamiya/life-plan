@@ -34,6 +34,19 @@ const toneText: Record<Tone, string> = {
   danger: "text-danger",
 };
 
+/**
+ * lp-019 / QA#1: `results` が空のときに Summary/ResultTable/各チャートの
+ * 代わりに表示する共通メッセージ。例外は投げず、呼び出し側が
+ * `results.length === 0` を判定して差し替える戻り値ベースの表現とする。
+ */
+function EmptyResultsNotice() {
+  return (
+    <div className="flex h-40 items-center justify-center rounded-2xl border border-line bg-surface p-6 text-center text-sm text-ink-mute">
+      表示できる結果がありません。シミュレーション期間や入力内容をご確認ください。
+    </div>
+  );
+}
+
 /** サマリーカード（最終純資産・最小純資産・赤字転落年）。 */
 function Summary({ results }: { results: YearlyResult[] }) {
   if (results.length === 0) return null;
@@ -164,37 +177,48 @@ export default function Home() {
         <div className="space-y-6">
           {hydrated ? (
             <>
-              <Summary results={results} />
-
-              <div className="animate-fade-up" style={{ animationDelay: "210ms" }}>
-                <ScenarioBar />
-              </div>
-
-              {snapshots.length > 0 && (
-                <div className="animate-fade-up" style={{ animationDelay: "260ms" }}>
-                  <Panel eyebrow="Compare" title="プラン比較（純資産推移）">
-                    <ComparisonChart current={results} snapshots={snapshots} />
-                  </Panel>
+              {results.length === 0 ? (
+                // lp-019 / QA#1: FR3 の期間補正で開始年>終了年自体は
+                // 発生しなくなるが、念のため空結果でも例外を出さず
+                // 共通メッセージへフォールバックする。
+                <div className="animate-fade-up" style={{ animationDelay: "210ms" }}>
+                  <EmptyResultsNotice />
                 </div>
+              ) : (
+                <>
+                  <Summary results={results} />
+
+                  <div className="animate-fade-up" style={{ animationDelay: "210ms" }}>
+                    <ScenarioBar />
+                  </div>
+
+                  {snapshots.length > 0 && (
+                    <div className="animate-fade-up" style={{ animationDelay: "260ms" }}>
+                      <Panel eyebrow="Compare" title="プラン比較（純資産推移）">
+                        <ComparisonChart current={results} snapshots={snapshots} />
+                      </Panel>
+                    </div>
+                  )}
+
+                  <div className="animate-fade-up" style={{ animationDelay: "300ms" }}>
+                    <Panel eyebrow="Net worth" title="純資産推移">
+                      <NetWorthChart results={results} />
+                    </Panel>
+                  </div>
+
+                  <div className="animate-fade-up" style={{ animationDelay: "350ms" }}>
+                    <Panel eyebrow="Cash flow" title="年次キャッシュフロー">
+                      <CashFlowChart results={results} />
+                    </Panel>
+                  </div>
+
+                  <div className="animate-fade-up" style={{ animationDelay: "400ms" }}>
+                    <Panel eyebrow="Detail" title="年次明細">
+                      <ResultTable results={results} />
+                    </Panel>
+                  </div>
+                </>
               )}
-
-              <div className="animate-fade-up" style={{ animationDelay: "300ms" }}>
-                <Panel eyebrow="Net worth" title="純資産推移">
-                  <NetWorthChart results={results} />
-                </Panel>
-              </div>
-
-              <div className="animate-fade-up" style={{ animationDelay: "350ms" }}>
-                <Panel eyebrow="Cash flow" title="年次キャッシュフロー">
-                  <CashFlowChart results={results} />
-                </Panel>
-              </div>
-
-              <div className="animate-fade-up" style={{ animationDelay: "400ms" }}>
-                <Panel eyebrow="Detail" title="年次明細">
-                  <ResultTable results={results} />
-                </Panel>
-              </div>
 
               <div className="animate-fade-up" style={{ animationDelay: "450ms" }}>
                 <AssumptionsPanel input={input} />

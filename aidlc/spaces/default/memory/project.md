@@ -25,6 +25,8 @@
 
 <!-- Project-specific specialisation. -->
 
+- zustand v5 の persist は、node 環境（vitest 既定）で storage getter（例: () => localStorage）が例外を投げると merge オプションを一切呼び出さない実装になっている。永続化復元ロジック（merge）を直接テストしたい場合は、localStorage を直接モックするのではなく、merge ロジックを環境非依存の純粋関数として切り出し、それを直接呼び出してテストすること。 (learned 2026-09-12) <!-- cid:260912-start-end-year-validatio:code-generation:dbfda29999714d033e081187d745c706ad50452e4dce7a34707391879046a1ac -->
+
 ## Change Control
 
 <!-- Project-specific. Mode: strict or relaxed. Strict here holds for every intent and cannot be changed from chat. -->

@@ -58,6 +58,10 @@ function stageLabel(startAge: number, endAge: number): string {
  * 先頭と末尾は端数ブロックになりうる。期間が 10 年未満なら 1 ステージ。
  */
 export function deriveStages(input: PlanInput): Stage[] {
+  // lp-019 / QA#1: startYear/endYear は usePlanStore.setRange および
+  // 永続化復元（mergePersistedPlanState）側で correctDateRange により
+  // 常に endYear > startYear（期間1年以上）へ補正済みの値が渡ってくる
+  // 前提。ここでの二重ガードは行わない（確認のみ、コード変更なし）。
   const { startYear, endYear, self } = input;
   const stages: Stage[] = [];
 
