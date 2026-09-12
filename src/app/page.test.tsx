@@ -19,6 +19,13 @@ beforeAll(() => {
   }
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver =
     ResizeObserverStub;
+
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.removeAttribute("open");
+  };
 });
 
 /**
@@ -78,5 +85,31 @@ describe("Home ページ — 結果が空のときの共通メッセージ（lp-
 
     expect(el.textContent).toContain("表示できる結果がありません");
     expect(el.querySelector("table")).toBeNull();
+  });
+});
+
+describe("Home ページ — 「初期値に戻す」は確認ダイアログ経由（issue #15）", () => {
+  it("ボタン単体クリックでは戻らず、確認ダイアログの「初期値に戻す」確定操作でのみ戻る", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => {
+      usePlanStore.setState((s) => ({
+        input: { ...s.input, startYear: 2025 },
+      }));
+    });
+    expect(usePlanStore.getState().input.startYear).toBe(2025);
+
+    const resetButton = [...el.querySelectorAll("button")].find(
+      (b) => b.textContent === "初期値に戻す" && !b.closest("dialog"),
+    ) as HTMLButtonElement;
+    act(() => resetButton.click());
+    expect(usePlanStore.getState().input.startYear).toBe(2025); // まだ戻らない
+
+    const confirmButton = [...el.querySelectorAll("dialog button")].find(
+      (b) => b.textContent === "初期値に戻す",
+    ) as HTMLButtonElement;
+    act(() => confirmButton.click());
+    expect(usePlanStore.getState().input.startYear).not.toBe(2025);
   });
 });
