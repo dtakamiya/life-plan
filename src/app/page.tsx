@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { runSimulation } from "@/lib/simulation/engine";
@@ -8,6 +8,7 @@ import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { HouseholdForm } from "@/components/forms/HouseholdForm";
 import { ExpenseForm } from "@/components/forms/ExpenseForm";
 import { AssetForm } from "@/components/forms/AssetForm";
@@ -110,6 +111,9 @@ export default function Home() {
   const snapshots = usePlanStore((s) => s.snapshots);
   const reset = usePlanStore((s) => s.reset);
 
+  // issue #15: 「初期値に戻す」は破壊的操作のため確認ダイアログを経由する
+  const resetConfirmRef = useRef<ConfirmDialogHandle>(null);
+
   // localStorage からの復元（ハイドレーション）後にのみ結果を描画し、
   // サーバー描画とのミスマッチを避ける。
   const [hydrated, setHydrated] = useState(false);
@@ -160,10 +164,23 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={reset} className="self-start sm:self-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => resetConfirmRef.current?.open()}
+          className="self-start sm:self-auto"
+        >
           初期値に戻す
         </Button>
       </header>
+
+      <ConfirmDialog
+        ref={resetConfirmRef}
+        title="入力内容を初期値に戻しますか？"
+        description="世帯構成・支出・資産・イベントなどすべての入力が初期値に戻ります。この操作は元に戻せません（保存済みプランは削除されません）。"
+        confirmLabel="初期値に戻す"
+        onConfirm={reset}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
         <div className="space-y-4">
