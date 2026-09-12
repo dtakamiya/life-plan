@@ -19,8 +19,8 @@ let container: HTMLDivElement;
 let root: Root;
 
 afterEach(() => {
-  act(() => root.unmount());
-  container.remove();
+  act(() => root?.unmount());
+  container?.remove();
 });
 
 function mount(ui: React.ReactElement) {
@@ -74,7 +74,15 @@ function getHeaderCell(el: HTMLElement, label: string): HTMLElement {
 
 function getColumnIndex(el: HTMLElement, label: string): number {
   const ths = [...el.querySelectorAll("thead th")];
-  return ths.findIndex((node) => node.textContent === label);
+  const index = ths.findIndex((node) => node.textContent === label);
+  if (index < 0) throw new Error(`column not found: ${label}`);
+  return index;
+}
+
+/** class 文字列から `z-<n>` を抽出する。見つからなければ null。 */
+function getZIndexClassValue(className: string): number | null {
+  const match = className.match(/\bz-(\d+)\b/);
+  return match ? Number(match[1]) : null;
 }
 
 function getBodyCellsByColumn(el: HTMLElement, colIndex: number): HTMLElement[] {
@@ -99,17 +107,17 @@ describe("ResultTable の sticky 列（issue #20）", () => {
     }
   });
 
-  it("「本人年齢」列の th と全 td が sticky left-14 クラスを持つ", () => {
+  it("「本人年齢」列の th と全 td が sticky left-16 クラスを持つ", () => {
     const el = mount(<ResultTable results={results} />);
     const th = getHeaderCell(el, "本人年齢");
     expect(th.className).toMatch(/\bsticky\b/);
-    expect(th.className).toMatch(/\bleft-14\b/);
+    expect(th.className).toMatch(/\bleft-16\b/);
 
     const colIndex = getColumnIndex(el, "本人年齢");
     const tds = getBodyCellsByColumn(el, colIndex);
     for (const td of tds) {
       expect(td.className).toMatch(/\bsticky\b/);
-      expect(td.className).toMatch(/\bleft-14\b/);
+      expect(td.className).toMatch(/\bleft-16\b/);
     }
   });
 
@@ -151,5 +159,28 @@ describe("ResultTable の sticky 列（issue #20）", () => {
     expect(yearWidthMatch).not.toBeNull();
     expect(selfAgeLeftMatch).not.toBeNull();
     expect(yearWidthMatch?.[1]).toBe(selfAgeLeftMatch?.[1]);
+  });
+
+  it("z-index の重なり順が不変条件を満たす（固定 td < thead < 固定 th）", () => {
+    const el = mount(<ResultTable results={results} />);
+    const thead = el.querySelector("thead") as HTMLElement;
+    const theadZ = getZIndexClassValue(thead.className);
+
+    const yearColIndex = getColumnIndex(el, "年");
+    const stickyTh = getHeaderCell(el, "年");
+    const stickyThZ = getZIndexClassValue(stickyTh.className);
+    const stickyTds = getBodyCellsByColumn(el, yearColIndex);
+
+    expect(theadZ).not.toBeNull();
+    expect(stickyThZ).not.toBeNull();
+
+    for (const td of stickyTds) {
+      const tdZ = getZIndexClassValue(td.className);
+      expect(tdZ).not.toBeNull();
+      // 固定 td は縦スクロール時に thead の見出しを覆ってはならない。
+      expect(tdZ as number).toBeLessThan(theadZ as number);
+      // 角セル（縦横とも固定される th）は固定 td より必ず前面に出る。
+      expect(stickyThZ as number).toBeGreaterThan(tdZ as number);
+    }
   });
 });

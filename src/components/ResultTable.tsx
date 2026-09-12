@@ -8,8 +8,8 @@ type StickyPosition = "year" | "selfAge";
 
 /** 固定列ごとの `left-*` オフセットと幅クラス（幅とオフセットの数値は必ず一致させる）。 */
 const STICKY_CLASSES: Record<StickyPosition, string> = {
-  year: "sticky left-0 w-14",
-  selfAge: "sticky left-14 w-16",
+  year: "sticky left-0 w-16",
+  selfAge: "sticky left-16 w-16 border-r border-line",
 };
 
 const columns: {
@@ -56,17 +56,13 @@ export function ResultTable({
   return (
     <div id={id} className="max-h-96 overflow-auto rounded-xl border border-line">
       <table className="w-full border-collapse text-right text-xs tabular-nums">
-        <thead className="sticky top-0 z-10 bg-paper-deep/95 backdrop-blur">
+        <thead className="sticky top-0 z-20 bg-paper-deep/95 backdrop-blur">
           <tr>
             {columns.map((c) => (
               <th
                 key={c.key}
                 className={`whitespace-nowrap border-b border-line px-3 py-2.5 text-[11px] font-semibold tracking-wide text-ink-soft ${
-                  c.sticky
-                    ? `${STICKY_CLASSES[c.sticky]} z-20 bg-paper-deep ${
-                        c.sticky === "selfAge" ? "border-r border-line" : ""
-                      }`
-                    : ""
+                  c.sticky ? `${STICKY_CLASSES[c.sticky]} z-30 bg-paper-deep` : ""
                 }`}
               >
                 {c.label}
@@ -91,9 +87,7 @@ export function ResultTable({
                         : "text-ink-soft"
                   } ${
                     c.sticky
-                      ? `${STICKY_CLASSES[c.sticky]} z-10 bg-surface group-odd:bg-paper group-hover:bg-brand-50 ${
-                          c.sticky === "selfAge" ? "border-r border-line" : ""
-                        }`
+                      ? `${STICKY_CLASSES[c.sticky]} z-10 bg-surface group-odd:bg-paper group-hover:bg-brand-50`
                       : ""
                   }`}
                 >
