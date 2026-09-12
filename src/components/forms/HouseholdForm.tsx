@@ -85,16 +85,26 @@ function PersonFields({
 /** 子1人分の入力（基本情報＋進路プラン）。 */
 function ChildCard({
   child,
+  startYear,
   onChange,
   onRemove,
 }: {
   child: Child;
+  /** 見出しの年齢表示に使うシミュレーション開始年。 */
+  startYear: number;
   onChange: (patch: Partial<Child>) => void;
   onRemove: () => void;
 }) {
   const { education } = child;
+  // lp-021 / issue #21: 名前欄を書き換えなくてもカードを判別できるよう、
+  // 名前と開始年時点の年齢を見出しに出す。GameHud と同じ「開始年 − 生年」基準。
+  const age = startYear - child.birthYear;
+  const heading = age >= 0 ? `${child.name}（${age}歳）` : child.name;
   return (
     <div className="rounded-xl border border-line bg-paper/40 p-3">
+      {/* Section の見出しは h2 なので、その下位として h3 にする */}
+      <h3 className="mb-2 text-xs font-medium text-ink-soft">{heading}</h3>
+
       <div className="flex items-end gap-2">
         <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
           <TextField
@@ -266,6 +276,7 @@ export function HouseholdForm() {
               <ChildCard
                 key={child.id}
                 child={child}
+                startYear={input.startYear}
                 onChange={(patch) => updateChild(child.id, patch)}
                 onRemove={() => {
                   setPendingDeleteId(child.id);

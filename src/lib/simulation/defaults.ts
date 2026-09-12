@@ -42,7 +42,8 @@ export const defaultPlanInput: PlanInput = {
   children: [
     {
       id: "child-1",
-      name: "子",
+      // lp-021: 追加される子が「子2」から始まるよう、既定の子も連番に揃える。
+      name: "子1",
       birthYear: CURRENT_YEAR - 3,
       education: DEFAULT_EDUCATION,
     },

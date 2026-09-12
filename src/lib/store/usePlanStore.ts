@@ -14,6 +14,7 @@ import type {
 import { defaultPlanInput } from "@/lib/simulation/defaults";
 import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
 import { newLoan } from "./newLoan";
+import { nextChildName } from "./nextChildName";
 import { planInputSchema, snapshotSchema } from "@/lib/schema";
 import { correctDateRange } from "@/lib/simulation/dateRange";
 
@@ -199,7 +200,8 @@ export const usePlanStore = create<PlanState>()(
         set((s) => {
           const child: Child = {
             id: makeId("child"),
-            name: "子",
+            // lp-021: 既定名を「子1」「子2」…の連番にして判別できるようにする。
+            name: nextChildName(s.input.children),
             birthYear: s.input.startYear,
             education: DEFAULT_EDUCATION,
           };

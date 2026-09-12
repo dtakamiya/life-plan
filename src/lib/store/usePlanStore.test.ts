@@ -207,3 +207,53 @@ describe("usePlanStore — 永続化復元時の期間自動補正", () => {
     expect(merged.rangeAutoCorrected).toBe(false);
   });
 });
+
+describe("usePlanStore.addChild — 既定名の連番化（lp-021 / issue #21）", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("既定状態の子は「子1」で、追加した子は「子2」「子3」になる", () => {
+    const store = usePlanStore.getState();
+    expect(store.input.children.map((c) => c.name)).toEqual(["子1"]);
+
+    store.addChild();
+    store.addChild();
+
+    expect(usePlanStore.getState().input.children.map((c) => c.name)).toEqual([
+      "子1",
+      "子2",
+      "子3",
+    ]);
+  });
+
+  it("途中の子を削除してから追加すると空いた番号を埋める", () => {
+    const store = usePlanStore.getState();
+    store.addChild();
+    store.addChild();
+
+    const [, second] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(second.id);
+    usePlanStore.getState().addChild();
+
+    // 「子2」が空いたので、番号が重複せずそこに入る
+    expect(usePlanStore.getState().input.children.map((c) => c.name)).toEqual([
+      "子1",
+      "子3",
+      "子2",
+    ]);
+  });
+
+  it("ユーザーが付けた名前は番号の計算に影響しない", () => {
+    const store = usePlanStore.getState();
+    const [first] = store.input.children;
+    store.updateChild(first.id, { name: "太郎" });
+
+    usePlanStore.getState().addChild();
+
+    expect(usePlanStore.getState().input.children.map((c) => c.name)).toEqual([
+      "太郎",
+      "子1",
+    ]);
+  });
+});
