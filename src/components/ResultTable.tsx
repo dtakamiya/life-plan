@@ -6,7 +6,7 @@ import { formatYen } from "@/lib/format";
 const columns: { key: keyof YearlyResult; label: string }[] = [
   { key: "year", label: "年" },
   { key: "selfAge", label: "本人年齢" },
-  { key: "grossIncome", label: "収入(税込)" },
+  { key: "grossIncome", label: "世帯収入(税込)" },
   { key: "tax", label: "税" },
   { key: "socialInsurance", label: "社会保険" },
   { key: "netIncome", label: "手取り" },
