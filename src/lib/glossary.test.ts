@@ -5,10 +5,11 @@ import { GLOSSARY, type GlossaryTermKey } from "./glossary";
 describe("GLOSSARY", () => {
   const keys = Object.keys(GLOSSARY) as GlossaryTermKey[];
 
-  it("フォームで使う 6 用語がすべて登録されている", () => {
+  it("フォームで使う 7 用語がすべて登録されている", () => {
     expect(keys.sort()).toEqual(
       [
         "annualReturnRate",
+        "dividendYield",
         "levelPayment",
         "retirementIncomeTax",
         "taxFreeAccount",
@@ -32,5 +33,10 @@ describe("GLOSSARY", () => {
 
   it("課税口座の税率はエンジンの前提（約20%）と一致する", () => {
     expect(GLOSSARY.taxableAccount.description).toContain("約20%");
+  });
+
+  it("配当利回りの解説はエンジンの前提（運用利回りとは別枠・課税口座は約20%）と一致する", () => {
+    expect(GLOSSARY.dividendYield.description).toContain("運用利回り");
+    expect(GLOSSARY.dividendYield.description).toContain("約20%");
   });
 });

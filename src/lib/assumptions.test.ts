@@ -53,7 +53,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(8);
+    expect(rows).toHaveLength(9);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -65,6 +65,7 @@ describe("buildAssumptionRows", () => {
     expect(rows.map((r) => r.label)).toEqual([
       "物価上昇率（インフレ）",
       "資産運用の年間リターン",
+      "配当・分配金の利回り",
       "所得税の税率区分",
       "住民税率",
       "基礎控除",
@@ -95,6 +96,24 @@ describe("buildAssumptionRows", () => {
     );
     const row = rows.find((r) => r.label === "資産運用の年間リターン")!;
     expect(row.value).toBe("7.0%");
+  });
+
+  it("reflects the input dividend yield as a percent string", () => {
+    const rows = buildAssumptionRows(
+      makeInput({
+        assets: {
+          taxableAssets: 0,
+          taxFreeAssets: 0,
+          annualReturnRate: 0.04,
+          annualDividendYield: 0.02,
+          annualTaxFreeContribution: 0,
+        },
+      }),
+    );
+    const row = rows.find((r) => r.label === "配当・分配金の利回り")!;
+    expect(row.value).toBe("2.0%");
+    expect(row.note).toContain("入力値");
+    expect(row.note).toContain("課税");
   });
 
   it("summarizes the income tax brackets from the actual constant", () => {

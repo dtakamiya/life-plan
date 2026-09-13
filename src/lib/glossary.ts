@@ -5,12 +5,14 @@
  * 前提と矛盾させないこと:
  * - 課税口座の運用益課税率は `CAPITAL_GAINS_RATE`（約20%）
  * - 年間積立は課税口座から非課税口座へ移すだけで、総資産は増えない
+ * - 配当利回りは運用利回りとは別枠で、毎年全額を現金で受け取る（課税口座分は約20%課税）
  * - 退職所得控除の勤続年数は 22 歳から働き始めた前提で数える
  */
 export type GlossaryTermKey =
   | "taxableAccount"
   | "taxFreeAccount"
   | "annualReturnRate"
+  | "dividendYield"
   | "taxFreeContribution"
   | "levelPayment"
   | "retirementIncomeTax";
@@ -37,6 +39,11 @@ export const GLOSSARY: Record<GlossaryTermKey, GlossaryEntry> = {
     term: "運用利回り",
     description:
       "資産が1年でどれくらいの割合で増えるかの想定です。預金中心なら 0% 前後、投資信託などで運用するならより高い値を想定します。高く見積もるほど将来の資産は大きく出るので、控えめな値も試してみてください。値下がりを想定する場合はマイナスも入力できます。",
+  },
+  dividendYield: {
+    term: "配当利回り",
+    description:
+      "持っている株や投資信託から、毎年受け取る配当金・分配金が資産の何%にあたるかの想定です。このアプリでは運用利回り（値上がり分）とは別枠で、毎年全額を現金で受け取って生活費に回す扱いで計算します。課税口座で受け取る分には約20%の税金がかかり、非課税口座（NISA など）の分は非課税です。",
   },
   taxFreeContribution: {
     term: "非課税口座へ年間積立",

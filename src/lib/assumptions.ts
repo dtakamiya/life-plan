@@ -61,6 +61,11 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       note: "入力値。課税口座・非課税口座の両方に同率で適用。",
     },
     {
+      label: "配当・分配金の利回り",
+      value: formatPercent(assets.annualDividendYield),
+      note: "入力値。両口座に同率で適用し毎年現金で受取。課税口座分は運用益と同率で課税。",
+    },
+    {
       label: "所得税の税率区分",
       value: summarizeBrackets(),
       note: "概算。課税所得へ簡易累進ブラケットを適用（tax.ts の INCOME_TAX_BRACKETS）。各種控除・復興特別所得税は簡略化。",
