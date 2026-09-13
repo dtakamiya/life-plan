@@ -92,3 +92,25 @@ describe("planInputSchema — recurringExpenses（#18）", () => {
     expect(parsed.success).toBe(false);
   });
 });
+
+describe("planInputSchema — annualDividendYield（配当利回り）", () => {
+  it("annualDividendYield を持たない既存の保存データは 0 として通る", () => {
+    // 旧データを模すため assets から annualDividendYield キー自体を落とす。
+    const legacyAssets: Record<string, unknown> = { ...defaultPlanInput.assets };
+    delete legacyAssets.annualDividendYield;
+    const parsed = planInputSchema.safeParse({
+      ...defaultPlanInput,
+      assets: legacyAssets,
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.assets.annualDividendYield).toBe(0);
+  });
+
+  it("入力された配当利回りを保持する", () => {
+    const parsed = planInputSchema.safeParse({
+      ...defaultPlanInput,
+      assets: { ...defaultPlanInput.assets, annualDividendYield: 0.025 },
+    });
+    expect(parsed.success && parsed.data.assets.annualDividendYield).toBe(0.025);
+  });
+});
