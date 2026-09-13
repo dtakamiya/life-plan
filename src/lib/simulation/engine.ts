@@ -105,8 +105,11 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
     recurringExpenses,
   } = input;
 
-  const { annualReturnRate: returnRate, annualTaxFreeContribution: contribution } =
-    assets;
+  const {
+    annualReturnRate: returnRate,
+    annualDividendYield: dividendYield,
+    annualTaxFreeContribution: contribution,
+  } = assets;
   let prevTaxable = assets.taxableAssets;
   let prevTaxFree = assets.taxFreeAssets;
 
@@ -152,18 +155,30 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       computeRetirementBenefit(people, year),
     );
 
+    // 資産運用: まず非課税口座へ年間積立を移す。
+    const taxableBase = prevTaxable - contribution;
+    const taxFreeBase = prevTaxFree + contribution;
+
+    // 配当・分配金: 運用利回りとは別枠で毎年現金で受け取る。課税口座分のみ課税し、
+    // 残高がマイナスの口座は保有資産なしとみなして配当を 0 とする。
+    const taxableDividend = Math.max(taxableBase, 0) * dividendYield;
+    const dividendTax = Math.round(taxableDividend * CAPITAL_GAINS_RATE);
+    const taxFreeDividend = Math.max(taxFreeBase, 0) * dividendYield;
+    const dividendIncome = Math.round(
+      taxableDividend - dividendTax + taxFreeDividend,
+    );
+
     const cashFlow =
       netIncome -
       livingExpense +
       eventNet -
       loanPayment -
       recurringExpense +
-      retirementBenefit;
+      retirementBenefit +
+      dividendIncome;
 
-    // 資産運用: まず非課税口座へ年間積立を移し、課税口座の運用益にのみ課税する。
-    // 年間収支は課税口座に入る（その年は複利を効かせない、従来どおりの簡易扱い）。
-    const taxableBase = prevTaxable - contribution;
-    const taxFreeBase = prevTaxFree + contribution;
+    // 課税口座の運用益にのみ課税する。年間収支（配当を含む）は課税口座に入る
+    // （その年は複利を効かせない、従来どおりの簡易扱い）。
     const taxableGain = taxableBase * returnRate;
     const investmentTax =
       taxableGain > 0 ? Math.round(taxableGain * CAPITAL_GAINS_RATE) : 0;
@@ -189,6 +204,8 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       recurringExpense,
       loanPayment,
       retirementBenefit,
+      dividendIncome,
+      dividendTax,
       cashFlow,
       assets: yearEndAssets,
       taxableAssets: taxableEnd,

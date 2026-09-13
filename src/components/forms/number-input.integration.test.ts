@@ -32,6 +32,7 @@ function makeInput(eventAmount: number): PlanInput {
       taxableAssets: 10_000_000,
       taxFreeAssets: 0,
       annualReturnRate: 0,
+      annualDividendYield: 0,
       annualTaxFreeContribution: 0,
     },
     events: [

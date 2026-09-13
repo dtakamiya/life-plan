@@ -56,6 +56,7 @@ export const defaultPlanInput: PlanInput = {
     taxableAssets: 5_000_000,
     taxFreeAssets: 0,
     annualReturnRate: 0.03,
+    annualDividendYield: 0,
     annualTaxFreeContribution: 480_000,
   },
   events: [

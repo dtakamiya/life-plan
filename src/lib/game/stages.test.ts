@@ -23,6 +23,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
       taxableAssets: 5_000_000,
       taxFreeAssets: 0,
       annualReturnRate: 0,
+      annualDividendYield: 0,
       annualTaxFreeContribution: 0,
     },
     events: [],

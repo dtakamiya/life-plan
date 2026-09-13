@@ -27,6 +27,7 @@ function assets(taxableAssets: number, annualReturnRate: number) {
     taxableAssets,
     taxFreeAssets: 0,
     annualReturnRate,
+    annualDividendYield: 0,
     annualTaxFreeContribution: 0,
   };
 }
@@ -110,6 +111,7 @@ describe("runSimulation", () => {
         taxableAssets: 0,
         taxFreeAssets: 1_000_000,
         annualReturnRate: 0.05,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 0,
       },
     });
@@ -129,6 +131,7 @@ describe("runSimulation", () => {
         taxableAssets: 1_000_000,
         taxFreeAssets: 0,
         annualReturnRate: 0,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 300_000,
       },
     });
@@ -401,5 +404,67 @@ describe("runSimulation", () => {
     expect(results.map((r) => r.recurringExpense)).toEqual([
       1_000_000, 1_000_000, 1_000_000,
     ]);
+  });
+
+  describe("配当・分配金", () => {
+    /** 給与・生活費・値上がりを 0 にして配当だけを観測する入力。 */
+    function dividendInput(
+      taxableAssets: number,
+      taxFreeAssets: number,
+      annualDividendYield: number,
+      annualReturnRate = 0,
+    ): PlanInput {
+      return makeInput({
+        startYear: 2030,
+        endYear: 2030,
+        self: { ...basePerson, grossAnnualIncome: 0 },
+        expenses: { baseAnnualLivingExpense: 0, inflationRate: 0 },
+        assets: {
+          taxableAssets,
+          taxFreeAssets,
+          annualReturnRate,
+          annualDividendYield,
+          annualTaxFreeContribution: 0,
+        },
+      });
+    }
+
+    it("配当利回り 0% なら配当・配当税は 0", () => {
+      const [year] = runSimulation(dividendInput(1_000_000, 500_000, 0));
+      expect(year.dividendIncome).toBe(0);
+      expect(year.dividendTax).toBe(0);
+    });
+
+    it("課税口座の配当は約20%課税、非課税口座の配当は満額で収支に加算する", () => {
+      const [year] = runSimulation(dividendInput(1_000_000, 500_000, 0.04));
+
+      const taxableDividend = 1_000_000 * 0.04;
+      const dividendTax = Math.round(taxableDividend * CAPITAL_GAINS_RATE);
+      const dividendIncome = Math.round(taxableDividend - dividendTax + 500_000 * 0.04);
+
+      expect(year.dividendTax).toBe(dividendTax);
+      expect(year.dividendIncome).toBe(dividendIncome);
+      expect(year.cashFlow).toBe(dividendIncome);
+      // 受け取った配当は課税口座に入り、非課税口座は増えない（値上がり 0%）
+      expect(year.taxableAssets).toBe(1_000_000 + dividendIncome);
+      expect(year.taxFreeAssets).toBe(500_000);
+    });
+
+    it("資産の値上がりと運用益課税は配当利回りの影響を受けない", () => {
+      const [without] = runSimulation(dividendInput(1_000_000, 500_000, 0, 0.05));
+      const [withDividend] = runSimulation(dividendInput(1_000_000, 500_000, 0.03, 0.05));
+
+      expect(withDividend.investmentTax).toBe(without.investmentTax);
+      expect(withDividend.taxFreeAssets).toBe(without.taxFreeAssets);
+      expect(withDividend.taxableAssets - without.taxableAssets).toBe(
+        withDividend.dividendIncome,
+      );
+    });
+
+    it("残高がマイナスの口座からは配当を受け取らない", () => {
+      const [year] = runSimulation(dividendInput(-1_000_000, 0, 0.04));
+      expect(year.dividendIncome).toBe(0);
+      expect(year.dividendTax).toBe(0);
+    });
   });
 });

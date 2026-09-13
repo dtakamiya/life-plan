@@ -56,6 +56,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
       taxableAssets: 1_000_000,
       taxFreeAssets: 0,
       annualReturnRate: 0,
+      annualDividendYield: 0,
       annualTaxFreeContribution: 0,
     },
     events: [],
@@ -134,6 +135,7 @@ describe("AC1/AC8: 資産保存則（期首 + 収入 − 支出 + 運用損益 =
         taxableAssets: 5_000_000,
         taxFreeAssets: 0,
         annualReturnRate: 0.03,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 480_000,
       },
     });
@@ -159,6 +161,7 @@ describe("AC1/AC8: 資産保存則（期首 + 収入 − 支出 + 運用損益 =
         taxableAssets: 8_000_000,
         taxFreeAssets: 2_000_000,
         annualReturnRate: 0.03,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 200_000,
       },
     });
@@ -179,6 +182,7 @@ describe("AC1/AC8: 資産保存則（期首 + 収入 − 支出 + 運用損益 =
         taxableAssets: 10_000_000,
         taxFreeAssets: 0,
         annualReturnRate: 0.02,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 0,
       },
       loans: [
@@ -210,6 +214,7 @@ describe("AC1/AC8: 資産保存則（期首 + 収入 − 支出 + 運用損益 =
         taxableAssets: 6_000_000,
         taxFreeAssets: 0,
         annualReturnRate: 0.03,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 300_000,
       },
       children: [child],
@@ -265,6 +270,7 @@ describe("AC1/AC8: 資産保存則（期首 + 収入 − 支出 + 運用損益 =
         taxableAssets: 9_000_000,
         taxFreeAssets: 1_000_000,
         annualReturnRate: 0.035,
+        annualDividendYield: 0,
         annualTaxFreeContribution: 480_000,
       },
       events: [
@@ -288,6 +294,22 @@ describe("AC1/AC8: 資産保存則（期首 + 収入 − 支出 + 運用損益 =
       expect(Number.isNaN(r.cashFlow)).toBe(false);
       expect(Number.isFinite(r.cashFlow)).toBe(true);
     }
+  });
+
+  it("配当利回りありでも保存則が成り立つ（配当は cashFlow に含まれる）", () => {
+    const input = makeInput({
+      startYear: 2030,
+      endYear: 2040,
+      assets: {
+        taxableAssets: 3_000_000,
+        taxFreeAssets: 1_000_000,
+        annualReturnRate: 0.04,
+        annualDividendYield: 0.02,
+        annualTaxFreeContribution: 300_000,
+      },
+    });
+    const results = assertConservation(input);
+    expect(results.every((r) => r.dividendIncome > 0)).toBe(true);
   });
 });
 
@@ -672,6 +694,7 @@ describe("AC5: 境界値（開始年 / 終了年 / 退職年 / ローン完済�
           taxableAssets: 0,
           taxFreeAssets: 0,
           annualReturnRate: 0,
+          annualDividendYield: 0,
           annualTaxFreeContribution: 0,
         },
       }),

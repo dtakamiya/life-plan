@@ -51,6 +51,8 @@ function makeRow(overrides: Partial<YearlyResult> = {}): YearlyResult {
     recurringExpense: 0,
     loanPayment: 0,
     retirementBenefit: 0,
+    dividendIncome: 0,
+    dividendTax: 0,
     cashFlow: 1_300_000,
     assets: 10_000_000,
     taxableAssets: 8_000_000,

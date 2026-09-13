@@ -74,12 +74,16 @@ export const assetSchema = z
     initialAssets: z.number().optional(),
     taxFreeAssets: z.number().default(0),
     annualReturnRate: z.number(),
+    // 配当・分配金の年間利回り。既存の保存データ（当フィールドを持たない）
+    // でも検証を通すため既定値 0 で補う。
+    annualDividendYield: z.number().default(0),
     annualTaxFreeContribution: z.number().default(0),
   })
   .transform((a) => ({
     taxableAssets: a.taxableAssets ?? a.initialAssets ?? 0,
     taxFreeAssets: a.taxFreeAssets,
     annualReturnRate: a.annualReturnRate,
+    annualDividendYield: a.annualDividendYield,
     annualTaxFreeContribution: a.annualTaxFreeContribution,
   }));
 

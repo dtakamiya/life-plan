@@ -19,6 +19,8 @@ function results(assetsByYear: number[], startYear = 2030, startAge = 35): Yearl
     recurringExpense: 0,
     loanPayment: 0,
     retirementBenefit: 0,
+    dividendIncome: 0,
+    dividendTax: 0,
     cashFlow: 0,
     assets,
     taxableAssets: assets,

@@ -110,6 +110,8 @@ export type AssetSettings = {
   taxFreeAssets: number;
   /** 資産運用の年間利回り（小数。両口座共通） */
   annualReturnRate: number;
+  /** 配当・分配金の年間利回り（小数。両口座共通、運用利回りとは別枠で毎年現金受取） */
+  annualDividendYield: number;
   /** 非課税口座への年間積立額（円。課税口座から移す） */
   annualTaxFreeContribution: number;
 };
@@ -154,6 +156,10 @@ export type YearlyResult = {
   loanPayment: number;
   /** その年に受け取った退職一時金（手取り、円） */
   retirementBenefit: number;
+  /** その年に受け取った配当・分配金の手取り（円、課税口座分は税引後） */
+  dividendIncome: number;
+  /** 課税口座の配当にかかる税の概算（円） */
+  dividendTax: number;
   /** 年間収支（円） */
   cashFlow: number;
   /** 年末純資産（円、課税口座＋非課税口座の合計） */
