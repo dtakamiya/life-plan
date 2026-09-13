@@ -204,7 +204,11 @@ export default function Home() {
           <EventForm />
         </div>
 
-        <div className="space-y-6">
+        {/*
+          `1fr` 列の最小幅は中身の min-content になり、年次明細テーブル
+          （whitespace-nowrap）の幅で列ごとはみ出すため min-w-0 で抑える。
+        */}
+        <div data-column="results" className="min-w-0 space-y-6">
           {hydrated ? (
             <>
               {results.length === 0 ? (

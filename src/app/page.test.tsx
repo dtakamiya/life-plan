@@ -170,4 +170,15 @@ describe("Home ページ — 試算結果の要約を常時表示する（issue 
       expect(inputs?.classList.contains(cls)).toBe(true);
     }
   });
+
+  it("結果列は min-w-0 を持ち、年次明細テーブルの幅でグリッド列が押し広げられない", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    // `1fr` の最小幅は中身の min-content になるため、横幅の大きい表があると
+    // 列ごとビューポート外へはみ出す。min-w-0 で列幅をグリッドに従わせる。
+    const results = el.querySelector('[data-column="results"]');
+    expect(results).not.toBeNull();
+    expect(results?.classList.contains("min-w-0")).toBe(true);
+  });
 });
