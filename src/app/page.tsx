@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { runSimulation } from "@/lib/simulation/engine";
+import { summarizeResults } from "@/lib/simulation/summary";
 import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
+import { SummaryBar } from "@/components/SummaryBar";
 import { HouseholdForm } from "@/components/forms/HouseholdForm";
 import { ExpenseForm } from "@/components/forms/ExpenseForm";
 import { RecurringExpenseForm } from "@/components/forms/RecurringExpenseForm";
@@ -51,10 +53,9 @@ function EmptyResultsNotice() {
 
 /** サマリーカード（最終純資産・最小純資産・赤字転落年）。 */
 function Summary({ results }: { results: YearlyResult[] }) {
-  if (results.length === 0) return null;
-  const last = results[results.length - 1];
-  const min = results.reduce((m, r) => (r.assets < m.assets ? r : m), results[0]);
-  const depleted = results.find((r) => r.assets < 0);
+  const summary = summarizeResults(results);
+  if (!summary) return null;
+  const { last, min, depleted } = summary;
 
   const cards: {
     label: string;
@@ -183,8 +184,18 @@ export default function Home() {
         onConfirm={reset}
       />
 
+      {/* issue #17: 入力を編集しながら結果を確認できるよう要約を上部に固定する */}
+      {hydrated && <SummaryBar results={results} />}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
-        <div className="space-y-4">
+        {/*
+          issue #17: PC 幅ではフォーム列を要約バー（高さ約 4rem）の下に固定し、
+          列内で独立スクロールさせる。結果列をスクロールしてもフォームが見え続ける。
+        */}
+        <div
+          data-column="inputs"
+          className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
+        >
           <HouseholdForm />
           <ExpenseForm />
           <RecurringExpenseForm />

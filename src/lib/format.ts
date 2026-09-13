@@ -13,7 +13,8 @@ export function formatYen(value: number): string {
 
 /** 万円単位の簡易表記（グラフ軸など、例: 1,234万） */
 export function formatManYen(value: number): string {
-  const man = Math.round(value / 10_000);
+  // 小さな負の値は Math.round で -0 になり、"-0万" と表示されてしまうため 0 に正規化する（#17）。
+  const man = Math.round(value / 10_000) || 0;
   return `${man.toLocaleString("ja-JP")}万`;
 }
 

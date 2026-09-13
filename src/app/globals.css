@@ -13,6 +13,8 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* sticky 要約バー（#17, 高さ約60px）にフォーカス要素が隠れないよう余白を確保する */
+    scroll-padding-top: 5rem;
   }
 
   body {

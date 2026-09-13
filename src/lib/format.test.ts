@@ -25,3 +25,19 @@ describe("既存フォーマッタの回帰", () => {
     expect(formatPercent(0.03)).toBe("3.0%");
   });
 });
+
+/**
+ * 要約バー（#17）で小さな負の値が「-0万円」と表示される不具合の回帰テスト。
+ * Math.round(-3000/10000) 等が -0 になり toLocaleString で "-0" と表示されるのを防ぐ。
+ */
+describe("formatManYen — 小さな負の値の -0 表示防止（#17）", () => {
+  const table: Array<[number, string]> = [
+    [-3_000, "0万"],
+    [-5_000, "0万"], // Math.round(-0.5) は -0 になる
+    [-6_000, "-1万"],
+  ];
+
+  it.each(table)("%j → %j", (input, expected) => {
+    expect(formatManYen(input)).toBe(expected);
+  });
+});

@@ -113,3 +113,61 @@ describe("Home ページ — 「初期値に戻す」は確認ダイアログ経
     expect(usePlanStore.getState().input.startYear).not.toBe(2025);
   });
 });
+
+describe("Home ページ — 試算結果の要約を常時表示する（issue #17）", () => {
+  const summaryBar = (el: HTMLElement) =>
+    el.querySelector('aside[aria-label="試算結果の要約"]');
+
+  it("ハイドレーション後、入力フォームより前に要約バーを表示する", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    const bar = summaryBar(el);
+    expect(bar).not.toBeNull();
+    expect(bar?.textContent).toContain("最終純資産");
+
+    const inputs = el.querySelector('[data-column="inputs"]');
+    expect(inputs).not.toBeNull();
+    expect(
+      bar!.compareDocumentPosition(inputs!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("入力を変えると要約バーの値が更新される", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+    const before = summaryBar(el)?.textContent;
+    expect(before).toBeTruthy();
+
+    act(() => {
+      usePlanStore.setState((s) => ({
+        input: { ...s.input, endYear: s.input.startYear + 1 },
+      }));
+    });
+
+    expect(summaryBar(el)?.textContent).not.toBe(before);
+  });
+
+  it("結果が空のときは要約バーを表示しない", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => {
+      usePlanStore.setState((s) => ({
+        input: { ...s.input, startYear: 2050, endYear: 2000 },
+      }));
+    });
+
+    expect(summaryBar(el)).toBeNull();
+  });
+
+  it("PC 幅ではフォーム列を要約バーの下に固定し、列内で独立スクロールさせる", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    const inputs = el.querySelector('[data-column="inputs"]');
+    for (const cls of ["lg:sticky", "lg:top-20", "lg:self-start", "lg:max-h-[calc(100vh-6rem)]", "lg:overflow-y-auto"]) {
+      expect(inputs?.classList.contains(cls)).toBe(true);
+    }
+  });
+});
