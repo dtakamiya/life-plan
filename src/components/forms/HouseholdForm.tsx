@@ -72,6 +72,7 @@ function PersonFields({
       <NumberField
         label="退職一時金"
         hint="退職年齢で受取"
+        help="retirementIncomeTax"
         suffix="円"
         grouped
         step={1_000_000}

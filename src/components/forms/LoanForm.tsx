@@ -6,6 +6,7 @@ import { annualLoanPayment } from "@/lib/simulation/loan";
 import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
+import { TermHelp } from "@/components/ui/TermHelp";
 import { NumberField, PercentField, Section, TextField } from "./fields";
 
 export function LoanForm() {
@@ -96,6 +97,7 @@ export function LoanForm() {
                   {formatYen(annualLoanPayment(loan))}
                 </span>
                 （元利均等）
+                <TermHelp term="levelPayment" />
               </p>
             </div>
           ))}

@@ -12,6 +12,7 @@ export function AssetForm() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <NumberField
           label="課税口座 初期資産"
+          help="taxableAccount"
           suffix="円"
           grouped
           step={100_000}
@@ -21,6 +22,7 @@ export function AssetForm() {
         <NumberField
           label="非課税口座 初期資産"
           hint="NISA/iDeCo 等"
+          help="taxFreeAccount"
           suffix="円"
           grouped
           step={100_000}
@@ -29,6 +31,7 @@ export function AssetForm() {
         />
         <PercentField
           label="運用利回り"
+          help="annualReturnRate"
           signed
           value={assets.annualReturnRate}
           onChange={(annualReturnRate) => updateAssets({ annualReturnRate })}
@@ -36,6 +39,7 @@ export function AssetForm() {
         <NumberField
           label="非課税口座へ年間積立"
           hint="課税口座から移す"
+          help="taxFreeContribution"
           suffix="円"
           grouped
           step={100_000}

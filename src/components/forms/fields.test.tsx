@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { NumberField, SelectField, TextField } from "./fields";
+import { NumberField, PercentField, SelectField, TextField } from "./fields";
 
 // react-dom の act(...) を有効化する
 (
@@ -93,5 +93,74 @@ describe("SelectField — エラー表示（FR2.1 / FR2.2）", () => {
     expect(select.getAttribute("aria-invalid")).toBe("true");
     const describedBy = select.getAttribute("aria-describedby");
     expect(el.querySelector(`#${describedBy}`)?.textContent).toBe("選択してください");
+  });
+});
+
+describe("NumberField / PercentField — 用語解説（issue #22）", () => {
+  it("help を渡すとラベルの後ろに「?」ボタンが出る", () => {
+    const el = mount(
+      <NumberField
+        label="非課税口座 初期資産"
+        help="taxFreeAccount"
+        value={0}
+        onChange={() => {}}
+      />,
+    );
+    const button = el.querySelector("label button") as HTMLButtonElement;
+    expect(button.getAttribute("aria-label")).toBe("「非課税口座」の説明");
+    // 既存テストが依存する「label 直下の span がラベル文字列で始まる」構造を保つ
+    expect(el.querySelector("label > span")?.textContent?.startsWith("非課税口座 初期資産")).toBe(true);
+  });
+
+  it("input のアクセシブルネームは aria-labelledby でラベル文字列だけを指す", () => {
+    const el = mount(
+      <NumberField
+        label="非課税口座 初期資産"
+        help="taxFreeAccount"
+        value={0}
+        onChange={() => {}}
+      />,
+    );
+    const input = el.querySelector("input") as HTMLInputElement;
+    const labelledBy = input.getAttribute("aria-labelledby");
+    expect(labelledBy).toBeTruthy();
+    expect(document.getElementById(labelledBy!)?.textContent).toBe("非課税口座 初期資産");
+  });
+
+  it("help を渡さなければ「?」ボタンは出ない（happy path）", () => {
+    const el = mount(<NumberField label="金額" value={0} onChange={() => {}} />);
+    expect(el.querySelector("button")).toBeNull();
+  });
+
+  it("PercentField も help を NumberField へ引き渡す", () => {
+    const el = mount(
+      <PercentField
+        label="運用利回り"
+        help="annualReturnRate"
+        value={0.03}
+        onChange={() => {}}
+      />,
+    );
+    expect(el.querySelector("label button")?.getAttribute("aria-label")).toBe(
+      "「運用利回り」の説明",
+    );
+  });
+
+  it("「?」ボタンを押すと解説が開き、入力値は変わらない", () => {
+    let changed = false;
+    const el = mount(
+      <NumberField
+        label="非課税口座 初期資産"
+        help="taxFreeAccount"
+        value={100}
+        onChange={() => {
+          changed = true;
+        }}
+      />,
+    );
+    const button = el.querySelector("label button") as HTMLButtonElement;
+    act(() => button.click());
+    expect(el.querySelector('[role="note"]')?.textContent).toContain("NISA");
+    expect(changed).toBe(false);
   });
 });

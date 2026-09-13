@@ -2,7 +2,9 @@
 
 import { useId, useState } from "react";
 import { Panel } from "@/components/ui/Panel";
+import { TermHelp } from "@/components/ui/TermHelp";
 import { formatManYenLabel } from "@/lib/format";
+import type { GlossaryTermKey } from "@/lib/glossary";
 import { formatGroupedNumber, normalizeNumberInput } from "./number-input";
 
 /** 万円換算の併記を出す下限。これ未満は桁の読み間違いが起きにくいので出さない。 */
@@ -117,6 +119,7 @@ export function NumberField({
   suffix,
   signed = false,
   grouped = false,
+  help,
 }: BaseProps & {
   value: number;
   onChange: (value: number) => void;
@@ -127,11 +130,14 @@ export function NumberField({
   signed?: boolean;
   /** true で金額として扱い、3 桁区切り表示と万円換算の併記を行う。 */
   grouped?: boolean;
+  /** 専門用語の解説キー。指定するとラベルの後ろに「?」ボタンを出す（issue #22）。 */
+  help?: GlossaryTermKey;
 }) {
   const id = useId();
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
   const manYenId = `${id}-manyen`;
+  const labelId = `${id}-label`;
   // null = 非編集（外部 value を表示） / 文字列 = 編集中の生入力
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -158,8 +164,11 @@ export function NumberField({
   return (
     <label htmlFor={id} className="block">
       <span className={labelClass}>
-        {label}
-        {required && <RequiredMark />}
+        <span id={labelId}>
+          {label}
+          {required && <RequiredMark />}
+        </span>
+        {help && <TermHelp term={help} />}
       </span>
       <span className="relative flex items-center">
         <input
@@ -169,6 +178,8 @@ export function NumberField({
           value={display}
           aria-invalid={error ? "true" : undefined}
           aria-describedby={describedBy}
+          // 「?」ボタンの文言がアクセシブルネームに混ざらないよう、ラベル文字列だけを参照する
+          aria-labelledby={labelId}
           onChange={(e) => {
             const raw = e.target.value;
             const { text, value: next } = normalizeNumberInput(raw, { signed });
@@ -221,11 +232,14 @@ export function PercentField({
   value,
   onChange,
   signed = false,
+  help,
 }: BaseProps & {
   value: number;
   onChange: (value: number) => void;
   /** true のときだけ負の率（先頭 `-`）を許可する。既定は 0 以上のみ。 */
   signed?: boolean;
+  /** 専門用語の解説キー。指定するとラベルの後ろに「?」ボタンを出す（issue #22）。 */
+  help?: GlossaryTermKey;
 }) {
   return (
     <NumberField
@@ -233,6 +247,7 @@ export function PercentField({
       hint={hint}
       error={error}
       required={required}
+      help={help}
       suffix="%"
       step={0.1}
       signed={signed}
