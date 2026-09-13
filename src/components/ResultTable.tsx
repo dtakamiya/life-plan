@@ -28,6 +28,7 @@ const columns: {
   { key: "loanPayment", label: "ローン返済" },
   { key: "eventNet", label: "イベント" },
   { key: "retirementBenefit", label: "退職金" },
+  { key: "dividendIncome", label: "配当(手取)" },
   { key: "cashFlow", label: "収支" },
   { key: "assets", label: "純資産" },
   { key: "taxFreeAssets", label: "うち非課税" },

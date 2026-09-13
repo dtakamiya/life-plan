@@ -36,6 +36,13 @@ export function AssetForm() {
           value={assets.annualReturnRate}
           onChange={(annualReturnRate) => updateAssets({ annualReturnRate })}
         />
+        <PercentField
+          label="配当利回り"
+          hint="運用利回りとは別に受取"
+          help="dividendYield"
+          value={assets.annualDividendYield}
+          onChange={(annualDividendYield) => updateAssets({ annualDividendYield })}
+        />
         <NumberField
           label="非課税口座へ年間積立"
           hint="課税口座から移す"
@@ -51,7 +58,7 @@ export function AssetForm() {
       </div>
       <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-ink-mute">
         <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold/70" aria-hidden />
-        課税口座の運用益には約20%課税。非課税口座（NISA/iDeCo）は運用益非課税です。
+        課税口座の運用益には約20%課税。非課税口座（NISA/iDeCo）は運用益非課税です。配当・分配金は毎年現金で受け取り、課税口座分は約20%課税されます。
       </p>
     </Section>
   );

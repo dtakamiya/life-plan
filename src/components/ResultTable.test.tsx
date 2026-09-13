@@ -207,4 +207,14 @@ describe("ResultTable — 継続支出の列（#18）", () => {
     const headers = [...el.querySelectorAll("th")].map((th) => th.textContent);
     expect(headers.indexOf("継続支出")).toBe(headers.indexOf("生活費") + 1);
   });
+
+  it("配当(手取)列を退職金列の直後に円表示する", () => {
+    const el = mount(
+      <ResultTable results={[makeRow({ dividendIncome: 123_456 })]} />,
+    );
+    const index = getColumnIndex(el, "配当(手取)");
+    expect(index).toBe(getColumnIndex(el, "退職金") + 1);
+    const cell = el.querySelectorAll("tbody tr")[0].children[index];
+    expect(cell.textContent).toBe(formatYen(123_456));
+  });
 });
