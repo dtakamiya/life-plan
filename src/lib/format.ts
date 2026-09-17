@@ -1,14 +1,14 @@
 /** 表示用の小さなフォーマッタ群。 */
 
-const yenFormatter = new Intl.NumberFormat("ja-JP", {
-  style: "currency",
-  currency: "JPY",
-  maximumFractionDigits: 0,
-});
-
-/** 円表記（例: ¥1,234,567） */
+/**
+ * 円表記（例: ¥1,234,567）
+ *
+ * Intl.NumberFormat の style: "currency" は環境の ICU 実装により円記号が
+ * 全角「￥」(U+FFE5) と半角「¥」(U+00A5) のどちらになるか異なり、SSR (Node.js)
+ * と Safari とで表示が食い違って hydration mismatch を起こすため使わない。
+ */
 export function formatYen(value: number): string {
-  return yenFormatter.format(Math.round(value));
+  return `¥${Math.round(value).toLocaleString("ja-JP")}`;
 }
 
 /** 万円単位の簡易表記（グラフ軸など、例: 1,234万） */

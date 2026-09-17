@@ -20,7 +20,7 @@ describe("formatManYenLabel — 万円換算の併記表記（#16）", () => {
 
 describe("既存フォーマッタの回帰", () => {
   it("formatYen / formatManYen / formatPercent の表記を維持する", () => {
-    expect(formatYen(1_234_567)).toBe("￥1,234,567");
+    expect(formatYen(1_234_567)).toBe("¥1,234,567");
     expect(formatManYen(12_340_000)).toBe("1,234万");
     expect(formatPercent(0.03)).toBe("3.0%");
   });
