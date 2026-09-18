@@ -36,6 +36,7 @@ describe("computeStats", () => {
     expect(stats.minAssetsAge).toBe(37);
     expect(stats.minAssetsYear).toBe(2032);
     expect(stats.lastAge).toBe(38);
+    expect(stats.finalYear).toBe(2033);
   });
 
   it("最小値が複数あるときは最初の年を採る", () => {
@@ -85,5 +86,6 @@ describe("computeStats", () => {
     expect(stats.finalAssets).toBe(0);
     expect(stats.minAssets).toBe(0);
     expect(stats.depletionAge).toBeNull();
+    expect(stats.finalYear).toBe(0);
   });
 });

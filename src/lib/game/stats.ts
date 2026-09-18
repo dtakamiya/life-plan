@@ -23,6 +23,8 @@ export type GameStats = {
   assetLifeAge: number;
   /** 集計対象の最終年の年齢 */
   lastAge: number;
+  /** 集計対象の最終年（西暦）。世帯メンバーの最終年齢を同じ年で揃えるための単一ソース */
+  finalYear: number;
 };
 
 /**
@@ -47,6 +49,7 @@ export function computeStats(
       depletionAge: null,
       assetLifeAge: 0,
       lastAge: 0,
+      finalYear: 0,
     };
   }
 
@@ -66,5 +69,6 @@ export function computeStats(
     depletionAge: depleted ? depleted.selfAge : null,
     assetLifeAge: depleted ? depleted.selfAge - 1 : last.selfAge,
     lastAge: last.selfAge,
+    finalYear: last.year,
   };
 }
