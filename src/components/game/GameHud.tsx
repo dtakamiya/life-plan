@@ -9,6 +9,7 @@ import {
 } from "@/lib/game/satisfaction";
 import { Panel } from "@/components/ui/Panel";
 import { formatYen } from "@/lib/format";
+import { formatMemberAge } from "@/lib/game/householdAge";
 
 /** ランダムイベントは演出であり確率の予測ではない旨の常設表示。 */
 export const EVENT_DISCLAIMER =
@@ -97,6 +98,11 @@ export function GameHud({
       stage.endYear >= loan.startYear &&
       stage.startYear < loan.startYear + loan.termYears,
   );
+  // 進行中はステージ開始年、終了後はシミュレーション最終年（stats.finalYear、
+  // 「資産が最も薄くなった年齢」等と同じ単一ソース）で世帯メンバーの年齢を揃える。
+  // stage が null になる「終了後」を「対象年なし」と混同すると全メンバーが
+  // 「—」になる（board #8）ため、明示的に対象年を分ける。
+  const memberTargetYear = stage ? stage.startYear : stats.finalYear;
 
   return (
     <div className="space-y-4">
@@ -133,23 +139,19 @@ export function GameHud({
       <Panel eyebrow="Household" title="世帯">
         <Row
           label={input.self.name}
-          value={
-            stage ? `${stage.startYear - input.self.birthYear}歳` : "—"
-          }
+          value={formatMemberAge(input.self.birthYear, memberTargetYear)}
         />
         {input.spouse && (
           <Row
             label={input.spouse.name}
-            value={
-              stage ? `${stage.startYear - input.spouse.birthYear}歳` : "—"
-            }
+            value={formatMemberAge(input.spouse.birthYear, memberTargetYear)}
           />
         )}
         {input.children.map((child) => (
           <Row
             key={child.id}
             label={child.name}
-            value={stage ? `${stage.startYear - child.birthYear}歳` : "—"}
+            value={formatMemberAge(child.birthYear, memberTargetYear)}
           />
         ))}
         {activeLoans.map((loan) => (
