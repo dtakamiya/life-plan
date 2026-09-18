@@ -7,6 +7,7 @@ import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { formatYen } from "@/lib/format";
+import { formatAssetDiff } from "@/lib/game/assetDiff";
 import {
   EVENT_DISCLAIMER,
   SATISFACTION_DEFINITION,
@@ -66,10 +67,8 @@ export function GameResult({
   const averageSatisfaction = satisfaction.value;
   const lowStages = satisfaction.lowStages;
 
-  const assetDiff = stats.finalAssets - baseStats.finalAssets;
-  // 符号付きの差分であることを示す（正なら + を前置。負は formatYen が - / △ を付ける）。
-  const assetDiffText =
-    assetDiff > 0 ? `+${formatYen(assetDiff)}` : formatYen(assetDiff);
+  // 差額そのものの算出式（scenario - base）は formatAssetDiff に一本化。ここでは変更しない。
+  const assetDiffRow = formatAssetDiff(stats.finalAssets, baseStats.finalAssets);
   const lifeDiff = stats.assetLifeAge - baseStats.assetLifeAge;
 
   return (
@@ -98,9 +97,19 @@ export function GameResult({
         </p>
       </Panel>
 
+      {/*
+        このセクションは常にベースプランとの相対値（差額）。実額は上の
+        「この人生に起きたこと」パネルを参照（単一ソース、ここでは再計算しない）。
+      */}
       <Panel eyebrow="Compare" title="基本計画との違い">
         <ul className="space-y-2 text-sm leading-relaxed text-ink">
-          <li>最終資産 {assetDiffText}</li>
+          <li>
+            最終資産（ベース比） {assetDiffRow.diffText}
+            <span className="ml-1 text-[11px] text-ink-mute">
+              （基本計画と比べて{assetDiffRow.direction}／このシナリオの実額は{" "}
+              {assetDiffRow.actualText}）
+            </span>
+          </li>
           {(stats.depletionAge !== null || baseStats.depletionAge !== null) && (
             <li>
               {lifeDiff === 0
