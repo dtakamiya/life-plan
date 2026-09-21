@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
+import { findDepletion } from "@/lib/simulation/summary";
 import { formatManYen, formatYen } from "@/lib/format";
 import { axisTick, chartColors, tooltipStyle } from "./chartTheme";
 
@@ -25,6 +26,8 @@ export function NetWorthChart({
   results: YearlyResult[];
   describedById?: string;
 }) {
+  // 枯渇年（年末純資産が初めて0未満）。枯渇なしなら参照線は描かない。
+  const depleted = findDepletion(results);
   return (
     <div
       className="h-72 w-full"
@@ -50,6 +53,19 @@ export function NetWorthChart({
             width={64}
           />
           <ReferenceLine y={0} stroke={chartColors.zeroLine} />
+          {depleted && (
+            <ReferenceLine
+              x={depleted.year}
+              stroke={chartColors.expense}
+              strokeDasharray="4 3"
+              label={{
+                value: `枯渇 ${depleted.year}年（${depleted.selfAge}歳）`,
+                position: "insideTopRight",
+                fontSize: 11,
+                fill: chartColors.expense,
+              }}
+            />
+          )}
           <Tooltip
             {...tooltipStyle}
             formatter={(value: number) => [formatYen(value), "純資産"]}

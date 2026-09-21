@@ -78,7 +78,7 @@ function Summary({ results }: { results: YearlyResult[] }) {
     {
       label: "資産が尽きる年",
       value: depleted ? `${depleted.year}年` : "なし",
-      caption: depleted ? `本人${depleted.selfAge}歳で残高マイナス` : "計画期間中は枯渇しません",
+      caption: depleted ? `本人${depleted.selfAge}歳で初めて残高マイナス` : "生涯を通じて枯渇なし",
       tone: depleted ? "danger" : "ink",
     },
   ];
