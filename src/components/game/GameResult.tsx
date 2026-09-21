@@ -9,6 +9,11 @@ import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/Confirm
 import { formatYen } from "@/lib/format";
 import { formatAssetDiff } from "@/lib/game/assetDiff";
 import {
+  DEPLETION_DEFINITION,
+  describeDepletion,
+  describeDepletionDiff,
+} from "@/lib/game/depletionText";
+import {
   EVENT_DISCLAIMER,
   SATISFACTION_DEFINITION,
   SATISFACTION_DISCLAIMER,
@@ -69,6 +74,7 @@ export function GameResult({
 
   // 差額そのものの算出式（scenario - base）は formatAssetDiff に一本化。ここでは変更しない。
   const assetDiffRow = formatAssetDiff(stats.finalAssets, baseStats.finalAssets);
+  // assetLifeAge（尽きる年の前年）は差分計算専用。画面ラベルには出さない。
   const lifeDiff = stats.assetLifeAge - baseStats.assetLifeAge;
 
   return (
@@ -80,9 +86,7 @@ export function GameResult({
             {formatYen(stats.minAssets)}）
           </li>
           <li>
-            {stats.depletionAge === null
-              ? `資産寿命は ${stats.assetLifeAge}歳（期間内では尽きませんでした）`
-              : `資産は ${stats.depletionAge}歳で尽きました（資産寿命 ${stats.assetLifeAge}歳）`}
+            {describeDepletion(stats)}
           </li>
           <li>最終的な純資産は {formatYen(stats.finalAssets)}</li>
           <li>
@@ -91,6 +95,7 @@ export function GameResult({
           </li>
         </ul>
         <p className="mt-3 text-[11px] leading-relaxed text-ink-mute">
+          {DEPLETION_DEFINITION}
           {SATISFACTION_DEFINITION}
           {satisfaction.confirmedStages > 0 &&
             `（今回の母数は ${satisfaction.confirmedStages} ステージ）`}
@@ -112,11 +117,7 @@ export function GameResult({
           </li>
           {(stats.depletionAge !== null || baseStats.depletionAge !== null) && (
             <li>
-              {lifeDiff === 0
-                ? "資産寿命は基本計画と同じ年齢です"
-                : lifeDiff < 0
-                  ? `基本計画より ${Math.abs(lifeDiff)} 年早く資産が尽きました`
-                  : `基本計画より ${lifeDiff} 年長く資産が持ちました`}
+              {describeDepletionDiff(lifeDiff)}
             </li>
           )}
           <li>{summarizeChoices(state)}</li>
