@@ -32,6 +32,20 @@ const inputClass =
 const inputErrorClass =
   "border-danger focus:border-danger focus:ring-danger/25";
 
+/**
+ * サフィックス付き入力（円・歳など）は、入力欄と専用レーンを flex で並べて
+ * 数値と重ならないようにする。枠・背景・フォーカスリングは外側の shell が持ち、
+ * 内側の input は透明にする（lp-023）。
+ */
+const laneShellClass =
+  "flex w-full items-stretch overflow-hidden rounded-lg border border-line bg-paper/50 shadow-[inset_0_1px_2px_rgba(23,40,59,0.04)] transition-colors focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/25";
+
+const laneShellErrorClass =
+  "border-danger focus-within:border-danger focus-within:ring-danger/25";
+
+const laneInputClass =
+  "min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink-mute focus:outline-none";
+
 const labelClass = "mb-1 block text-xs font-medium text-ink-soft";
 
 function RequiredMark() {
@@ -170,7 +184,13 @@ export function NumberField({
         </span>
         {help && <TermHelp term={help} />}
       </span>
-      <span className="relative flex items-center">
+      <span
+        className={
+          suffix
+            ? `${laneShellClass} ${error ? laneShellErrorClass : ""}`
+            : "flex items-center"
+        }
+      >
         <input
           id={id}
           type="text"
@@ -196,10 +216,10 @@ export function NumberField({
             onChange(next ?? 0);
             setDraft(null);
           }}
-          className={`${inputClass} tabular-nums ${suffix ? "pr-9" : ""} ${error ? inputErrorClass : ""}`}
+          className={`${suffix ? laneInputClass : inputClass} tabular-nums ${!suffix && error ? inputErrorClass : ""}`}
         />
         {suffix && (
-          <span className="pointer-events-none absolute right-3 text-xs text-ink-mute">
+          <span className="flex shrink-0 items-center whitespace-nowrap border-l border-line bg-line-soft px-2.5 text-xs text-ink-mute">
             {suffix}
           </span>
         )}

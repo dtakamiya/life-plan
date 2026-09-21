@@ -164,3 +164,33 @@ describe("NumberField / PercentField — 用語解説（issue #22）", () => {
     expect(changed).toBe(false);
   });
 });
+
+describe("NumberField — サフィックス専用レーン（lp-023）", () => {
+  it("サフィックスは入力欄と同じ flex 行の兄弟要素で、絶対配置オーバーレイではない", () => {
+    const el = mount(
+      <NumberField label="金額" value={1234567} onChange={() => {}} suffix="円" />,
+    );
+    const input = el.querySelector("input") as HTMLInputElement;
+    const lane = input.nextElementSibling as HTMLElement;
+    expect(lane.textContent).toBe("円");
+    expect(lane.className).not.toContain("absolute");
+    expect(lane.className).toContain("border-l");
+    expect(input.className).not.toContain("pr-9");
+    // 表示のみの変更: 入力値そのものは不変
+    expect(input.value).toBe("1234567");
+  });
+
+  it("サフィックスなしなら従来どおり単独の input（レーンなし）", () => {
+    const el = mount(<NumberField label="金額" value={5} onChange={() => {}} />);
+    const input = el.querySelector("input") as HTMLInputElement;
+    expect(input.nextElementSibling).toBeNull();
+  });
+
+  it("error 時はレーン付き shell 側に danger 枠が付く", () => {
+    const el = mount(
+      <NumberField label="金額" value={0} onChange={() => {}} suffix="円" error="x" />,
+    );
+    const shell = (el.querySelector("input") as HTMLInputElement).parentElement as HTMLElement;
+    expect(shell.className).toContain("border-danger");
+  });
+});
