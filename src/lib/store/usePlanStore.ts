@@ -19,6 +19,8 @@ import { newRecurringExpense } from "./newRecurringExpense";
 import { nextChildName } from "./nextChildName";
 import { planInputSchema, snapshotSchema } from "@/lib/schema";
 import { correctDateRange } from "@/lib/simulation/dateRange";
+import { applyHouseholdDefaults } from "./householdDefaultsSync";
+import type { HouseholdComposition } from "@/lib/simulation/householdDefaults";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";
@@ -78,6 +80,11 @@ type PlanState = {
   /** スナップショットの内容を現在の入力に読み込む。 */
   loadSnapshot: (id: string) => void;
   reset: () => void;
+  /**
+   * lp-030: 「まっさらから入力」。基礎生活費・ローン・イベントを 0/空にする。
+   * self / spouse / children / assets には触れない。
+   */
+  startBlank: () => void;
 };
 
 /**
@@ -174,16 +181,29 @@ export const usePlanStore = create<PlanState>()(
       updateSelf: (patch) =>
         set((s) => ({ input: { ...s.input, self: { ...s.input.self, ...patch } } })),
 
+      // lp-030: 配偶者の有無が実際に変わる場合のみ、既定の生活費・ローン・
+      // イベントを新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。
       toggleSpouse: (enabled) =>
         set((s) => {
+          const previousComposition: HouseholdComposition = {
+            hasSpouse: s.input.spouse !== null,
+            childCount: s.input.children.length,
+          };
+
+          let nextInput: PlanInput | null = null;
           if (enabled && !s.input.spouse) {
             const spouse: Person = { ...s.input.self, name: "配偶者" };
-            return { input: { ...s.input, spouse } };
+            nextInput = { ...s.input, spouse };
+          } else if (!enabled) {
+            nextInput = { ...s.input, spouse: null };
           }
-          if (!enabled) {
-            return { input: { ...s.input, spouse: null } };
-          }
-          return s;
+          if (!nextInput) return s;
+
+          const input = applyHouseholdDefaults(nextInput, previousComposition, {
+            loan: makeId("loan"),
+            event: makeId("event"),
+          });
+          return { input };
         }),
 
       updateSpouse: (patch) =>
@@ -204,8 +224,14 @@ export const usePlanStore = create<PlanState>()(
           input: { ...s.input, assets: { ...s.input.assets, ...patch } },
         })),
 
+      // lp-030: 子の人数が変わるので、既定の生活費・ローン・イベントを
+      // 新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。
       addChild: () =>
         set((s) => {
+          const previousComposition: HouseholdComposition = {
+            hasSpouse: s.input.spouse !== null,
+            childCount: s.input.children.length,
+          };
           const child: Child = {
             id: makeId("child"),
             // lp-021: 既定名を「子1」「子2」…の連番にして判別できるようにする。
@@ -213,7 +239,15 @@ export const usePlanStore = create<PlanState>()(
             birthYear: s.input.startYear,
             education: DEFAULT_EDUCATION,
           };
-          return { input: { ...s.input, children: [...s.input.children, child] } };
+          const withChild: PlanInput = {
+            ...s.input,
+            children: [...s.input.children, child],
+          };
+          const input = applyHouseholdDefaults(withChild, previousComposition, {
+            loan: makeId("loan"),
+            event: makeId("event"),
+          });
+          return { input };
         }),
 
       updateChild: (id, patch) =>
@@ -226,13 +260,24 @@ export const usePlanStore = create<PlanState>()(
           },
         })),
 
+      // lp-030: 子の人数が変わるので、既定の生活費・ローン・イベントを
+      // 新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。
       removeChild: (id) =>
-        set((s) => ({
-          input: {
+        set((s) => {
+          const previousComposition: HouseholdComposition = {
+            hasSpouse: s.input.spouse !== null,
+            childCount: s.input.children.length,
+          };
+          const withoutChild: PlanInput = {
             ...s.input,
             children: s.input.children.filter((c) => c.id !== id),
-          },
-        })),
+          };
+          const input = applyHouseholdDefaults(withoutChild, previousComposition, {
+            loan: makeId("loan"),
+            event: makeId("event"),
+          });
+          return { input };
+        }),
 
       addEvent: () =>
         set((s) => {
@@ -377,6 +422,25 @@ export const usePlanStore = create<PlanState>()(
           snapshots: [],
           rangeAutoCorrected: false,
         }),
+
+      /**
+       * lp-030: 「まっさらから入力」。基礎生活費・ローン・イベントを 0/空にする。
+       * self / spouse / children / assets（保有資産・運用条件）には触れない
+       * ——世帯構成や年収・資産条件は決まっているが、支出面はこれから
+       * 自分で組み立てたいユーザー向けの開始地点。
+       * 以後、生活費は 0 のためどの世帯構成の既定値とも一致せず、
+       * applyHouseholdDefaults による自動追従の対象から外れる
+       * （ローン・イベントも空のため同様）。
+       */
+      startBlank: () =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            expenses: { ...s.input.expenses, baseAnnualLivingExpense: 0 },
+            loans: [],
+            events: [],
+          },
+        })),
     }),
     {
       name: "life-plan/v1",

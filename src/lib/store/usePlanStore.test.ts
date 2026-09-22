@@ -258,6 +258,138 @@ describe("usePlanStore.addChild — 既定名の連番化（lp-021 / issue #21�
   });
 });
 
+/**
+ * lp-030: 世帯構成（配偶者・子の有無）に連動する既定値のストア結合テスト。
+ * 純粋関数側の詳細な分岐は householdDefaults.test.ts / householdDefaultsSync.test.ts
+ * で検証済み。ここでは toggleSpouse / addChild / removeChild からの
+ * 呼び出し経路と、reset・永続化と組み合わせたときの実挙動を確認する。
+ */
+describe("usePlanStore — 世帯構成連動の既定値（lp-030）", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("配偶者を外し、子を削除すると、生活費が単身・子なしの既定値へ連動し、住宅ローン・イベントが残らない", () => {
+    const store = usePlanStore.getState();
+    // 既定状態: 配偶者あり・子1人（360万円、住宅ローン・イベントあり）
+    expect(store.input.expenses.baseAnnualLivingExpense).toBe(3_600_000);
+    expect(store.input.loans.length).toBe(1);
+    expect(store.input.events.length).toBe(1);
+
+    store.toggleSpouse(false);
+    const [firstChild] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(firstChild.id);
+
+    const after = usePlanStore.getState();
+    expect(after.input.expenses.baseAnnualLivingExpense).toBe(2_400_000);
+    expect(after.input.loans).toEqual([]);
+    expect(after.input.events).toEqual([]);
+  });
+
+  it("子0→1→0人の往復で、住宅ローン・イベントの既定値が残留しない", () => {
+    usePlanStore.getState().toggleSpouse(false);
+    const [firstChild] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(firstChild.id);
+    expect(usePlanStore.getState().input.loans).toEqual([]);
+    expect(usePlanStore.getState().input.events).toEqual([]);
+
+    usePlanStore.getState().addChild();
+    expect(usePlanStore.getState().input.loans.length).toBe(1);
+    expect(usePlanStore.getState().input.events.length).toBe(1);
+
+    const [child] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(child.id);
+
+    const after = usePlanStore.getState();
+    expect(after.input.loans).toEqual([]);
+    expect(after.input.events).toEqual([]);
+    expect(after.input.expenses.baseAnnualLivingExpense).toBe(2_400_000);
+  });
+
+  it("ユーザーが編集した生活費は、世帯構成を変えても上書きされない", () => {
+    const store = usePlanStore.getState();
+    store.updateExpenses({ baseAnnualLivingExpense: 5_000_000 });
+
+    store.toggleSpouse(false);
+    const [firstChild] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(firstChild.id);
+
+    expect(usePlanStore.getState().input.expenses.baseAnnualLivingExpense).toBe(
+      5_000_000,
+    );
+  });
+
+  it("ユーザーが編集したローンは、子がいなくなっても削除されない", () => {
+    const store = usePlanStore.getState();
+    const [existingLoan] = store.input.loans;
+    store.updateLoan(existingLoan.id, { principal: 50_000_000 });
+
+    store.toggleSpouse(false);
+    const [firstChild] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(firstChild.id);
+
+    const after = usePlanStore.getState();
+    expect(after.input.loans).toHaveLength(1);
+    expect(after.input.loans[0].principal).toBe(50_000_000);
+  });
+
+  it("単身・子なしで runSimulation しても、以前の30年ローン残債で枯渇しない（lp-030 検証観点a）", () => {
+    const store = usePlanStore.getState();
+    store.toggleSpouse(false);
+    const [firstChild] = usePlanStore.getState().input.children;
+    usePlanStore.getState().removeChild(firstChild.id);
+
+    const input = usePlanStore.getState().input;
+    expect(input.loans).toEqual([]);
+    expect(input.events).toEqual([]);
+
+    const results = runSimulation(input);
+    const depleted = results.find((r) => r.assets < 0);
+    expect(depleted).toBeUndefined();
+  });
+});
+
+describe("usePlanStore.startBlank — まっさらから入力（lp-030）", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("基礎生活費・ローン・イベントが 0/空になる", () => {
+    usePlanStore.getState().startBlank();
+    const { input } = usePlanStore.getState();
+    expect(input.expenses.baseAnnualLivingExpense).toBe(0);
+    expect(input.loans).toEqual([]);
+    expect(input.events).toEqual([]);
+  });
+
+  it("self / spouse / children / assets には触れない", () => {
+    const before = usePlanStore.getState().input;
+    usePlanStore.getState().startBlank();
+    const after = usePlanStore.getState().input;
+
+    expect(after.self).toEqual(before.self);
+    expect(after.spouse).toEqual(before.spouse);
+    expect(after.children).toEqual(before.children);
+    expect(after.assets).toEqual(before.assets);
+  });
+
+  it("まっさら後に runSimulation しても NaN/例外なく、枯渇しない", () => {
+    usePlanStore.getState().startBlank();
+    const results = runSimulation(usePlanStore.getState().input);
+    assertFiniteSeries(results);
+    expect(results.find((r) => r.assets < 0)).toBeUndefined();
+  });
+
+  it("まっさら後に世帯構成を変えても、生活費0のままローン・イベントの既定値だけが必要に応じて追加される", () => {
+    usePlanStore.getState().startBlank();
+    usePlanStore.getState().toggleSpouse(false);
+
+    const afterToggle = usePlanStore.getState().input;
+    // 生活費は0のままどの既定値とも一致しないため上書きされない
+    expect(afterToggle.expenses.baseAnnualLivingExpense).toBe(0);
+  });
+});
+
 describe("継続支出のアクション（#18）", () => {
   it("追加・更新・削除ができる", () => {
     usePlanStore.getState().reset();

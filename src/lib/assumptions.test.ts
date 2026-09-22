@@ -53,7 +53,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(9);
+    expect(rows).toHaveLength(10);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -72,6 +72,7 @@ describe("buildAssumptionRows", () => {
       "運用益への課税率",
       "社会保険料率",
       "年金の概算方式",
+      "世帯構成連動の既定値（生活費・住宅ローン）",
     ]);
   });
 
