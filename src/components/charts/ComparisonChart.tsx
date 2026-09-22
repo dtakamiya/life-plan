@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import type { Snapshot } from "@/lib/store/usePlanStore";
 import { formatManYen, formatYen } from "@/lib/format";
 import {
@@ -45,7 +45,8 @@ export function ComparisonChart({
     ...snapshots.map((snap) => ({
       key: snap.id,
       name: snap.origin === "game" ? `${snap.name}（ゲーム）` : snap.name,
-      results: runSimulation(snap.input),
+      // 不正入力のスナップショットはエンジンへ渡さず、系列なしとして扱う（lp-005）
+      results: runValidatedSimulation(snap.input) ?? [],
       dashed: snap.origin === "game",
     })),
   ];

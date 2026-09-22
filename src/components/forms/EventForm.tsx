@@ -5,12 +5,14 @@ import { usePlanStore } from "@/lib/store/usePlanStore";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, Section, TextField } from "./fields";
+import { usePlanErrors } from "./usePlanErrors";
 
 export function EventForm() {
   const events = usePlanStore((s) => s.input.events);
   const addEvent = usePlanStore((s) => s.addEvent);
   const updateEvent = usePlanStore((s) => s.updateEvent);
   const removeEvent = usePlanStore((s) => s.removeEvent);
+  const errors = usePlanErrors();
 
   // lp-ui-ux-audit-fix / FR4.1: 削除は確認ダイアログを経由する
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -29,11 +31,12 @@ export function EventForm() {
         <p className="text-xs text-ink-mute">イベントなし</p>
       ) : (
         <div className="space-y-2.5">
-          {events.map((event) => (
+          {events.map((event, index) => (
             <div key={event.id} className="flex items-end gap-2">
               <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
                 <NumberField
                   label="年"
+                  error={errors[`events.${index}.year`]}
                   value={event.year}
                   onChange={(year) => updateEvent(event.id, { year })}
                 />
@@ -48,6 +51,7 @@ export function EventForm() {
                   grouped
                   step={100_000}
                   signed
+                  error={errors[`events.${index}.amount`]}
                   value={event.amount}
                   onChange={(amount) => updateEvent(event.id, { amount })}
                 />

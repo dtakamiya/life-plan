@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import { summarizeResults } from "@/lib/simulation/summary";
 import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
@@ -125,7 +125,11 @@ export default function Home() {
     return unsub;
   }, []);
 
-  const results = useMemo(() => runSimulation(input), [input]);
+  // lp-005: バリデーション通過時のみ runSimulation を呼ぶ。エラー中は結果を
+  // 空にして共通メッセージ（EmptyResultsNotice）へフォールバックする。
+  const validated = useMemo(() => runValidatedSimulation(input), [input]);
+  const inputInvalid = validated === null;
+  const results: YearlyResult[] = validated ?? [];
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
@@ -211,6 +215,14 @@ export default function Home() {
         <div data-column="results" className="min-w-0 space-y-6">
           {hydrated ? (
             <>
+              {inputInvalid && (
+                <p
+                  role="alert"
+                  className="rounded-lg border border-danger/40 bg-danger/5 px-3 py-2 text-xs text-danger"
+                >
+                  入力に誤りがあるため、シミュレーションを実行していません。赤字の項目を修正してください。
+                </p>
+              )}
               {results.length === 0 ? (
                 // lp-019 / QA#1: FR3 の期間補正で開始年>終了年自体は
                 // 発生しなくなるが、念のため空結果でも例外を出さず

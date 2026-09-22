@@ -2,10 +2,12 @@
 
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { NumberField, PercentField, Section } from "./fields";
+import { usePlanErrors } from "./usePlanErrors";
 
 export function ExpenseForm() {
   const expenses = usePlanStore((s) => s.input.expenses);
   const updateExpenses = usePlanStore((s) => s.updateExpenses);
+  const errors = usePlanErrors();
 
   return (
     <Section title="支出">
@@ -15,6 +17,7 @@ export function ExpenseForm() {
           suffix="円"
           grouped
           step={100_000}
+          error={errors["expenses.baseAnnualLivingExpense"]}
           value={expenses.baseAnnualLivingExpense}
           onChange={(baseAnnualLivingExpense) =>
             updateExpenses({ baseAnnualLivingExpense })
@@ -23,6 +26,7 @@ export function ExpenseForm() {
         <PercentField
           label="物価上昇率"
           signed
+          error={errors["expenses.inflationRate"]}
           value={expenses.inflationRate}
           onChange={(inflationRate) => updateExpenses({ inflationRate })}
         />

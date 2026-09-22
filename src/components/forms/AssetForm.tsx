@@ -2,10 +2,12 @@
 
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { NumberField, PercentField, Section } from "./fields";
+import { usePlanErrors } from "./usePlanErrors";
 
 export function AssetForm() {
   const assets = usePlanStore((s) => s.input.assets);
   const updateAssets = usePlanStore((s) => s.updateAssets);
+  const errors = usePlanErrors();
 
   return (
     <Section title="資産運用">
@@ -16,6 +18,7 @@ export function AssetForm() {
           suffix="円"
           grouped
           step={100_000}
+          error={errors["assets.taxableAssets"]}
           value={assets.taxableAssets}
           onChange={(taxableAssets) => updateAssets({ taxableAssets })}
         />
@@ -26,6 +29,7 @@ export function AssetForm() {
           suffix="円"
           grouped
           step={100_000}
+          error={errors["assets.taxFreeAssets"]}
           value={assets.taxFreeAssets}
           onChange={(taxFreeAssets) => updateAssets({ taxFreeAssets })}
         />
@@ -33,6 +37,7 @@ export function AssetForm() {
           label="運用利回り"
           help="annualReturnRate"
           signed
+          error={errors["assets.annualReturnRate"]}
           value={assets.annualReturnRate}
           onChange={(annualReturnRate) => updateAssets({ annualReturnRate })}
         />
@@ -40,6 +45,7 @@ export function AssetForm() {
           label="配当利回り"
           hint="運用利回りとは別に受取"
           help="dividendYield"
+          error={errors["assets.annualDividendYield"]}
           value={assets.annualDividendYield}
           onChange={(annualDividendYield) => updateAssets({ annualDividendYield })}
         />
@@ -50,6 +56,7 @@ export function AssetForm() {
           suffix="円"
           grouped
           step={100_000}
+          error={errors["assets.annualTaxFreeContribution"]}
           value={assets.annualTaxFreeContribution}
           onChange={(annualTaxFreeContribution) =>
             updateAssets({ annualTaxFreeContribution })

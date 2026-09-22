@@ -5,6 +5,7 @@ import { usePlanStore } from "@/lib/store/usePlanStore";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, Section, TextField } from "./fields";
+import { usePlanErrors } from "./usePlanErrors";
 
 /**
  * issue #18: 家賃など「一定期間だけ続く支出」を 1 件で登録するフォーム。
@@ -18,6 +19,7 @@ export function RecurringExpenseForm() {
   const addRecurringExpense = usePlanStore((s) => s.addRecurringExpense);
   const updateRecurringExpense = usePlanStore((s) => s.updateRecurringExpense);
   const removeRecurringExpense = usePlanStore((s) => s.removeRecurringExpense);
+  const errors = usePlanErrors();
 
   // 削除は確認ダイアログを経由する（lp-ui-ux-audit-fix / FR4.1 と同じ形）
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -38,11 +40,8 @@ export function RecurringExpenseForm() {
         </p>
       ) : (
         <div className="space-y-3">
-          {items.map((item) => {
-            const rangeError =
-              item.endYear < item.startYear
-                ? "終了年は開始年以降にしてください"
-                : undefined;
+          {items.map((item, index) => {
+            const path = `recurringExpenses.${index}`;
             return (
               <div
                 key={item.id}
@@ -73,6 +72,7 @@ export function RecurringExpenseForm() {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <NumberField
                     label="開始年"
+                    error={errors[`${path}.startYear`]}
                     value={item.startYear}
                     onChange={(startYear) =>
                       updateRecurringExpense(item.id, { startYear })
@@ -81,7 +81,7 @@ export function RecurringExpenseForm() {
                   <NumberField
                     label="終了年"
                     hint="この年まで計上します"
-                    error={rangeError}
+                    error={errors[`${path}.endYear`]}
                     value={item.endYear}
                     onChange={(endYear) =>
                       updateRecurringExpense(item.id, { endYear })
@@ -95,6 +95,7 @@ export function RecurringExpenseForm() {
                     grouped
                     step={100_000}
                     hint="0 円のうちは収支に寄与しません"
+                    error={errors[`${path}.annualAmount`]}
                     value={item.annualAmount}
                     onChange={(annualAmount) =>
                       updateRecurringExpense(item.id, { annualAmount })
