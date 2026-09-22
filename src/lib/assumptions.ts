@@ -8,6 +8,7 @@
 
 import type { PlanInput } from "@/lib/simulation/types";
 import { formatPercent, formatYen } from "@/lib/format";
+import { DEFAULT_END_AGE, endYearToEndAge } from "@/lib/simulation/endAge";
 import { HOUSEHOLD_DEFAULT_CONSTANTS } from "@/lib/simulation/householdDefaults";
 import {
   CAPITAL_GAINS_RATE,
@@ -49,8 +50,15 @@ function summarizeBrackets(): string {
  */
 export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
   const { expenses, assets } = input;
+  const endAge = endYearToEndAge(input.self.birthYear, input.endYear);
 
   return [
+    {
+      // lp-031: 終了年は西暦固定値ではなく「本人が◯歳になる年」で指定する。
+      label: "試算の終了年齢",
+      value: `${endAge}歳（${input.endYear}年）`,
+      note: `既定は${DEFAULT_END_AGE}歳。厚生労働省の簡易生命表で男女とも9割近くが到達する年齢帯の上限に近く、長寿化を見込んだ資産寿命試算の目安として採用（変更可）。`,
+    },
     {
       label: "物価上昇率（インフレ）",
       value: formatPercent(expenses.inflationRate),

@@ -181,7 +181,8 @@ function boundedNumber(
 }
 
 const yearField = (label: string) => boundedNumber(label, INPUT_LIMITS.year, { int: true });
-const ageField = (label: string) => boundedNumber(label, INPUT_LIMITS.age, { int: true });
+// lp-031: 終了年齢の入力検証（HouseholdForm）でも同じ範囲を使うため export する。
+export const ageField = (label: string) => boundedNumber(label, INPUT_LIMITS.age, { int: true });
 const rateField = (label: string) =>
   boundedNumber(label, INPUT_LIMITS.rate, { format: percentFormat });
 const amountField = (label: string) =>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import { summarizeResults } from "@/lib/simulation/summary";
+import { describeAssetLongevity } from "@/lib/simulation/longevitySummary";
 import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
@@ -56,6 +57,9 @@ function Summary({ results }: { results: YearlyResult[] }) {
   const summary = summarizeResults(results);
   if (!summary) return null;
   const { last, min, depleted } = summary;
+  // lp-031: 結果冒頭の1行判定。判定は lp-003 の summarizeResults を再利用し、
+  // ここでは文言の描画のみ行う。
+  const longevityText = describeAssetLongevity(results);
 
   const cards: {
     label: string;
@@ -84,26 +88,33 @@ function Summary({ results }: { results: YearlyResult[] }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {cards.map((c, i) => (
-        <div
-          key={c.label}
-          className="animate-fade-up relative overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-panel"
-          style={{ animationDelay: `${i * 70}ms` }}
-        >
-          <span
-            className={`absolute inset-y-0 left-0 w-1 ${toneAccent[c.tone]}`}
-            aria-hidden
-          />
-          <Eyebrow>{c.label}</Eyebrow>
+    <div className="space-y-3">
+      {longevityText && (
+        <p className="font-display text-[15px] font-semibold text-ink">
+          {longevityText}
+        </p>
+      )}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {cards.map((c, i) => (
           <div
-            className={`mt-2 font-display text-[28px] font-semibold leading-tight tabular-nums ${toneText[c.tone]}`}
+            key={c.label}
+            className="animate-fade-up relative overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-panel"
+            style={{ animationDelay: `${i * 70}ms` }}
           >
-            {c.value}
+            <span
+              className={`absolute inset-y-0 left-0 w-1 ${toneAccent[c.tone]}`}
+              aria-hidden
+            />
+            <Eyebrow>{c.label}</Eyebrow>
+            <div
+              className={`mt-2 font-display text-[28px] font-semibold leading-tight tabular-nums ${toneText[c.tone]}`}
+            >
+              {c.value}
+            </div>
+            <div className="mt-1.5 text-[11px] text-ink-mute">{c.caption}</div>
           </div>
-          <div className="mt-1.5 text-[11px] text-ink-mute">{c.caption}</div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
