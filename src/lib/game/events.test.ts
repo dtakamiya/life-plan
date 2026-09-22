@@ -151,6 +151,7 @@ describe("pickEvent", () => {
         "family-trip",
         "car-replace",
         "family-trip",
+        "appliance-breakdown",
       ]
     `);
   });

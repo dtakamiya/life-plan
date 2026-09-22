@@ -5,23 +5,28 @@
 import type { PlanInput } from "./types";
 import { estimateAnnualPension } from "./pension";
 import { DEFAULT_EDUCATION } from "./education";
+import { DEFAULT_END_AGE, endAgeToEndYear } from "./endAge";
 
 /** 現在の西暦年（クライアント・サーバーで安定させるため初期化時に固定）。 */
 const CURRENT_YEAR = new Date().getFullYear();
 
-/** シミュレーションの既定期間（年） */
-const DEFAULT_SPAN_YEARS = 50;
+/** 初期表示に使うサンプル世帯の本人の生年（30代を想定）。 */
+const DEFAULT_SELF_BIRTH_YEAR = CURRENT_YEAR - 35;
 
 /**
  * 初期表示に使うサンプル世帯。
  * 30代の共働き夫婦＋子1人を想定した、もっともらしい初期値。
+ *
+ * lp-031: 終了年は「年齢一律で+50年」のような期間固定ではなく、本人が
+ * DEFAULT_END_AGE 歳になる年で決める（年齢によって試算範囲が不自然に
+ * 短く/長くなるのを避けるため）。
  */
 export const defaultPlanInput: PlanInput = {
   startYear: CURRENT_YEAR,
-  endYear: CURRENT_YEAR + DEFAULT_SPAN_YEARS,
+  endYear: endAgeToEndYear(DEFAULT_SELF_BIRTH_YEAR, DEFAULT_END_AGE),
   self: {
     name: "本人",
-    birthYear: CURRENT_YEAR - 35,
+    birthYear: DEFAULT_SELF_BIRTH_YEAR,
     grossAnnualIncome: 5_000_000,
     incomeGrowthRate: 0.01,
     retirementAge: 65,

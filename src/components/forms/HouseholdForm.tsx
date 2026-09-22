@@ -9,10 +9,14 @@ import type {
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { EDUCATION_PRESETS } from "@/lib/simulation/education";
+import { DEFAULT_END_AGE, endAgeToEndYear, endYearToEndAge } from "@/lib/simulation/endAge";
+import { ageField } from "@/lib/schema";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, Section, SelectField, TextField } from "./fields";
 import { usePlanErrors } from "./usePlanErrors";
+
+const endAgeValidationSchema = ageField("終了年齢");
 
 const SCHOOL_OPTIONS: readonly SchoolType[] = ["公立", "私立"];
 const UNIVERSITY_OPTIONS: readonly UniversityType[] = [
@@ -217,6 +221,11 @@ export function HouseholdForm() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const confirmRef = useRef<ConfirmDialogHandle>(null);
 
+  // lp-031: 終了年（西暦固定値）は保存データ互換のため PlanInput にそのまま残し、
+  // 入力・表示だけを「本人が◯歳になる年」に変換する。
+  const endAge = endYearToEndAge(input.self.birthYear, input.endYear);
+  const endAgeCheck = endAgeValidationSchema.safeParse(endAge);
+
   return (
     <div className="space-y-4">
       <Section title="シミュレーション期間">
@@ -228,18 +237,26 @@ export function HouseholdForm() {
             onChange={(startYear) => setRange(startYear, input.endYear)}
           />
           <NumberField
-            label="終了年"
-            value={input.endYear}
-            onChange={(endYear) => setRange(input.startYear, endYear)}
+            label="終了年齢"
+            suffix="歳"
+            hint={`本人が指定年齢になる年まで試算します（既定${DEFAULT_END_AGE}歳）`}
+            value={endAge}
+            onChange={(nextEndAge) =>
+              setRange(input.startYear, endAgeToEndYear(input.self.birthYear, nextEndAge))
+            }
             // lp-019 / QA#1: 開始年>終了年、または期間1年未満の入力は
             // ストア側（correctDateRange）で自動補正される。ここでは
             // rangeAutoCorrected を購読し、既存の error 表示機構
             // （aria-invalid / aria-describedby）でその旨を知らせるだけで、
             // 独自の検証や例外処理は行わない。
+            // lp-031: 終了年齢自体の範囲（INPUT_LIMITS.age, lp-005 と同じ）も
+            // ここで検証する。
             error={
               rangeAutoCorrected
-                ? "終了年を自動調整しました（開始年より後、かつ1年以上の期間が必要です）"
-                : errors.endYear
+                ? "終了年齢を自動調整しました（開始年より後、かつ1年以上の期間が必要です）"
+                : !endAgeCheck.success
+                  ? endAgeCheck.error.issues[0]?.message
+                  : errors.endYear
             }
           />
         </div>
