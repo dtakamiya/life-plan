@@ -12,6 +12,7 @@ import { EDUCATION_PRESETS } from "@/lib/simulation/education";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { NumberField, Section, SelectField, TextField } from "./fields";
+import { usePlanErrors } from "./usePlanErrors";
 
 const SCHOOL_OPTIONS: readonly SchoolType[] = ["公立", "私立"];
 const UNIVERSITY_OPTIONS: readonly UniversityType[] = [
@@ -24,9 +25,14 @@ const UNIVERSITY_OPTIONS: readonly UniversityType[] = [
 /** 本人・配偶者で共通の個人入力欄。 */
 function PersonFields({
   person,
+  prefix,
+  errors,
   onChange,
 }: {
   person: Person;
+  /** 検証エラーのパス接頭辞（"self" / "spouse"）。 */
+  prefix: "self" | "spouse";
+  errors: Record<string, string>;
   onChange: (patch: Partial<Person>) => void;
 }) {
   return (
@@ -38,6 +44,7 @@ function PersonFields({
       />
       <NumberField
         label="生年（西暦）"
+        error={errors[`${prefix}.birthYear`]}
         value={person.birthYear}
         onChange={(birthYear) => onChange({ birthYear })}
       />
@@ -46,18 +53,21 @@ function PersonFields({
         suffix="円"
         grouped
         step={100_000}
+        error={errors[`${prefix}.grossAnnualIncome`]}
         value={person.grossAnnualIncome}
         onChange={(grossAnnualIncome) => onChange({ grossAnnualIncome })}
       />
       <NumberField
         label="退職年齢"
         suffix="歳"
+        error={errors[`${prefix}.retirementAge`]}
         value={person.retirementAge}
         onChange={(retirementAge) => onChange({ retirementAge })}
       />
       <NumberField
         label="年金開始年齢"
         suffix="歳"
+        error={errors[`${prefix}.pensionStartAge`]}
         value={person.pensionStartAge}
         onChange={(pensionStartAge) => onChange({ pensionStartAge })}
       />
@@ -66,6 +76,7 @@ function PersonFields({
         suffix="円"
         grouped
         step={100_000}
+        error={errors[`${prefix}.annualPension`]}
         value={person.annualPension}
         onChange={(annualPension) => onChange({ annualPension })}
       />
@@ -76,6 +87,7 @@ function PersonFields({
         suffix="円"
         grouped
         step={1_000_000}
+        error={errors[`${prefix}.retirementBenefit`]}
         value={person.retirementBenefit}
         onChange={(retirementBenefit) => onChange({ retirementBenefit })}
       />
@@ -87,10 +99,12 @@ function PersonFields({
 function ChildCard({
   child,
   startYear,
+  birthYearError,
   onChange,
   onRemove,
 }: {
   child: Child;
+  birthYearError?: string;
   /** 見出しの年齢表示に使うシミュレーション開始年。 */
   startYear: number;
   onChange: (patch: Partial<Child>) => void;
@@ -115,6 +129,7 @@ function ChildCard({
           />
           <NumberField
             label="生年（西暦）"
+            error={birthYearError}
             value={child.birthYear}
             onChange={(birthYear) => onChange({ birthYear })}
           />
@@ -190,6 +205,7 @@ export function HouseholdForm() {
   const updateSpouse = usePlanStore((s) => s.updateSpouse);
   const toggleSpouse = usePlanStore((s) => s.toggleSpouse);
   const { children } = input;
+  const errors = usePlanErrors();
   const addChild = usePlanStore((s) => s.addChild);
   const updateChild = usePlanStore((s) => s.updateChild);
   const removeChild = usePlanStore((s) => s.removeChild);
@@ -207,6 +223,7 @@ export function HouseholdForm() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <NumberField
             label="開始年"
+            error={errors.startYear}
             value={input.startYear}
             onChange={(startYear) => setRange(startYear, input.endYear)}
           />
@@ -222,14 +239,14 @@ export function HouseholdForm() {
             error={
               rangeAutoCorrected
                 ? "終了年を自動調整しました（開始年より後、かつ1年以上の期間が必要です）"
-                : undefined
+                : errors.endYear
             }
           />
         </div>
       </Section>
 
       <Section title="本人">
-        <PersonFields person={input.self} onChange={updateSelf} />
+        <PersonFields person={input.self} prefix="self" errors={errors} onChange={updateSelf} />
       </Section>
 
       <Section
@@ -255,7 +272,7 @@ export function HouseholdForm() {
         }
       >
         {input.spouse ? (
-          <PersonFields person={input.spouse} onChange={updateSpouse} />
+          <PersonFields person={input.spouse} prefix="spouse" errors={errors} onChange={updateSpouse} />
         ) : (
           <p className="text-xs text-ink-mute">配偶者なし</p>
         )}
@@ -273,10 +290,11 @@ export function HouseholdForm() {
           <p className="text-xs text-ink-mute">子なし</p>
         ) : (
           <div className="space-y-2">
-            {children.map((child) => (
+            {children.map((child, index) => (
               <ChildCard
                 key={child.id}
                 child={child}
+                birthYearError={errors[`children.${index}.birthYear`]}
                 startYear={input.startYear}
                 onChange={(patch) => updateChild(child.id, patch)}
                 onRemove={() => {
