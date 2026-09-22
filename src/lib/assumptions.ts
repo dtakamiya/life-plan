@@ -8,6 +8,7 @@
 
 import type { PlanInput } from "@/lib/simulation/types";
 import { formatPercent, formatYen } from "@/lib/format";
+import { HOUSEHOLD_DEFAULT_CONSTANTS } from "@/lib/simulation/householdDefaults";
 import {
   CAPITAL_GAINS_RATE,
   INCOME_TAX_BRACKETS,
@@ -98,6 +99,17 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
         EARNINGS_RELATED_FACTOR,
       )}（上限 ${formatYen(EARNINGS_RELATED_CAP)}）`,
       note: "概算（pension.ts の estimateAnnualPension）。フォーム初期値の算定に使用。入力欄で年額を上書きした場合はその値が優先される。",
+    },
+    {
+      label: "世帯構成連動の既定値（生活費・住宅ローン）",
+      value: `単身 ${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.singleBaseLivingExpense)}／夫婦 ${formatYen(
+        HOUSEHOLD_DEFAULT_CONSTANTS.coupleBaseLivingExpense,
+      )}／子1人ごと +${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.perChildLivingExpense)}`,
+      note: `lp-030: 配偶者の有無・子の人数（householdDefaults.ts）から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
+        HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanPrincipal,
+      )}・金利${formatPercent(HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanAnnualRate)}・${HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanTermYears}年）と住宅購入イベント（頭金${formatYen(
+        HOUSEHOLD_DEFAULT_CONSTANTS.housingDownPayment,
+      )}）も既定で付与し、子なし世帯には付与しない。ヘッダーの「まっさらから入力」で生活費・ローン・イベントを0/空から始めることもできる。`,
     },
   ];
 }

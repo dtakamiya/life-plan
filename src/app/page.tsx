@@ -112,9 +112,13 @@ export default function Home() {
   const input = usePlanStore((s) => s.input);
   const snapshots = usePlanStore((s) => s.snapshots);
   const reset = usePlanStore((s) => s.reset);
+  const startBlank = usePlanStore((s) => s.startBlank);
 
   // issue #15: 「初期値に戻す」は破壊的操作のため確認ダイアログを経由する
   const resetConfirmRef = useRef<ConfirmDialogHandle>(null);
+  // lp-030: 「まっさらから入力」も生活費・ローン・イベントを消去する破壊的
+  // 操作のため、同様に確認ダイアログを経由する
+  const blankConfirmRef = useRef<ConfirmDialogHandle>(null);
 
   // localStorage からの復元（ハイドレーション）後にのみ結果を描画し、
   // サーバー描画とのミスマッチを避ける。
@@ -170,14 +174,24 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => resetConfirmRef.current?.open()}
-          className="self-start sm:self-auto"
-        >
-          初期値に戻す
-        </Button>
+        {/* lp-030: サンプル世帯からではなく自分の数字だけで組み立てたい
+            ユーザー向けの導線。初回表示から常に見える位置に置く。 */}
+        <div className="flex shrink-0 gap-2 self-start sm:self-auto">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => blankConfirmRef.current?.open()}
+          >
+            まっさらから入力
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => resetConfirmRef.current?.open()}
+          >
+            初期値に戻す
+          </Button>
+        </div>
       </header>
 
       <ConfirmDialog
@@ -186,6 +200,14 @@ export default function Home() {
         description="世帯構成・支出・資産・イベントなどすべての入力が初期値に戻ります。この操作は元に戻せません（保存済みプランは削除されません）。"
         confirmLabel="初期値に戻す"
         onConfirm={reset}
+      />
+
+      <ConfirmDialog
+        ref={blankConfirmRef}
+        title="生活費・ローン・イベントをまっさらにしますか？"
+        description="基礎生活費・住宅ローンなどの借入・単発イベントがすべて0/空になります。本人・配偶者・子・資産の入力はそのまま残ります。この操作は元に戻せません。"
+        confirmLabel="まっさらにする"
+        onConfirm={startBlank}
       />
 
       {/* issue #17: 入力を編集しながら結果を確認できるよう要約を上部に固定する */}
