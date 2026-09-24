@@ -15,6 +15,7 @@ import type { YearlyResult } from "@/lib/simulation/types";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import type { Snapshot } from "@/lib/store/usePlanStore";
 import { formatManYen, formatYen } from "@/lib/format";
+import { ComparisonDiffTable } from "./ComparisonDiffTable";
 import {
   axisTick,
   chartColors,
@@ -64,48 +65,51 @@ export function ComparisonChart({
   const nameByKey = Object.fromEntries(series.map((s) => [s.key, s.name]));
 
   return (
-    <div
-      className="h-72 w-full"
-      role="img"
-      aria-label="プラン比較（純資産推移）の折れ線グラフ"
-      aria-describedby={describedById}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
-          <XAxis dataKey="year" tick={axisTick} tickLine={false} axisLine={{ stroke: chartColors.grid }} />
-          <YAxis
-            tickFormatter={(v: number) => formatManYen(v)}
-            tick={axisTick}
-            tickLine={false}
-            axisLine={false}
-            width={64}
-          />
-          <ReferenceLine y={0} stroke={chartColors.zeroLine} />
-          <Tooltip
-            {...tooltipStyle}
-            formatter={(value: number, key) => [
-              formatYen(value),
-              nameByKey[key as string] ?? key,
-            ]}
-            labelFormatter={(label) => `${label}年`}
-          />
-          <Legend wrapperStyle={legendStyle} iconType="plainline" iconSize={14} />
-          {series.map((s, i) => (
-            <Line
-              key={s.key}
-              type="monotone"
-              dataKey={s.key}
-              name={s.name}
-              stroke={seriesPalette[i % seriesPalette.length]}
-              strokeWidth={i === 0 ? 2.5 : 2}
-              strokeDasharray={s.dashed ? "6 4" : undefined}
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0 }}
+    <>
+      <div
+        className="h-72 w-full"
+        role="img"
+        aria-label="プラン比較（純資産推移）の折れ線グラフ"
+        aria-describedby={describedById}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+            <XAxis dataKey="year" tick={axisTick} tickLine={false} axisLine={{ stroke: chartColors.grid }} />
+            <YAxis
+              tickFormatter={(v: number) => formatManYen(v)}
+              tick={axisTick}
+              tickLine={false}
+              axisLine={false}
+              width={64}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+            <ReferenceLine y={0} stroke={chartColors.zeroLine} />
+            <Tooltip
+              {...tooltipStyle}
+              formatter={(value: number, key) => [
+                formatYen(value),
+                nameByKey[key as string] ?? key,
+              ]}
+              labelFormatter={(label) => `${label}年`}
+            />
+            <Legend wrapperStyle={legendStyle} iconType="plainline" iconSize={14} />
+            {series.map((s, i) => (
+              <Line
+                key={s.key}
+                type="monotone"
+                dataKey={s.key}
+                name={s.name}
+                stroke={seriesPalette[i % seriesPalette.length]}
+                strokeWidth={i === 0 ? 2.5 : 2}
+                strokeDasharray={s.dashed ? "6 4" : undefined}
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 0 }}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <ComparisonDiffTable items={series} />
+    </>
   );
 }

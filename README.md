@@ -40,6 +40,12 @@
 |---|---|---|
 | ![モバイル折りたたみ](docs/screenshots/result-table-mobile-390-collapsed.jpg) | ![モバイル展開](docs/screenshots/result-table-mobile-390-expanded.jpg) | ![デスクトップ](docs/screenshots/result-table-desktop.jpg) |
 
+## スクリーンショット（比較の差分数値表）
+
+スナップショットを保存すると、比較グラフの下に最終資産・枯渇年（年齢）と「現在のプラン」との差額を表で表示します（差は「比較対象 − 現在」、プラスが改善）。枯渇なしは「なし」、片方のみ枯渇のときは文言で示します。
+
+![比較の差分数値表（片方のみ枯渇）](docs/screenshots/compare-diff-table-desktop.jpg)
+
 ## プランの JSON 書き出し/読み込み
 
 「プラン比較」パネルから、現在の入力を JSON ファイルで書き出し・読み込みできます（端末移行・バックアップ用、標準 API のみ）。ファイルは `{ format, version, input }` 形式で、読み込み時に検証し、旧形式（v1）は既存の移行を通します。不正なファイルは日本語エラーを表示し、現在のプランは変更されません。
