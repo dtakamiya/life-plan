@@ -53,7 +53,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(11);
+    expect(rows).toHaveLength(12);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -73,6 +73,7 @@ describe("buildAssumptionRows", () => {
       "運用益への課税率",
       "社会保険料率",
       "年金の概算方式",
+      "年金受給開始年齢",
       "世帯構成連動の既定値（生活費・住宅ローン）",
     ]);
   });
@@ -170,6 +171,32 @@ describe("buildAssumptionRows", () => {
     expect(row.note).toContain("pension.ts");
     expect(BASIC_PENSION_ANNUAL).toBe(780_000);
     expect(EARNINGS_RELATED_CAP).toBe(1_500_000);
+  });
+
+  it("shows the self pension start age when there is no spouse", () => {
+    const row = buildAssumptionRows(makeInput())
+      .find((r) => r.label === "年金受給開始年齢")!;
+    expect(row.value).toBe("本人 65歳");
+    expect(row.note).toContain("開始年齢によらず一定");
+    expect(row.note).toContain("lp-008");
+  });
+
+  it("shows both self and spouse pension start ages when a spouse is present", () => {
+    const row = buildAssumptionRows(
+      makeInput({
+        spouse: {
+          name: "配偶者",
+          birthYear: 2002,
+          grossAnnualIncome: 3_000_000,
+          incomeGrowthRate: 0,
+          retirementAge: 65,
+          pensionStartAge: 70,
+          annualPension: 900_000,
+          retirementBenefit: 0,
+        },
+      }),
+    ).find((r) => r.label === "年金受給開始年齢")!;
+    expect(row.value).toBe("本人 65歳／配偶者 70歳");
   });
 
   it("is a pure function: does not mutate the input", () => {

@@ -191,6 +191,60 @@ describe("runSimulation", () => {
     expect(retired.socialInsurance).toBe(0);
   });
 
+  it("lp-007: delaying pensionStartAge to 70 keeps pension at 0 through age 69 and pays the unreduced annualPension from 70", () => {
+    const person: Person = {
+      ...basePerson,
+      birthYear: 1960, // 2030年に70歳
+      pensionStartAge: 70,
+    };
+    const input = makeInput({
+      startYear: 2025, // 65歳
+      endYear: 2030, // 70歳
+      self: person,
+    });
+    const results = runSimulation(input);
+
+    expect(results.map((r) => r.selfAge)).toEqual([65, 66, 67, 68, 69, 70]);
+    expect(results.slice(0, 5).map((r) => r.pension)).toEqual([
+      0, 0, 0, 0, 0,
+    ]);
+    // 減額・増額なし: 繰下げてもannualPensionそのまま
+    expect(results[5].pension).toBe(person.annualPension);
+  });
+
+  it("lp-007: pensionStartAge=65 keeps the current runSimulation output unchanged (no regression)", () => {
+    const input = makeInput({
+      startYear: 2030,
+      endYear: 2035,
+      self: { ...basePerson, birthYear: 1966, pensionStartAge: 65 }, // 2030年に64歳
+    });
+    const results = runSimulation(input);
+
+    expect(results.map((r) => r.selfAge)).toEqual([64, 65, 66, 67, 68, 69]);
+    expect(results[0].pension).toBe(0); // 64歳: 未受給
+    expect(results.slice(1).map((r) => r.pension)).toEqual([
+      1_000_000, 1_000_000, 1_000_000, 1_000_000, 1_000_000,
+    ]);
+  });
+
+  it("lp-007: pension starts exactly in the boundary year at the minimum (60) pensionStartAge with no off-by-one", () => {
+    const person: Person = { ...basePerson, birthYear: 1970, pensionStartAge: 60 }; // 2030年に60歳
+    const results = runSimulation(
+      makeInput({ startYear: 2028, endYear: 2030, self: person }),
+    );
+    expect(results.map((r) => r.selfAge)).toEqual([58, 59, 60]);
+    expect(results.map((r) => r.pension)).toEqual([0, 0, person.annualPension]);
+  });
+
+  it("lp-007: pension starts exactly in the boundary year at the maximum (75) pensionStartAge with no off-by-one", () => {
+    const person: Person = { ...basePerson, birthYear: 1955, pensionStartAge: 75 }; // 2030年に75歳
+    const results = runSimulation(
+      makeInput({ startYear: 2028, endYear: 2030, self: person }),
+    );
+    expect(results.map((r) => r.selfAge)).toEqual([73, 74, 75]);
+    expect(results.map((r) => r.pension)).toEqual([0, 0, person.annualPension]);
+  });
+
   it("charges zero tax and social insurance when there is no income", () => {
     const input = makeInput({
       startYear: 2030,
