@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { formatYen } from "@/lib/format";
@@ -11,11 +11,15 @@ export type CardChoice = {
   description: string;
   cash: number;
   satisfaction: number;
+  /** 指定があれば「お金 ¥…」の代わりに表示する（質素の節約効果など）。 */
+  cashLabel?: string;
 };
 
 /**
  * 方針カード / イベントの選択 UI。
- * キーボードは 1〜3 で選択、Enter で確定。カードが切り替わったら
+ * 選択（プレビュー）と確定を分離する（lp-015）。カード/1〜3 キーは選択のみ、
+ * 確定は「これで決める」ボタンか Enter のみ。未選択では確定できない。
+ * 選択状態は親（gameFlowReducer）が持つ。カードが切り替わったら
  * 見出しへフォーカスを移し、読み上げ順が飛ばないようにする。
  */
 export function StageCard({
@@ -23,20 +27,22 @@ export function StageCard({
   title,
   description,
   choices,
+  selectedId,
   onSelect,
+  onConfirm,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   choices: CardChoice[];
+  selectedId: string | null;
   onSelect: (choiceId: string) => void;
+  onConfirm: () => void;
 }) {
-  const [selected, setSelected] = useState(0);
   const headingRef = useRef<HTMLParagraphElement>(null);
 
-  // カードが変わるたびに選択位置を戻し、見出しへフォーカスを移す。
+  // カードが変わるたびに見出しへフォーカスを移す。
   useEffect(() => {
-    setSelected(0);
     headingRef.current?.focus();
   }, [title, description]);
 
@@ -52,21 +58,28 @@ export function StageCard({
         return;
       }
       if (e.key >= "1" && e.key <= String(Math.min(9, choices.length))) {
-        setSelected(Number(e.key) - 1);
+        onSelect(choices[Number(e.key) - 1].id);
         e.preventDefault();
         return;
       }
       if (e.key === "Enter") {
         const target = document.activeElement;
-        // ボタンにフォーカスがあるときはブラウザ既定の click に任せる。
-        if (target instanceof HTMLButtonElement) return;
-        onSelect(choices[selected].id);
+        // 「これで決める」など選択カード以外のボタンにフォーカスがあるときは
+        // ブラウザ既定の click に任せる。カード上の Enter は既定だと再選択に
+        // なってしまうので、確定として扱う。
+        if (
+          target instanceof HTMLButtonElement &&
+          !target.hasAttribute("data-choice-card")
+        ) {
+          return;
+        }
+        if (selectedId !== null) onConfirm();
         e.preventDefault();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [choices, selected, onSelect]);
+  }, [choices, selectedId, onSelect, onConfirm]);
 
   const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
@@ -85,15 +98,17 @@ export function StageCard({
       </p>
 
       <ul className="mt-4 space-y-2">
-        {choices.map((choice, i) => (
+        {choices.map((choice, i) => {
+          const isSelected = selectedId === choice.id;
+          return (
           <li key={choice.id}>
             <button
               type="button"
               onClick={() => onSelect(choice.id)}
-              onFocus={() => setSelected(i)}
-              aria-current={selected === i ? "true" : undefined}
+              aria-pressed={isSelected}
+              data-choice-card=""
               className={`w-full rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
-                selected === i
+                isSelected
                   ? "border-brand bg-brand-50/60"
                   : "border-line bg-paper/40 hover:border-ink-mute"
               }`}
@@ -103,7 +118,7 @@ export function StageCard({
                   {i + 1}
                 </span>
                 <span className="text-sm font-bold text-ink">{choice.label}</span>
-                {selected === i && (
+                {isSelected && (
                   <span className="text-[10px] text-brand-700">▸ 選択中</span>
                 )}
               </span>
@@ -111,18 +126,23 @@ export function StageCard({
                 {choice.description}
               </span>
               <span className="mt-1.5 block text-[11px] text-ink-mute">
-                お金 {formatYen(choice.cash)} ／ 満足度 {sign(choice.satisfaction)}
+                {choice.cashLabel ?? `お金 ${formatYen(choice.cash)}`} ／ 満足度 {sign(choice.satisfaction)}
               </span>
             </button>
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       <div className="mt-4 flex items-center justify-between gap-3">
         <p className="text-[11px] text-ink-mute">
-          キーボードの 1〜{choices.length} で選び、Enter で決められます。
+          キーボードの 1〜{choices.length} で選択、Enter で確定します。
         </p>
-        <Button variant="primary" onClick={() => onSelect(choices[selected].id)}>
+        <Button
+          variant="primary"
+          disabled={selectedId === null}
+          onClick={onConfirm}
+        >
           これで決める
         </Button>
       </div>
