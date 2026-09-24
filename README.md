@@ -32,6 +32,14 @@
 |---|---|---|
 | ![初期未選択](docs/screenshots/game-initial-unselected.jpg) | ![選択中](docs/screenshots/game-card-selected.jpg) | ![結果](docs/screenshots/game-result.jpg) |
 
+## スクリーンショット（年次明細テーブル）
+
+640px 未満は 1年=1カードのコンパクト表示（タップで税・社会保険などを展開）、640px 以上は従来の横スクロールテーブル。
+
+| モバイル 390px（折りたたみ） | モバイル 390px（展開） | デスクトップ |
+|---|---|---|
+| ![モバイル折りたたみ](docs/screenshots/result-table-mobile-390-collapsed.jpg) | ![モバイル展開](docs/screenshots/result-table-mobile-390-expanded.jpg) | ![デスクトップ](docs/screenshots/result-table-desktop.jpg) |
+
 ## セットアップ
 
 ```bash
