@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import Link from "next/link";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { runSimulation } from "@/lib/simulation/engine";
@@ -11,14 +11,9 @@ import { GameHud } from "@/components/game/GameHud";
 import { StageCard, type CardChoice } from "@/components/game/StageCard";
 import { AdventureLog } from "@/components/game/AdventureLog";
 import { GameResult } from "@/components/game/GameResult";
-import {
-  chooseStageOption,
-  createGame,
-  currentStage,
-  pendingGameEvent,
-  resolveEventChoice,
-} from "@/lib/game/advance";
-import { stageOptionsFor } from "@/lib/game/stages";
+import { createGame, currentStage, pendingGameEvent } from "@/lib/game/advance";
+import { createFlow, gameFlowReducer, type GameFlow } from "@/lib/game/flow";
+import { stageOptionCashLabel, stageOptionsFor } from "@/lib/game/stages";
 import { projectInput } from "@/lib/game/project";
 import { computeStats } from "@/lib/game/stats";
 import { summarizeSatisfaction } from "@/lib/game/satisfaction";
@@ -33,7 +28,14 @@ export default function GamePage() {
   const input = usePlanStore((s) => s.input);
   const saveSnapshot = usePlanStore((s) => s.saveSnapshot);
   const [hydrated, setHydrated] = useState(false);
-  const [game, setGame] = useState<GameState | null>(null);
+  // 選択（プレビュー）と確定の状態機械は lib/game/flow.ts。
+  const [flow, dispatch] = useReducer(
+    (f: GameFlow | null, a: Parameters<typeof gameFlowReducer>[1] | { type: "start"; game: GameState }) =>
+      a.type === "start" ? createFlow(a.game) : f ? gameFlowReducer(f, a) : f,
+    null,
+  );
+  const game = flow?.game ?? null;
+  const setGame = (g: GameState) => dispatch({ type: "start", game: g });
 
   useEffect(() => setHydrated(true), []);
 
@@ -62,6 +64,7 @@ export default function GamePage() {
         description: o.description,
         cash: o.effect.cash,
         satisfaction: o.effect.satisfaction,
+        cashLabel: stageOptionCashLabel(o.id, stage),
       }))
     : [];
 
@@ -139,7 +142,9 @@ export default function GamePage() {
                   stage.endYear - stage.startYear + 1
                 }年間の方針を選びます。`}
                 choices={stageChoices}
-                onSelect={(id) => setGame((g) => (g ? chooseStageOption(g, id) : g))}
+                selectedId={flow?.selectedId ?? null}
+                onSelect={(id) => dispatch({ type: "select", choiceId: id })}
+                onConfirm={() => dispatch({ type: "confirm" })}
               />
             )}
 
@@ -149,7 +154,9 @@ export default function GamePage() {
                 title={event.title}
                 description={event.description}
                 choices={eventChoices}
-                onSelect={(id) => setGame((g) => (g ? resolveEventChoice(g, id) : g))}
+                selectedId={flow?.selectedId ?? null}
+                onSelect={(id) => dispatch({ type: "select", choiceId: id })}
+                onConfirm={() => dispatch({ type: "confirm" })}
               />
             )}
 

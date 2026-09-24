@@ -102,3 +102,20 @@ export function stageOptionsFor(stage: Stage): StageOption[] {
     },
   }));
 }
+
+/**
+ * カードに出す金額表記。cash=0 の「質素」を「¥0」と見せると得か損か分からないため、
+ * 標準的な暮らしとの差を節約効果（年間◯万円減）として示す。表示専用で effect は変えない。
+ */
+export function stageOptionCashLabel(optionId: string, stage: Stage): string {
+  const years = stage.endYear - stage.startYear + 1;
+  const row = STAGE_OPTION_TABLE.find((r) => r.id === optionId);
+  if (!row) return "";
+  const man = (yen: number) => Math.round(Math.abs(yen) / 10_000);
+  if (row.cashPerYear === 0) {
+    const std = STAGE_OPTION_TABLE.find((r) => r.id === "standard");
+    const saved = std ? man(std.cashPerYear) : 0;
+    return `追加支出なし（標準より年間${saved}万円の節約・${stage.label}の${years}年間で${saved * years}万円）`;
+  }
+  return `年間${man(row.cashPerYear)}万円の支出増（${years}年間で${man(row.cashPerYear * years)}万円）`;
+}

@@ -26,6 +26,12 @@
 
 > 税・年金・社会保険料・教育費・退職所得課税などは厳密な制度計算ではなく、大まかな概算です。
 
+## スクリーンショット（ゲームモード）
+
+| 初期状態（未選択・確定ボタン無効） | カード選択中（プレビューのみ） | 結果 |
+|---|---|---|
+| ![初期未選択](docs/screenshots/game-initial-unselected.jpg) | ![選択中](docs/screenshots/game-card-selected.jpg) | ![結果](docs/screenshots/game-result.jpg) |
+
 ## セットアップ
 
 ```bash
