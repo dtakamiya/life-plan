@@ -182,3 +182,33 @@ describe("Home ページ — 試算結果の要約を常時表示する（issue 
     expect(results?.classList.contains("min-w-0")).toBe(true);
   });
 });
+
+describe("Home ページ — 比較の差分数値表（lp-035）", () => {
+  const diffTable = (el: HTMLElement) =>
+    el.querySelector('table[aria-label="プラン比較の差分数値表"]');
+
+  it("スナップショットが無ければ差分表は出ない", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+    expect(diffTable(el)).toBeNull();
+  });
+
+  it("同一シナリオのスナップショットを保存すると、差額・枯渇年の差がゼロで表示される", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => {
+      usePlanStore.getState().saveSnapshot("同じ案");
+    });
+
+    const table = diffTable(el);
+    expect(table).not.toBeNull();
+    const rows = table!.querySelectorAll("tbody tr");
+    expect(rows).toHaveLength(2);
+    const cells = [...rows[1].querySelectorAll("td")].map((c) => c.textContent);
+    expect(cells[1]).toBe("¥0（同じ）");
+    // 枯渇年の差: 両方なし=差なし、両方あり=±0年（どちらでもゼロ差）
+    expect(cells[3]).toMatch(/^(差なし（どちらも枯渇なし）|±0年)$/);
+    expect(el.textContent).toContain("差は「比較対象 − 現在のプラン」の差額です");
+  });
+});
