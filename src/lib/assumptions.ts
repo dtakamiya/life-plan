@@ -52,6 +52,10 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
   const { expenses, assets } = input;
   const endAge = endYearToEndAge(input.self.birthYear, input.endYear);
 
+  const pensionStartAgeValue = input.spouse
+    ? `本人 ${input.self.pensionStartAge}歳／配偶者 ${input.spouse.pensionStartAge}歳`
+    : `本人 ${input.self.pensionStartAge}歳`;
+
   return [
     {
       // lp-031: 終了年は西暦固定値ではなく「本人が◯歳になる年」で指定する。
@@ -107,6 +111,11 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
         EARNINGS_RELATED_FACTOR,
       )}（上限 ${formatYen(EARNINGS_RELATED_CAP)}）`,
       note: "概算（pension.ts の estimateAnnualPension）。フォーム初期値の算定に使用。入力欄で年額を上書きした場合はその値が優先される。",
+    },
+    {
+      label: "年金受給開始年齢",
+      value: pensionStartAgeValue,
+      note: "入力値（60〜75歳）。年額（annualPension）は開始年齢によらず一定で、繰上げ/繰下げ受給による減額・増額は未反映（lp-008 で対応予定）。開始年齢は年金が発生し始める年のみを動かす。",
     },
     {
       label: "世帯構成連動の既定値（生活費・住宅ローン）",

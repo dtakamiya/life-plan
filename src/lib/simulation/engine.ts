@@ -50,6 +50,8 @@ function computePersonYearIncome(
       Math.pow(1 + person.incomeGrowthRate, yearsElapsed)
     : 0;
 
+  // 年額は受給開始年齢によらず一定（annualPension のまま）。繰上げ/繰下げ受給
+  // による減額・増額は未対応（lp-008 で対応予定）。開始年齢は発生タイミングのみを動かす。
   const isReceivingPension = age >= person.pensionStartAge;
   const pension = isReceivingPension ? person.annualPension : 0;
 
