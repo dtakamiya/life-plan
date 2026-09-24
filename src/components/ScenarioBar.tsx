@@ -5,6 +5,12 @@ import { usePlanStore } from "@/lib/store/usePlanStore";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
+import {
+  PLAN_FILE_MAX_BYTES,
+  parsePlanFile,
+  planFileName,
+  serializePlan,
+} from "@/lib/planFile";
 
 /**
  * 現在の入力をスナップショットとして保存し、保存済みプランの読込・削除を行うバー。
@@ -15,7 +21,11 @@ export function ScenarioBar() {
   const saveSnapshot = usePlanStore((s) => s.saveSnapshot);
   const removeSnapshot = usePlanStore((s) => s.removeSnapshot);
   const loadSnapshot = usePlanStore((s) => s.loadSnapshot);
+  const replaceInput = usePlanStore((s) => s.replaceInput);
   const [name, setName] = useState("");
+  // lp-033: ファイル読み込みの結果表示。失敗時は現在のプランを変更しない。
+  const [fileMessage, setFileMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // lp-ui-ux-audit-fix / FR4.1: 保存済みプランの削除は確認ダイアログを経由する
   const [pendingDelete, setPendingDelete] = useState<{
@@ -27,6 +37,32 @@ export function ScenarioBar() {
   const handleSave = () => {
     saveSnapshot(name.trim() || `プラン${snapshots.length + 1}`);
     setName("");
+  };
+
+  const handleExport = () => {
+    const json = serializePlan(usePlanStore.getState().input);
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = planFileName();
+    a.click();
+    URL.revokeObjectURL(url);
+    setFileMessage({ ok: true, text: `${a.download} を書き出しました。` });
+  };
+
+  const handleImportFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > PLAN_FILE_MAX_BYTES) {
+      setFileMessage({ ok: false, text: "ファイルが大きすぎます（上限 1MB）。現在のプランは変更されていません。" });
+      return;
+    }
+    const result = parsePlanFile(await file.text());
+    if (!result.ok) {
+      setFileMessage({ ok: false, text: `${result.error}${result.error.endsWith("。") ? "" : "。"} 現在のプランは変更されていません。` });
+      return;
+    }
+    replaceInput(result.input);
+    setFileMessage({ ok: true, text: `${file.name} を読み込み、現在の入力を置き換えました。` });
   };
 
   return (
@@ -85,6 +121,36 @@ export function ScenarioBar() {
       ) : (
         <p className="mt-3 text-[11px] text-ink-mute">
           現在の入力を保存すると、純資産推移を重ねて比較できます。
+        </p>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <Button variant="ghost" size="sm" onClick={handleExport}>
+          JSONで書き出し
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}>
+          JSONを読み込み
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          aria-label="プランのJSONファイルを選択"
+          data-testid="plan-file-input"
+          onChange={(e) => {
+            void handleImportFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+        <span className="text-[11px] text-ink-mute">端末移行・バックアップ用。読み込むと現在の入力が置き換わります。</span>
+      </div>
+      {fileMessage && (
+        <p
+          role={fileMessage.ok ? "status" : "alert"}
+          className={`mt-2 text-xs ${fileMessage.ok ? "text-brand-700" : "text-danger"}`}
+        >
+          {fileMessage.text}
         </p>
       )}
 

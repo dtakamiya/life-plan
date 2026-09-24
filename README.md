@@ -40,6 +40,12 @@
 |---|---|---|
 | ![モバイル折りたたみ](docs/screenshots/result-table-mobile-390-collapsed.jpg) | ![モバイル展開](docs/screenshots/result-table-mobile-390-expanded.jpg) | ![デスクトップ](docs/screenshots/result-table-desktop.jpg) |
 
+## プランの JSON 書き出し/読み込み
+
+「プラン比較」パネルから、現在の入力を JSON ファイルで書き出し・読み込みできます（端末移行・バックアップ用、標準 API のみ）。ファイルは `{ format, version, input }` 形式で、読み込み時に検証し、旧形式（v1）は既存の移行を通します。不正なファイルは日本語エラーを表示し、現在のプランは変更されません。
+
+![JSON 読み込みエラー表示](docs/screenshots/plan-json-import-error.jpg)
+
 ## セットアップ
 
 ```bash

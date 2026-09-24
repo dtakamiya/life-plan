@@ -79,6 +79,11 @@ type PlanState = {
   removeSnapshot: (id: string) => void;
   /** スナップショットの内容を現在の入力に読み込む。 */
   loadSnapshot: (id: string) => void;
+  /**
+   * lp-033: 検証済みの PlanInput（ファイル読み込み）で現在の入力を置き換える。
+   * snapshots には触れない。
+   */
+  replaceInput: (input: PlanInput) => void;
   reset: () => void;
   /**
    * lp-030: 「まっさらから入力」。基礎生活費・ローン・イベントを 0/空にする。
@@ -403,6 +408,9 @@ export const usePlanStore = create<PlanState>()(
           }
           return { input };
         }),
+
+      replaceInput: (input) =>
+        set({ input: structuredClone(input), rangeAutoCorrected: false }),
 
       /**
        * 全入力ステートを既定値へ戻す。
