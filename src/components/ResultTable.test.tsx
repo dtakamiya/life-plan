@@ -218,3 +218,113 @@ describe("ResultTable — 継続支出の列（#18）", () => {
     expect(cell.textContent).toBe(formatYen(123_456));
   });
 });
+
+describe("ResultTable — モバイルカード表示（lp-025）", () => {
+  const originalWidth = window.innerWidth;
+
+  function setViewport(width: number) {
+    act(() => {
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: width,
+      });
+      window.dispatchEvent(new Event("resize"));
+    });
+  }
+
+  afterEach(() => setViewport(originalWidth));
+
+  const rows = [
+    makeRow({ year: 2025, assets: 10_000_000, tax: 111_111, taxFreeAssets: 2_222_222 }),
+    makeRow({ year: 2026, assets: -500_000, retirementBenefit: 3_333_333 }),
+  ];
+
+  it("640px 以上はテーブル、639px 以下はカードに切り替わる（境界）", () => {
+    setViewport(640);
+    const el = mount(<ResultTable results={rows} />);
+    expect(el.querySelector("table")).not.toBeNull();
+    expect(el.querySelector("li")).toBeNull();
+
+    setViewport(639);
+    expect(el.querySelector("table")).toBeNull();
+    expect(el.querySelectorAll("li").length).toBe(rows.length);
+
+    setViewport(640);
+    expect(el.querySelector("table")).not.toBeNull();
+  });
+
+  it("id はどちらの表示でも維持される（aria-describedby 参照用）", () => {
+    setViewport(390);
+    const el = mount(<ResultTable results={rows} id="custom-id" />);
+    expect(el.querySelector("#custom-id")).not.toBeNull();
+  });
+
+  it("年・年齢・純資産を常時表示し、手取り/生活費/収支/イベントを表示する", () => {
+    setViewport(390);
+    const el = mount(<ResultTable results={rows} />);
+    const first = el.querySelectorAll("li")[0];
+    const text = first.querySelector("button")!.textContent!;
+    expect(text).toContain("2025");
+    expect(text).toContain("40歳");
+    expect(text).toContain(formatYen(10_000_000));
+    for (const v of [4_300_000, 3_000_000, 1_300_000, 0]) {
+      expect(text).toContain(formatYen(v));
+    }
+  });
+
+  it("タップで展開/折りたたみでき、aria-expanded が連動する", () => {
+    setViewport(390);
+    const el = mount(<ResultTable results={rows} />);
+    const li = el.querySelectorAll("li")[0];
+    const button = li.querySelector("button")!;
+    const detail = li.querySelector("dl") as HTMLElement;
+
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(detail.hidden).toBe(true);
+    // `grid` などの display クラスは hidden 属性に勝つため、非表示は `hidden` クラスで担保する
+    expect(detail.classList.contains("hidden")).toBe(true);
+    expect(detail.classList.contains("grid")).toBe(false);
+
+    act(() => button.click());
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(detail.hidden).toBe(false);
+    expect(detail.classList.contains("grid")).toBe(true);
+    expect(detail.classList.contains("hidden")).toBe(false);
+    // 他のカードは展開されない
+    expect(el.querySelectorAll("li")[1].querySelector("dl")!.hidden).toBe(true);
+
+    act(() => button.click());
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(detail.hidden).toBe(true);
+  });
+
+  it("展開項目の値が YearlyResult と完全一致する（税・社保・ローン・退職金・非課税ほか）", () => {
+    setViewport(390);
+    const el = mount(<ResultTable results={rows} />);
+    const li = el.querySelectorAll("li")[1];
+    const pairs = new Map(
+      [...li.querySelectorAll("dl > div")].map((d) => [
+        d.querySelector("dt")!.textContent,
+        d.querySelector("dd")!.textContent,
+      ]),
+    );
+    const r = rows[1];
+    expect(pairs.get("税")).toBe(formatYen(r.tax));
+    expect(pairs.get("社会保険")).toBe(formatYen(r.socialInsurance));
+    expect(pairs.get("ローン返済")).toBe(formatYen(r.loanPayment));
+    expect(pairs.get("退職金")).toBe(formatYen(3_333_333));
+    expect(pairs.get("うち非課税")).toBe(formatYen(r.taxFreeAssets));
+    expect(pairs.get("世帯収入(税込)")).toBe(formatYen(r.grossIncome));
+    expect(pairs.get("継続支出")).toBe(formatYen(r.recurringExpense));
+    expect(pairs.get("配当(手取)")).toBe(formatYen(r.dividendIncome));
+  });
+
+  it("純資産がマイナスの年は text-danger で表示する", () => {
+    setViewport(390);
+    const el = mount(<ResultTable results={rows} />);
+    const negative = el.querySelectorAll("li")[1].querySelector("button .text-danger");
+    expect(negative?.textContent).toBe(formatYen(-500_000));
+    expect(el.querySelectorAll("li")[0].querySelector("button .text-danger")).toBeNull();
+  });
+});
