@@ -17,6 +17,8 @@ function row(year: number, financialAssets: number, loanBalance: number): Yearly
     socialInsurance: 0,
     investmentTax: 0,
     pension: 0,
+    childAllowance: 0,
+    housingLoanCredit: 0,
     netIncome: 0,
     livingExpense: 0,
     loanPayment: 0,
@@ -27,6 +29,7 @@ function row(year: number, financialAssets: number, loanBalance: number): Yearly
     dividendTax: 0,
     cashFlow: 0,
     assets: financialAssets - loanBalance,
+    propertyValue: 0,
     financialAssets,
     loanBalance,
     taxableAssets: financialAssets,
@@ -57,5 +60,10 @@ describe("netWorthChartData", () => {
     // 尽きた後に回復した年はそのまま描く（0円で止めるのは負の値だけ）
     expect(data[2].financial).toBe(500_000);
     expect(data[2].netWorth).toBeNull();
+  });
+
+  it("ローン完済後も不動産があれば純資産を描く（#2）", () => {
+    const [d] = netWorthChartData([{ ...row(2070, 10_000_000, 0), propertyValue: 15_000_000, assets: 25_000_000 }]);
+    expect(d.netWorth).toBe(25_000_000);
   });
 });

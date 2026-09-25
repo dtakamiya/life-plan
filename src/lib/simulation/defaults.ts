@@ -81,6 +81,17 @@ export const defaultPlanInput: PlanInput = {
       principal: 30_000_000,
       annualRate: 0.01,
       termYears: 35,
+      taxCredit: true,
+    },
+  ],
+  incomeAdjustments: [],
+  properties: [
+    {
+      id: "property-1",
+      label: "自宅",
+      purchaseYear: CURRENT_YEAR + 5,
+      price: 35_000_000,
+      annualDepreciationRate: 0.015,
     },
   ],
 };
@@ -104,4 +115,5 @@ export const singleRenterPlanInput: PlanInput = {
   assets: { ...defaultPlanInput.assets, taxableAssets: 1_000_000, annualTaxFreeContribution: 0 },
   events: [],
   loans: [],
+  properties: [],
 };

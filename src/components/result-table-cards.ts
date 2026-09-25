@@ -46,4 +46,7 @@ export const CARD_DETAIL_FIELDS: readonly CardField[] = [
   { key: "dividendIncome", label: "配当(手取)" },
   { key: "financialAssets", label: "金融資産" },
   { key: "loanBalance", label: "ローン残高" },
+  { key: "childAllowance", label: "児童手当" },
+  { key: "housingLoanCredit", label: "うちローン控除" },
+  { key: "propertyValue", label: "不動産評価額" },
 ];

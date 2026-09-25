@@ -35,7 +35,7 @@ function baseInput(overrides: Partial<PlanInput> = {}): PlanInput {
   };
 }
 
-const NEW_IDS = { loan: "loan-new", event: "event-new" };
+const NEW_IDS = { loan: "loan-new", event: "event-new", property: "property-new" };
 
 describe("applyHouseholdDefaults", () => {
   it("子なし→子1人: 生活費は240万のまま（子の人数で加算しない）、住宅ローン・イベントが新規追加される", () => {
@@ -60,6 +60,16 @@ describe("applyHouseholdDefaults", () => {
     });
     expect(result.events).toHaveLength(1);
     expect(result.events[0]).toMatchObject({ id: "event-new", amount: -5_000_000 });
+    // 子育て共働きペルソナレビュー #2: 住宅購入と同時に既定の自宅（不動産）も追加する
+    expect(result.properties).toEqual([
+      {
+        id: "property-new",
+        label: "自宅",
+        purchaseYear: START_YEAR + 5,
+        price: 35_000_000,
+        annualDepreciationRate: 0.015,
+      },
+    ]);
   });
 
   it("子1人→子0人（往復）: 生活費が単身の既定へ戻り、住宅ローン・イベントの既定値が残留しない", () => {
@@ -78,12 +88,13 @@ describe("applyHouseholdDefaults", () => {
     const afterRemoveChild = applyHouseholdDefaults(
       { ...withChildDefaults, children: [] },
       { hasSpouse: false, childCount: 1 },
-      { loan: "unused-loan", event: "unused-event" },
+      { loan: "unused-loan", event: "unused-event", property: "unused-property" },
     );
 
     expect(afterRemoveChild.expenses.baseAnnualLivingExpense).toBe(2_400_000);
     expect(afterRemoveChild.loans).toEqual([]);
     expect(afterRemoveChild.events).toEqual([]);
+    expect(afterRemoveChild.properties).toEqual([]);
   });
 
   it("編集済みの生活費は世帯構成が変わっても上書きされない", () => {
@@ -145,6 +156,7 @@ describe("applyHouseholdDefaults", () => {
       principal: 30_000_000,
       annualRate: 0.01,
       termYears: 35,
+      taxCredit: true,
     };
     const defaultEvent = {
       id: "event-1",

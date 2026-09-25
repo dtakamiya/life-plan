@@ -23,10 +23,14 @@
  * 子の人数そのものはローン・イベントの金額に影響しない（「いるかどうか」だけを見る）。
  */
 
-import type { LifeEvent, Loan } from "./types";
+import type { LifeEvent, Loan, Property } from "./types";
+import { DEFAULT_PROPERTY_DEPRECIATION_RATE } from "./property";
 
 /** 既定の住宅購入イベントのラベル。ローンの返済開始年との連動判定にも使う。 */
 export const HOUSING_PURCHASE_EVENT_LABEL = "住宅購入（頭金）";
+
+/** 既定の自宅（不動産）のラベル。ローンの返済開始年との連動判定にも使う。 */
+export const HOME_PROPERTY_LABEL = "自宅";
 
 /** 既定値の算出に使う定数一式。 */
 export const HOUSEHOLD_DEFAULT_CONSTANTS = {
@@ -56,6 +60,8 @@ export type HouseholdComposition = {
 export type HouseholdDefaultLoan = Omit<Loan, "id">;
 /** id を持たない既定イベントの中身（id はストア側で採番する）。 */
 export type HouseholdDefaultEvent = Omit<LifeEvent, "id">;
+/** id を持たない既定の不動産の中身（id はストア側で採番する）。 */
+export type HouseholdDefaultProperty = Omit<Property, "id">;
 
 export type HouseholdDefaults = {
   baseAnnualLivingExpense: number;
@@ -63,6 +69,8 @@ export type HouseholdDefaults = {
   loan: HouseholdDefaultLoan | null;
   /** 子が1人もいない世帯では null（既定で住宅購入イベントを付与しない）。 */
   event: HouseholdDefaultEvent | null;
+  /** 子が1人もいない世帯では null（既定で自宅を付与しない）。 */
+  property: HouseholdDefaultProperty | null;
 };
 
 /**
@@ -84,7 +92,7 @@ export function computeHouseholdDefaults(
     : c.singleBaseLivingExpense;
 
   if (childCount <= 0) {
-    return { baseAnnualLivingExpense, loan: null, event: null };
+    return { baseAnnualLivingExpense, loan: null, event: null, property: null };
   }
 
   const purchaseYear = startYear + c.housingPurchaseYearsAfterStart;
@@ -97,11 +105,20 @@ export function computeHouseholdDefaults(
       principal: c.housingLoanPrincipal,
       annualRate: c.housingLoanAnnualRate,
       termYears: c.housingLoanTermYears,
+      // 子育て共働きペルソナレビュー #4: 既定の住宅ローンは住宅ローン控除の対象とする
+      taxCredit: true,
     },
     event: {
       year: purchaseYear,
       label: HOUSING_PURCHASE_EVENT_LABEL,
       amount: -c.housingDownPayment,
+    },
+    // 子育て共働きペルソナレビュー #2: 購入価格は頭金＋借入額とし、純資産に計上する
+    property: {
+      label: HOME_PROPERTY_LABEL,
+      purchaseYear,
+      price: c.housingDownPayment + c.housingLoanPrincipal,
+      annualDepreciationRate: DEFAULT_PROPERTY_DEPRECIATION_RATE,
     },
   };
 }

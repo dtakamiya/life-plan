@@ -41,7 +41,7 @@ const family: PlanInput = {
     ...defaultPlanInput.children,
     { ...defaultPlanInput.children[0], id: "c2", name: "子2", birthYear: defaultPlanInput.startYear + 2 },
   ],
-  loans: defaultPlanInput.loans.map((l) => ({ ...l, principal: 65_000_000 })),
+  loans: defaultPlanInput.loans.map((l) => ({ ...l, principal: 80_000_000 })),
   recurringExpenses: [
     { id: "rent", label: "家賃", startYear: defaultPlanInput.startYear, endYear: defaultPlanInput.startYear + 4, annualAmount: 1_440_000 },
   ],
@@ -86,7 +86,7 @@ describe("findDepletionRemedies", () => {
     expect(cut! % 100_000).toBe(0);
     const apply = (c: number) => ({
       ...family,
-      loans: family.loans.map((l) => ({ ...l, principal: 65_000_000 - c })),
+      loans: family.loans.map((l) => ({ ...l, principal: 80_000_000 - c })),
     });
     expect(findDepletion(runSimulation(apply(cut!)))).toBeNull();
     expect(findDepletion(runSimulation(apply(cut! - 100_000)))).not.toBeNull();

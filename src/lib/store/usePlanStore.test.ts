@@ -482,6 +482,8 @@ describe("usePlanStore — 住宅ローンと頭金イベントの連動（#8）
     const after = usePlanStore.getState().input;
     expect(after.loans[0].startYear).toBe(loan.startYear + 2);
     expect(after.events[0].year).toBe(loan.startYear + 2);
+    // 既定の自宅（不動産）の購入年も追従する（#2）
+    expect(after.properties?.[0].purchaseYear).toBe(loan.startYear + 2);
   });
 
   it("年がずれている頭金イベントや、他のラベルのイベントは動かさない", () => {
@@ -497,5 +499,51 @@ describe("usePlanStore — 住宅ローンと頭金イベントの連動（#8）
     const after = usePlanStore.getState().input.events;
     expect(after[0].year).toBe(loan.startYear - 1);
     expect(after[1].year).toBe(loan.startYear);
+  });
+});
+
+/** 子育て共働きペルソナレビュー #2・#3: 収入調整と不動産の追加・更新・削除。 */
+describe("usePlanStore — 収入調整・不動産", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("既定の世帯には住宅ローン控除つきのローンと自宅があり、収入調整はない", () => {
+    const { input } = usePlanStore.getState();
+    expect(input.loans[0].taxCredit).toBe(true);
+    expect(input.properties).toHaveLength(1);
+    expect(input.incomeAdjustments).toEqual([]);
+  });
+
+  it("収入調整を追加すると、開始年の1年間・割合100%・課税の行が配偶者向けにできる", () => {
+    usePlanStore.getState().addIncomeAdjustment();
+    const [a] = usePlanStore.getState().input.incomeAdjustments ?? [];
+    const { startYear } = usePlanStore.getState().input;
+    expect(a).toMatchObject({ person: "spouse", startYear, endYear: startYear, ratio: 1, nonTaxable: false });
+
+    usePlanStore.getState().updateIncomeAdjustment(a.id, { ratio: 0.67, nonTaxable: true });
+    expect(usePlanStore.getState().input.incomeAdjustments?.[0]).toMatchObject({ ratio: 0.67, nonTaxable: true });
+
+    usePlanStore.getState().removeIncomeAdjustment(a.id);
+    expect(usePlanStore.getState().input.incomeAdjustments).toEqual([]);
+  });
+
+  it("配偶者がいない世帯では、収入調整は本人向けに追加する", () => {
+    usePlanStore.getState().toggleSpouse(false);
+    usePlanStore.getState().addIncomeAdjustment();
+    expect(usePlanStore.getState().input.incomeAdjustments?.[0].person).toBe("self");
+  });
+
+  it("不動産を追加・更新・削除できる", () => {
+    usePlanStore.getState().addProperty();
+    const properties = usePlanStore.getState().input.properties ?? [];
+    const added = properties[properties.length - 1];
+    expect(added).toMatchObject({ price: 0, annualDepreciationRate: 0.015 });
+
+    usePlanStore.getState().updateProperty(added.id, { price: 20_000_000 });
+    expect(usePlanStore.getState().input.properties?.find((p) => p.id === added.id)?.price).toBe(20_000_000);
+
+    usePlanStore.getState().removeProperty(added.id);
+    expect(usePlanStore.getState().input.properties?.some((p) => p.id === added.id)).toBe(false);
   });
 });

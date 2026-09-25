@@ -1,6 +1,6 @@
 /**
  * 世帯構成（配偶者・子の有無）の変更に応じて、基礎生活費・住宅ローン・
- * 住宅購入イベントの「既定値」だけを追従させる純関数（lp-030）。
+ * 住宅購入イベント・自宅（不動産）の「既定値」だけを追従させる純関数（lp-030）。
  *
  * ユーザーが既定値から書き換えた項目は上書きしない。判定方法:
  * 変更直前の世帯構成で computeHouseholdDefaults が返す値と、現在の入力値が
@@ -14,12 +14,10 @@
  * 子なし）は一致する要素を削除する。id は呼び出し側（ストア）が採番して渡す。
  */
 
-import type { LifeEvent, Loan, PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/lib/simulation/types";
 import {
   computeHouseholdDefaults,
   type HouseholdComposition,
-  type HouseholdDefaultEvent,
-  type HouseholdDefaultLoan,
 } from "@/lib/simulation/householdDefaults";
 
 function omitId<T extends { id: string }>(item: T): Omit<T, "id"> {
@@ -36,54 +34,35 @@ function matchesDefault<T extends { id: string }>(
   return JSON.stringify(omitId(item)) === JSON.stringify(target);
 }
 
-function syncDefaultLoan(
-  loans: Loan[],
-  prevDefault: HouseholdDefaultLoan | null,
-  nextDefault: HouseholdDefaultLoan | null,
+/**
+ * 既定値の要素（ローン・イベント・不動産）を世帯構成の変更に追従させる。
+ * 直前の既定値と中身が一致する要素だけを更新・削除し、追従対象が見当たらず
+ * 直前の世帯構成に既定値が無かった場合だけ新規に追加する。
+ */
+function syncDefaultItem<T extends { id: string }>(
+  items: T[],
+  prevDefault: Omit<T, "id"> | null,
+  nextDefault: Omit<T, "id"> | null,
   newId: string,
-): Loan[] {
+): T[] {
   const matchedIndex = prevDefault
-    ? loans.findIndex((l) => matchesDefault(l, prevDefault))
+    ? items.findIndex((item) => matchesDefault(item, prevDefault))
     : -1;
 
   if (matchedIndex === -1) {
-    // 追従対象の既定ローンが見当たらない（未作成、またはユーザーが編集/削除済み）。
-    // 直前の世帯構成にも既定ローンが存在しなかった場合のみ、新規に追加する。
+    // 追従対象の既定値が見当たらない（未作成、またはユーザーが編集/削除済み）。
+    // 直前の世帯構成にも既定値が存在しなかった場合のみ、新規に追加する。
     if (!prevDefault && nextDefault) {
-      return [...loans, { id: newId, ...nextDefault }];
+      return [...items, { id: newId, ...nextDefault } as T];
     }
-    return loans;
+    return items;
   }
 
   if (!nextDefault) {
-    return loans.filter((_, i) => i !== matchedIndex);
+    return items.filter((_, i) => i !== matchedIndex);
   }
 
-  return loans.map((l, i) => (i === matchedIndex ? { ...l, ...nextDefault } : l));
-}
-
-function syncDefaultEvent(
-  events: LifeEvent[],
-  prevDefault: HouseholdDefaultEvent | null,
-  nextDefault: HouseholdDefaultEvent | null,
-  newId: string,
-): LifeEvent[] {
-  const matchedIndex = prevDefault
-    ? events.findIndex((e) => matchesDefault(e, prevDefault))
-    : -1;
-
-  if (matchedIndex === -1) {
-    if (!prevDefault && nextDefault) {
-      return [...events, { id: newId, ...nextDefault }];
-    }
-    return events;
-  }
-
-  if (!nextDefault) {
-    return events.filter((_, i) => i !== matchedIndex);
-  }
-
-  return events.map((e, i) => (i === matchedIndex ? { ...e, ...nextDefault } : e));
+  return items.map((item, i) => (i === matchedIndex ? { ...item, ...nextDefault } : item));
 }
 
 /**
@@ -95,7 +74,7 @@ function syncDefaultEvent(
 export function applyHouseholdDefaults(
   input: PlanInput,
   previousComposition: HouseholdComposition,
-  newIds: { loan: string; event: string },
+  newIds: { loan: string; event: string; property: string },
 ): PlanInput {
   const nextComposition: HouseholdComposition = {
     hasSpouse: input.spouse !== null,
@@ -110,13 +89,14 @@ export function applyHouseholdDefaults(
       ? { ...input.expenses, baseAnnualLivingExpense: nextDefaults.baseAnnualLivingExpense }
       : input.expenses;
 
-  const loans = syncDefaultLoan(input.loans, prevDefaults.loan, nextDefaults.loan, newIds.loan);
-  const events = syncDefaultEvent(
-    input.events,
-    prevDefaults.event,
-    nextDefaults.event,
-    newIds.event,
+  const loans = syncDefaultItem(input.loans, prevDefaults.loan, nextDefaults.loan, newIds.loan);
+  const events = syncDefaultItem(input.events, prevDefaults.event, nextDefaults.event, newIds.event);
+  const properties = syncDefaultItem(
+    input.properties ?? [],
+    prevDefaults.property,
+    nextDefaults.property,
+    newIds.property,
   );
 
-  return { ...input, expenses, loans, events };
+  return { ...input, expenses, loans, events, properties };
 }

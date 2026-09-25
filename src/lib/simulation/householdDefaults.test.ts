@@ -15,6 +15,7 @@ describe("computeHouseholdDefaults", () => {
     expect(result.baseAnnualLivingExpense).toBe(2_400_000);
     expect(result.loan).toBeNull();
     expect(result.event).toBeNull();
+    expect(result.property).toBeNull();
   });
 
   it("夫婦・子なし: 300万円、ローン・イベントなし", () => {
@@ -25,6 +26,7 @@ describe("computeHouseholdDefaults", () => {
     expect(result.baseAnnualLivingExpense).toBe(3_000_000);
     expect(result.loan).toBeNull();
     expect(result.event).toBeNull();
+    expect(result.property).toBeNull();
   });
 
   it("夫婦＋子1人: 300万円（子の養育費は education.ts 側で計上）、住宅ローン・購入イベントあり", () => {
@@ -39,6 +41,13 @@ describe("computeHouseholdDefaults", () => {
       principal: 30_000_000,
       annualRate: 0.01,
       termYears: 35,
+      taxCredit: true,
+    });
+    expect(result.property).toEqual({
+      label: "自宅",
+      purchaseYear: START_YEAR + 5,
+      price: 35_000_000,
+      annualDepreciationRate: 0.015,
     });
     expect(result.event).toEqual({
       year: START_YEAR + 5,

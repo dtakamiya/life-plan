@@ -3,7 +3,7 @@
  *
  * runSimulation は純関数であり、入力を破壊せず副作用も持たない。
  * 開始年から終了年まで1年刻みでループし、各年の収支と純資産
- * （金融資産−ローン残高）を計算する。
+ * （金融資産＋不動産の評価額−ローン残高）を計算する。
  */
 
 import type { Person, PlanInput, YearlyResult } from "./types";
@@ -20,6 +20,10 @@ import {
 import { loanBalanceForYear, loanPaymentForYear } from "./loan";
 import { childAnnualCost } from "./education";
 import { recurringExpenseForYear } from "./recurringExpense";
+import { incomeAdjustmentForYear, type IncomeAdjustmentEffect } from "./incomeAdjustment";
+import { childAllowanceForYear } from "./childAllowance";
+import { housingLoanCreditForYear } from "./housingLoanCredit";
+import { propertyValueForYear } from "./property";
 
 /** 退職所得控除の勤続年数を見積もるための、就労開始年齢の前提。 */
 const WORK_START_AGE = 22;
@@ -30,11 +34,15 @@ type PersonYearIncome = {
   salary: number;
   /** 年金収入（円） */
   pension: number;
-  /** 所得税＋住民税の概算（円） */
-  tax: number;
+  /** 所得税の概算（円） */
+  incomeTax: number;
+  /** 住民税の概算（円） */
+  residenceTax: number;
   /** 社会保険料の概算（円） */
   socialInsurance: number;
 };
+
+const NO_ADJUSTMENT: IncomeAdjustmentEffect = { ratio: 1, nonTaxable: false };
 
 /**
  * ある年における個人の収入・税・社保を計算する。
@@ -44,15 +52,20 @@ function computePersonYearIncome(
   person: Person,
   year: number,
   startYear: number,
+  adjustment: IncomeAdjustmentEffect = NO_ADJUSTMENT,
 ): PersonYearIncome {
   const age = year - person.birthYear;
   const yearsElapsed = year - startYear;
 
   const isWorking = age < person.retirementAge;
+  // 育休・時短などの収入調整（#3）は給与にだけ掛ける。
   const salary = isWorking
     ? person.grossAnnualIncome *
-      Math.pow(1 + person.incomeGrowthRate, yearsElapsed)
+      Math.pow(1 + person.incomeGrowthRate, yearsElapsed) *
+      adjustment.ratio
     : 0;
+  // 非課税の給付（育休給付金など）として扱う年は、給与分に税・社保を掛けない。
+  const taxableSalary = adjustment.nonTaxable ? 0 : salary;
 
   // 年額は受給開始年齢によらず一定（annualPension のまま）。繰上げ/繰下げ受給
   // による減額・増額は未対応（lp-008 で対応予定）。開始年齢は発生タイミングのみを動かす。
@@ -61,11 +74,12 @@ function computePersonYearIncome(
 
   // 税は給与に対してのみ概算する（年金収入は簡略化のため非課税扱い）。
   // 社保は給与分に加え、年金収入には国民健康保険料・介護保険料を概算する。
-  const tax = estimateIncomeTax(salary) + estimateResidenceTax(salary);
+  const incomeTax = estimateIncomeTax(taxableSalary);
+  const residenceTax = estimateResidenceTax(taxableSalary);
   const socialInsurance =
-    estimateSocialInsurance(salary) + estimatePensionSocialInsurance(pension);
+    estimateSocialInsurance(taxableSalary) + estimatePensionSocialInsurance(pension);
 
-  return { salary, pension, tax, socialInsurance };
+  return { salary, pension, incomeTax, residenceTax, socialInsurance };
 }
 
 /**
@@ -111,6 +125,8 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
     events,
     loans,
     recurringExpenses,
+    incomeAdjustments = [],
+    properties = [],
   } = input;
 
   const {
@@ -129,18 +145,35 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
     let pension = 0;
     let tax = 0;
     let socialInsurance = 0;
+    let selfIncome: PersonYearIncome | null = null;
 
     for (const person of people) {
-      const income = computePersonYearIncome(person, year, startYear);
+      const role = person === self ? "self" : "spouse";
+      const income = computePersonYearIncome(
+        person,
+        year,
+        startYear,
+        incomeAdjustmentForYear(incomeAdjustments, role, year),
+      );
+      if (role === "self") selfIncome = income;
       grossIncome += income.salary + income.pension;
       pension += income.pension;
-      tax += income.tax;
+      tax += income.incomeTax + income.residenceTax;
       socialInsurance += income.socialInsurance;
     }
 
+    // 住宅ローン控除（#4）は借入者を本人とみなし、本人の所得税・住民税から差し引く。
+    const housingLoanCredit = selfIncome
+      ? housingLoanCreditForYear(loans, year, selfIncome)
+      : 0;
+    tax -= housingLoanCredit;
+
+    // 児童手当（#4）は非課税の収入として手取りに加える。
+    const childAllowance = childAllowanceForYear(input.children, year);
+
     grossIncome = Math.round(grossIncome);
     pension = Math.round(pension);
-    const netIncome = grossIncome - tax - socialInsurance;
+    const netIncome = grossIncome - tax - socialInsurance + childAllowance;
 
     const livingExpense = Math.round(
       expenses.baseAnnualLivingExpense *
@@ -211,6 +244,8 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
 
     const financialAssets = taxableEnd + taxFreeEnd;
     const loanBalance = Math.round(loanBalanceForYear(loans, year));
+    // 不動産の評価額（#2）は純資産にだけ加え、枯渇判定に使う金融資産には含めない。
+    const propertyValue = Math.round(propertyValueForYear(properties, year));
 
     results.push({
       year,
@@ -221,6 +256,8 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       socialInsurance,
       investmentTax,
       pension,
+      childAllowance,
+      housingLoanCredit,
       netIncome,
       livingExpense,
       eventNet,
@@ -230,7 +267,8 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       dividendIncome,
       dividendTax,
       cashFlow,
-      assets: financialAssets - loanBalance,
+      assets: financialAssets + propertyValue - loanBalance,
+      propertyValue,
       financialAssets,
       loanBalance,
       taxableAssets: taxableEnd,

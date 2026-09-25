@@ -650,3 +650,73 @@ describe("資金不足時の運用益（低収入ペルソナレビュー #2）"
     expect(results[1].assets).toBe(-2_500_000);
   });
 });
+
+/** 子育て共働きペルソナレビュー #2・#3・#4: 家族向けの入力モデル拡張。 */
+describe("runSimulation — 家族向けの拡張", () => {
+  const spouse: Person = { ...basePerson, name: "配偶者", grossAnnualIncome: 3_000_000 };
+
+  it("#3 課税の収入調整（時短）は給与に割合を掛け、税・社保も調整後の給与で計算する", () => {
+    const [r] = runSimulation(
+      makeInput({
+        spouse,
+        incomeAdjustments: [
+          { id: "a", person: "spouse", label: "時短", startYear: 2030, endYear: 2030, ratio: 0.8, nonTaxable: false },
+        ],
+      }),
+    );
+    const adjusted = 3_000_000 * 0.8;
+    expect(r.grossIncome).toBe(5_000_000 + adjusted);
+    expect(r.tax).toBe(
+      estimateIncomeTax(5_000_000) + estimateResidenceTax(5_000_000) +
+        estimateIncomeTax(adjusted) + estimateResidenceTax(adjusted),
+    );
+    expect(r.socialInsurance).toBe(estimateSocialInsurance(5_000_000) + estimateSocialInsurance(adjusted));
+  });
+
+  it("#3 非課税の収入調整（育休）の年は、その人に税・社保を掛けない", () => {
+    const [r, next] = runSimulation(
+      makeInput({
+        spouse,
+        incomeAdjustments: [
+          { id: "a", person: "spouse", label: "育休", startYear: 2030, endYear: 2030, ratio: 0.67, nonTaxable: true },
+        ],
+      }),
+    );
+    expect(r.grossIncome).toBe(5_000_000 + Math.round(3_000_000 * 0.67));
+    expect(r.tax).toBe(estimateIncomeTax(5_000_000) + estimateResidenceTax(5_000_000));
+    expect(r.socialInsurance).toBe(estimateSocialInsurance(5_000_000));
+    // 期間が終われば元に戻る
+    expect(next.grossIncome).toBe(8_000_000);
+  });
+
+  it("#4 児童手当は非課税の収入として手取りに加える", () => {
+    const child: Child = { id: "c", name: "子1", birthYear: 2030, education: DEFAULT_EDUCATION };
+    const [r] = runSimulation(makeInput({ children: [child] }));
+    expect(r.childAllowance).toBe(180_000);
+    expect(r.netIncome).toBe(r.grossIncome - r.tax - r.socialInsurance + 180_000);
+  });
+
+  it("#4 住宅ローン控除は本人の税から差し引く（対象外のローンは控除なし）", () => {
+    const loan = { id: "l", label: "住宅ローン", startYear: 2030, principal: 30_000_000, annualRate: 0.01, termYears: 35 };
+    const [withCredit] = runSimulation(makeInput({ loans: [{ ...loan, taxCredit: true }] }));
+    const [without] = runSimulation(makeInput({ loans: [loan] }));
+    expect(without.housingLoanCredit).toBe(0);
+    expect(withCredit.housingLoanCredit).toBeGreaterThan(0);
+    expect(withCredit.tax).toBe(without.tax - withCredit.housingLoanCredit);
+  });
+
+  it("#2 不動産の評価額を純資産に加え、枯渇判定に使う金融資産には含めない", () => {
+    const property = { id: "p", label: "自宅", purchaseYear: 2031, price: 40_000_000, annualDepreciationRate: 0.015 };
+    const [before, purchase] = runSimulation(makeInput({ properties: [property] }));
+    expect(before.propertyValue).toBe(0);
+    expect(purchase.propertyValue).toBe(40_000_000);
+    expect(purchase.assets).toBe(purchase.financialAssets + 40_000_000 - purchase.loanBalance);
+  });
+
+  it("拡張フィールドを持たない入力（既存データ）も従来どおり計算できる", () => {
+    const [r] = runSimulation(makeInput());
+    expect(r.childAllowance).toBe(0);
+    expect(r.housingLoanCredit).toBe(0);
+    expect(r.propertyValue).toBe(0);
+  });
+});

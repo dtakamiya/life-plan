@@ -6,10 +6,12 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type {
   Child,
+  IncomeAdjustment,
   LifeEvent,
   Loan,
   Person,
   PlanInput,
+  Property,
   RecurringExpense,
 } from "@/lib/simulation/types";
 import { defaultPlanInput, singleRenterPlanInput } from "@/lib/simulation/defaults";
@@ -21,9 +23,11 @@ import { planInputSchema, snapshotSchema } from "@/lib/schema";
 import { correctDateRange } from "@/lib/simulation/dateRange";
 import { applyHouseholdDefaults } from "./householdDefaultsSync";
 import {
+  HOME_PROPERTY_LABEL,
   HOUSING_PURCHASE_EVENT_LABEL,
   type HouseholdComposition,
 } from "@/lib/simulation/householdDefaults";
+import { DEFAULT_PROPERTY_DEPRECIATION_RATE } from "@/lib/simulation/property";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";
@@ -68,6 +72,13 @@ type PlanState = {
   addLoan: () => void;
   updateLoan: (id: string, patch: Partial<Loan>) => void;
   removeLoan: (id: string) => void;
+  /** 収入調整（育休・時短）を追加する。配偶者がいれば配偶者向け、いなければ本人向け。 */
+  addIncomeAdjustment: () => void;
+  updateIncomeAdjustment: (id: string, patch: Partial<IncomeAdjustment>) => void;
+  removeIncomeAdjustment: (id: string) => void;
+  addProperty: () => void;
+  updateProperty: (id: string, patch: Partial<Property>) => void;
+  removeProperty: (id: string) => void;
   /**
    * 計画を名前付きスナップショットとして保存する。
    * input を省略すると現在の入力を複製する。ゲームモードは
@@ -224,6 +235,7 @@ export const usePlanStore = create<PlanState>()(
           const input = applyHouseholdDefaults(nextInput, previousComposition, {
             loan: makeId("loan"),
             event: makeId("event"),
+            property: makeId("property"),
           });
           return { input };
         }),
@@ -268,6 +280,7 @@ export const usePlanStore = create<PlanState>()(
           const input = applyHouseholdDefaults(withChild, previousComposition, {
             loan: makeId("loan"),
             event: makeId("event"),
+            property: makeId("property"),
           });
           return { input };
         }),
@@ -297,6 +310,7 @@ export const usePlanStore = create<PlanState>()(
           const input = applyHouseholdDefaults(withoutChild, previousComposition, {
             loan: makeId("loan"),
             event: makeId("event"),
+            property: makeId("property"),
           });
           return { input };
         }),
@@ -378,19 +392,30 @@ export const usePlanStore = create<PlanState>()(
           const previous = s.input.loans.find((l) => l.id === id);
           const nextStartYear = patch.startYear;
           // 子育て共働きペルソナレビュー #8: 返済開始年と同じ年の住宅購入（頭金）
-          // イベントは、返済開始年の変更に追従させる（購入年のずれを防ぐ）。
-          const events =
-            previous && nextStartYear !== undefined && nextStartYear !== previous.startYear
-              ? s.input.events.map((e) =>
-                  e.label === HOUSING_PURCHASE_EVENT_LABEL && e.year === previous.startYear
-                    ? { ...e, year: nextStartYear }
-                    : e,
-                )
-              : s.input.events;
+          // イベントと自宅（不動産）は、返済開始年の変更に追従させる（購入年のずれを防ぐ）。
+          const moved =
+            previous !== undefined &&
+            nextStartYear !== undefined &&
+            nextStartYear !== previous.startYear;
+          const events = moved
+            ? s.input.events.map((e) =>
+                e.label === HOUSING_PURCHASE_EVENT_LABEL && e.year === previous.startYear
+                  ? { ...e, year: nextStartYear }
+                  : e,
+              )
+            : s.input.events;
+          const properties = moved
+            ? s.input.properties?.map((p) =>
+                p.label === HOME_PROPERTY_LABEL && p.purchaseYear === previous.startYear
+                  ? { ...p, purchaseYear: nextStartYear }
+                  : p,
+              )
+            : s.input.properties;
           return {
             input: {
               ...s.input,
               events,
+              properties,
               loans: s.input.loans.map((l) =>
                 l.id === id ? { ...l, ...patch } : l,
               ),
@@ -403,6 +428,77 @@ export const usePlanStore = create<PlanState>()(
           input: {
             ...s.input,
             loans: s.input.loans.filter((l) => l.id !== id),
+          },
+        })),
+
+      // 新規行は開始年の1年間・割合100%（＝調整なし）。値を入れるまで収支は変わらない。
+      addIncomeAdjustment: () =>
+        set((s) => {
+          const item: IncomeAdjustment = {
+            id: makeId("adj"),
+            person: s.input.spouse ? "spouse" : "self",
+            label: "収入の調整",
+            startYear: s.input.startYear,
+            endYear: s.input.startYear,
+            ratio: 1,
+            nonTaxable: false,
+          };
+          return {
+            input: {
+              ...s.input,
+              incomeAdjustments: [...(s.input.incomeAdjustments ?? []), item],
+            },
+          };
+        }),
+
+      updateIncomeAdjustment: (id, patch) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            incomeAdjustments: (s.input.incomeAdjustments ?? []).map((a) =>
+              a.id === id ? { ...a, ...patch } : a,
+            ),
+          },
+        })),
+
+      removeIncomeAdjustment: (id) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            incomeAdjustments: (s.input.incomeAdjustments ?? []).filter((a) => a.id !== id),
+          },
+        })),
+
+      // 新規行は購入価格 0 円。値を入れるまで純資産は変わらない。
+      addProperty: () =>
+        set((s) => {
+          const item: Property = {
+            id: makeId("property"),
+            label: "不動産",
+            purchaseYear: s.input.startYear,
+            price: 0,
+            annualDepreciationRate: DEFAULT_PROPERTY_DEPRECIATION_RATE,
+          };
+          return {
+            input: { ...s.input, properties: [...(s.input.properties ?? []), item] },
+          };
+        }),
+
+      updateProperty: (id, patch) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            properties: (s.input.properties ?? []).map((p) =>
+              p.id === id ? { ...p, ...patch } : p,
+            ),
+          },
+        })),
+
+      removeProperty: (id) =>
+        set((s) => ({
+          input: {
+            ...s.input,
+            properties: (s.input.properties ?? []).filter((p) => p.id !== id),
           },
         })),
 
