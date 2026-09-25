@@ -12,6 +12,7 @@ import { Panel } from "@/components/ui/Panel";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { SummaryBar } from "@/components/SummaryBar";
+import { DepletionAdvice } from "@/components/DepletionAdvice";
 import { HouseholdForm } from "@/components/forms/HouseholdForm";
 import { ExpenseForm } from "@/components/forms/ExpenseForm";
 import { RecurringExpenseForm } from "@/components/forms/RecurringExpenseForm";
@@ -303,6 +304,7 @@ export default function Home() {
                     </p>
                   )}
                   <Summary results={results} />
+                  {validated && <DepletionAdvice input={input} />}
 
                   <div className="animate-fade-up" style={{ animationDelay: "210ms" }}>
                     <ScenarioBar />

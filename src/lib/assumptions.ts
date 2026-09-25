@@ -80,7 +80,7 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
     {
       label: "資産運用の年間リターン",
       value: formatPercent(assets.annualReturnRate),
-      note: "入力値。課税口座・非課税口座の両方に同率で適用。",
+      note: "入力値。課税口座・非課税口座の両方に同率で適用。課税口座は預金を含む全額に掛かるため、運用せず預金で持つ分が多い場合は利回りを低め（預金なら0〜0.3%程度）にすると実態に近づく。資金不足（残高マイナス）の年は利回りを掛けない。",
     },
     {
       label: "配当・分配金の利回り",
@@ -95,12 +95,12 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
     {
       label: "住民税率",
       value: formatPercent(RESIDENCE_TAX_RATE),
-      note: "概算。課税所得に一律で適用（tax.ts の RESIDENCE_TAX_RATE）。",
+      note: "概算。課税所得に一律で適用（tax.ts の RESIDENCE_TAX_RATE）。住民税の非課税判定・均等割は未反映。",
     },
     {
       label: "基礎控除",
       value: formatYen(BASIC_DEDUCTION),
-      note: "概算。課税所得の算定で給与所得控除・社会保険料控除と合わせて差し引く（tax.ts）。給与所得控除は別途『年収×20%＋44万円、上限195万円』で近似。",
+      note: "概算。課税所得の算定で給与所得控除・社会保険料控除と合わせて差し引く（tax.ts）。給与所得控除は別途『年収×20%＋44万円、上限195万円』で近似。2025年改正の基礎控除の引き上げ（低所得ほど大きい）は未反映のため、低所得の場合は税負担がやや多めに出る。",
     },
     {
       label: "運用益への課税率",
@@ -112,7 +112,7 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       value: formatPercent(SOCIAL_INSURANCE_RATE),
       note: `概算。給与の税込年収に適用（対象年収の上限 ${formatYen(
         SOCIAL_INSURANCE_INCOME_CAP,
-      )}、socialInsurance.ts の SOCIAL_INSURANCE_RATE）。年金収入には掛けない。`,
+      )}、socialInsurance.ts の SOCIAL_INSURANCE_RATE）。年金収入には掛けないため、高齢期の国民健康保険料・介護保険料（低所得でも年数万円程度）は含まれない。必要なら継続支出に加える。`,
     },
     {
       label: "年金の概算方式",
@@ -124,7 +124,7 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
     {
       label: "年金受給開始年齢",
       value: pensionStartAgeValue,
-      note: "入力値（60〜75歳）。年額（annualPension）は開始年齢によらず一定で、繰上げ/繰下げ受給による減額・増額は未反映（lp-008 で対応予定）。開始年齢は年金が発生し始める年のみを動かす。",
+      note: "入力値（60〜75歳）。年額（annualPension）は開始年齢によらず一定で、繰上げ/繰下げ受給による減額・増額は未反映（lp-008 で対応予定）。開始年齢は年金が発生し始める年のみを動かす。年金額は物価上昇に連動させず、受給開始後も同額のまま（生活費は物価上昇率で増える）ため、長期では収支がやや厳しめに出る。",
     },
     {
       label: "世帯構成連動の既定値（生活費・住宅ローン）",
