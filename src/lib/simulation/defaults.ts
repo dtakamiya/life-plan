@@ -84,3 +84,24 @@ export const defaultPlanInput: PlanInput = {
     },
   ],
 };
+
+/**
+ * 低収入ペルソナレビュー #8: 「単身・賃貸」のプリセット。
+ * 既定のサンプル世帯（夫婦＋子＋住宅購入）から配偶者・子・住宅ローン・
+ * 住宅購入イベントを外した開始地点。年収・生活費は単身世帯の目安に下げる。
+ */
+export const singleRenterPlanInput: PlanInput = {
+  ...defaultPlanInput,
+  self: {
+    ...defaultPlanInput.self,
+    grossAnnualIncome: 3_500_000,
+    annualPension: estimateAnnualPension(3_500_000),
+    retirementBenefit: 5_000_000,
+  },
+  spouse: null,
+  children: [],
+  expenses: { ...defaultPlanInput.expenses, baseAnnualLivingExpense: 2_000_000 },
+  assets: { ...defaultPlanInput.assets, taxableAssets: 1_000_000, annualTaxFreeContribution: 0 },
+  events: [],
+  loans: [],
+};
