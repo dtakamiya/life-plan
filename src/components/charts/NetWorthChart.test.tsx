@@ -55,7 +55,7 @@ describe("NetWorthChart — 資産が尽きた後の表示（低収入ペルソ�
     });
     const el = mount(<NetWorthChart results={results} />);
     expect(el.querySelector('[role="img"]')?.getAttribute("aria-label")).toBe(
-      "純資産推移の面グラフ",
+      "資産推移のグラフ（金融資産を面で表示）",
     );
   });
 });

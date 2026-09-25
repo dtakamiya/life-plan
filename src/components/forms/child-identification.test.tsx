@@ -110,7 +110,7 @@ describe("子カードの識別（lp-021 / issue #21）", () => {
     expect(childCards(container)[0].textContent).not.toContain("子1");
   });
 
-  it("生年が開始年より後（未出生）の場合は年齢を表示しない", () => {
+  it("生年が開始年より後（未出生）の場合は年齢ではなく生まれ予定の年を表示する", () => {
     const el = mount(<HouseholdForm />);
     const { startYear, children } = usePlanStore.getState().input;
     act(() => {
@@ -120,7 +120,7 @@ describe("子カードの識別（lp-021 / issue #21）", () => {
     });
 
     const heading = childCards(el)[0].querySelector("h3")?.textContent ?? "";
-    expect(heading).toBe("子1");
+    expect(heading).toBe(`子1（${startYear + 3}年生まれ予定）`);
     expect(heading).not.toContain("歳");
   });
 });

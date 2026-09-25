@@ -30,6 +30,10 @@ export function LoanForm() {
         </Button>
       }
     >
+      {/* 子育て共働きペルソナレビュー #5: 持ち家の維持費の入力先を案内する */}
+      <p className="mb-2 text-[11px] text-ink-mute">
+        固定資産税・修繕費は「継続支出」に期間指定で入力
+      </p>
       {loans.length === 0 ? (
         <p className="text-xs text-ink-mute">ローンなし</p>
       ) : (

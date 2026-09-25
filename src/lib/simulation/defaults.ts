@@ -54,7 +54,7 @@ export const defaultPlanInput: PlanInput = {
     },
   ],
   expenses: {
-    baseAnnualLivingExpense: 3_600_000,
+    baseAnnualLivingExpense: 3_000_000,
     inflationRate: 0.01,
   },
   assets: {

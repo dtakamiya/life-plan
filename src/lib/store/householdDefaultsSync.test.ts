@@ -38,7 +38,7 @@ function baseInput(overrides: Partial<PlanInput> = {}): PlanInput {
 const NEW_IDS = { loan: "loan-new", event: "event-new" };
 
 describe("applyHouseholdDefaults", () => {
-  it("子なし→子1人: 生活費が240万→300万（単身の子加算）に連動し、住宅ローン・イベントが新規追加される", () => {
+  it("子なし→子1人: 生活費は240万のまま（子の人数で加算しない）、住宅ローン・イベントが新規追加される", () => {
     const input = baseInput({
       children: [
         { id: "c1", name: "子1", birthYear: START_YEAR, education: {
@@ -51,7 +51,7 @@ describe("applyHouseholdDefaults", () => {
       { hasSpouse: false, childCount: 0 },
       NEW_IDS,
     );
-    expect(result.expenses.baseAnnualLivingExpense).toBe(3_000_000);
+    expect(result.expenses.baseAnnualLivingExpense).toBe(2_400_000);
     expect(result.loans).toHaveLength(1);
     expect(result.loans[0]).toMatchObject({
       id: "loan-new",

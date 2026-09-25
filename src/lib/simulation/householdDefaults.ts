@@ -25,14 +25,15 @@
 
 import type { LifeEvent, Loan } from "./types";
 
+/** 既定の住宅購入イベントのラベル。ローンの返済開始年との連動判定にも使う。 */
+export const HOUSING_PURCHASE_EVENT_LABEL = "住宅購入（頭金）";
+
 /** 既定値の算出に使う定数一式。 */
 export const HOUSEHOLD_DEFAULT_CONSTANTS = {
   /** 単身・子なし世帯の基礎生活費（年額、円） */
   singleBaseLivingExpense: 2_400_000,
   /** 夫婦・子なし世帯の基礎生活費（年額、円） */
   coupleBaseLivingExpense: 3_000_000,
-  /** 子1人につき加算する基礎生活費（年額、円）。教育費は education.ts 側で別途加算するためここには含めない。 */
-  perChildLivingExpense: 600_000,
   /** 住宅購入イベントの頭金（円、支出のためマイナスで計上） */
   housingDownPayment: 5_000_000,
   /** 住宅ローンの借入元本（円） */
@@ -76,8 +77,11 @@ export function computeHouseholdDefaults(
   const { hasSpouse, childCount } = composition;
   const c = HOUSEHOLD_DEFAULT_CONSTANTS;
 
-  const base = hasSpouse ? c.coupleBaseLivingExpense : c.singleBaseLivingExpense;
-  const baseAnnualLivingExpense = base + Math.max(childCount, 0) * c.perChildLivingExpense;
+  // 子の基礎養育費・教育費は education.ts（childAnnualCost）が子の年齢に応じて
+  // 計上するため、基礎生活費には子の人数を加算しない（二重計上の防止）。
+  const baseAnnualLivingExpense = hasSpouse
+    ? c.coupleBaseLivingExpense
+    : c.singleBaseLivingExpense;
 
   if (childCount <= 0) {
     return { baseAnnualLivingExpense, loan: null, event: null };
@@ -96,7 +100,7 @@ export function computeHouseholdDefaults(
     },
     event: {
       year: purchaseYear,
-      label: "住宅購入（頭金）",
+      label: HOUSING_PURCHASE_EVENT_LABEL,
       amount: -c.housingDownPayment,
     },
   };

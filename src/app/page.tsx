@@ -337,7 +337,7 @@ export default function Home() {
                   )}
 
                   <div className="animate-fade-up" style={{ animationDelay: "300ms" }}>
-                    <Panel eyebrow="Net worth" title="純資産推移">
+                    <Panel eyebrow="Net worth" title="資産推移">
                       <NetWorthChart results={results} />
                     </Panel>
                   </div>

@@ -130,8 +130,8 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       label: "世帯構成連動の既定値（生活費・住宅ローン）",
       value: `単身 ${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.singleBaseLivingExpense)}／夫婦 ${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.coupleBaseLivingExpense,
-      )}／子1人ごと +${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.perChildLivingExpense)}`,
-      note: `lp-030: 配偶者の有無・子の人数（householdDefaults.ts）から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
+      )}（子の養育費は下記の子ども費用として別途計上）`,
+      note: `lp-030: 配偶者の有無（householdDefaults.ts）から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanPrincipal,
       )}・金利${formatPercent(HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanAnnualRate)}・${HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanTermYears}年）と住宅購入イベント（頭金${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.housingDownPayment,

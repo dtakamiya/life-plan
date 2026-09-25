@@ -20,7 +20,10 @@ import { nextChildName } from "./nextChildName";
 import { planInputSchema, snapshotSchema } from "@/lib/schema";
 import { correctDateRange } from "@/lib/simulation/dateRange";
 import { applyHouseholdDefaults } from "./householdDefaultsSync";
-import type { HouseholdComposition } from "@/lib/simulation/householdDefaults";
+import {
+  HOUSING_PURCHASE_EVENT_LABEL,
+  type HouseholdComposition,
+} from "@/lib/simulation/householdDefaults";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";
@@ -371,14 +374,29 @@ export const usePlanStore = create<PlanState>()(
         }),
 
       updateLoan: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            loans: s.input.loans.map((l) =>
-              l.id === id ? { ...l, ...patch } : l,
-            ),
-          },
-        })),
+        set((s) => {
+          const previous = s.input.loans.find((l) => l.id === id);
+          const nextStartYear = patch.startYear;
+          // 子育て共働きペルソナレビュー #8: 返済開始年と同じ年の住宅購入（頭金）
+          // イベントは、返済開始年の変更に追従させる（購入年のずれを防ぐ）。
+          const events =
+            previous && nextStartYear !== undefined && nextStartYear !== previous.startYear
+              ? s.input.events.map((e) =>
+                  e.label === HOUSING_PURCHASE_EVENT_LABEL && e.year === previous.startYear
+                    ? { ...e, year: nextStartYear }
+                    : e,
+                )
+              : s.input.events;
+          return {
+            input: {
+              ...s.input,
+              events,
+              loans: s.input.loans.map((l) =>
+                l.id === id ? { ...l, ...patch } : l,
+              ),
+            },
+          };
+        }),
 
       removeLoan: (id) =>
         set((s) => ({

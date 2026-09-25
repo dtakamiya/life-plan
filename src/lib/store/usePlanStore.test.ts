@@ -271,8 +271,8 @@ describe("usePlanStore — 世帯構成連動の既定値（lp-030）", () => {
 
   it("配偶者を外し、子を削除すると、生活費が単身・子なしの既定値へ連動し、住宅ローン・イベントが残らない", () => {
     const store = usePlanStore.getState();
-    // 既定状態: 配偶者あり・子1人（360万円、住宅ローン・イベントあり）
-    expect(store.input.expenses.baseAnnualLivingExpense).toBe(3_600_000);
+    // 既定状態: 配偶者あり・子1人（300万円、住宅ローン・イベントあり）
+    expect(store.input.expenses.baseAnnualLivingExpense).toBe(3_000_000);
     expect(store.input.loans.length).toBe(1);
     expect(store.input.events.length).toBe(1);
 
@@ -284,6 +284,11 @@ describe("usePlanStore — 世帯構成連動の既定値（lp-030）", () => {
     expect(after.input.expenses.baseAnnualLivingExpense).toBe(2_400_000);
     expect(after.input.loans).toEqual([]);
     expect(after.input.events).toEqual([]);
+  });
+
+  it("子を追加しても基礎生活費は変わらない（子の養育費は計算側で計上するため）", () => {
+    usePlanStore.getState().addChild();
+    expect(usePlanStore.getState().input.expenses.baseAnnualLivingExpense).toBe(3_000_000);
   });
 
   it("子0→1→0人の往復で、住宅ローン・イベントの既定値が残留しない", () => {
@@ -458,5 +463,39 @@ describe("usePlanStore.updateSelf — 生年変更で終了年齢を保つ", () 
     const before = usePlanStore.getState().input.endYear;
     usePlanStore.getState().updateSelf({ grossAnnualIncome: 4_200_000 });
     expect(usePlanStore.getState().input.endYear).toBe(before);
+  });
+});
+
+/** 子育て共働きペルソナレビュー #8: 住宅購入（頭金）イベントがローンの返済開始年に連動する。 */
+describe("usePlanStore — 住宅ローンと頭金イベントの連動（#8）", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("ローンの返済開始年を変えると、同じ年の住宅購入（頭金）イベントも動く", () => {
+    const { loans, events } = usePlanStore.getState().input;
+    const loan = loans[0];
+    expect(events[0].year).toBe(loan.startYear);
+
+    usePlanStore.getState().updateLoan(loan.id, { startYear: loan.startYear + 2 });
+
+    const after = usePlanStore.getState().input;
+    expect(after.loans[0].startYear).toBe(loan.startYear + 2);
+    expect(after.events[0].year).toBe(loan.startYear + 2);
+  });
+
+  it("年がずれている頭金イベントや、他のラベルのイベントは動かさない", () => {
+    const { loans, events } = usePlanStore.getState().input;
+    const loan = loans[0];
+    usePlanStore.getState().updateEvent(events[0].id, { year: loan.startYear - 1 });
+    usePlanStore.getState().addEvent();
+    const added = usePlanStore.getState().input.events[1];
+    usePlanStore.getState().updateEvent(added.id, { year: loan.startYear, label: "車の購入" });
+
+    usePlanStore.getState().updateLoan(loan.id, { startYear: loan.startYear + 2 });
+
+    const after = usePlanStore.getState().input.events;
+    expect(after[0].year).toBe(loan.startYear - 1);
+    expect(after[1].year).toBe(loan.startYear);
   });
 });
