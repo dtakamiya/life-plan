@@ -6,7 +6,7 @@ import { defaultPlanInput } from "./defaults";
 
 /** テストで使うフィールドだけを持つ年次結果を作る。 */
 function row(year: number, selfAge: number, assets: number): YearlyResult {
-  return { year, selfAge, assets } as YearlyResult;
+  return { year, selfAge, assets, financialAssets: assets, loanBalance: 0 } as YearlyResult;
 }
 
 describe("summarizeResults（issue #17）", () => {
@@ -39,7 +39,7 @@ describe("summarizeResults（issue #17）", () => {
   });
 });
 
-describe("findDepletion（lp-003）: 年末純資産が初めて0未満になる年", () => {
+describe("findDepletion（lp-003）: 年末の金融資産が初めて0未満になる年", () => {
   it("途中で負転する場合はその年を返す", () => {
     const r = findDepletion([row(2030, 40, 100), row(2031, 41, -1), row(2032, 42, -50)]);
     expect(r?.year).toBe(2031);
@@ -65,6 +65,16 @@ describe("findDepletion（lp-003）: 年末純資産が初めて0未満になる
 
   it("空配列は null", () => {
     expect(findDepletion([])).toBeNull();
+  });
+
+  it("ローン残高で純資産がマイナスでも、金融資産がプラスなら枯渇とみなさない", () => {
+    const withLoan = { ...row(2031, 37, -18_000_000), financialAssets: 18_000_000, loanBalance: 36_000_000 };
+    expect(findDepletion([row(2030, 36, 20_000_000), withLoan])).toBeNull();
+  });
+
+  it("金融資産が初めてマイナスになった年を枯渇年とする", () => {
+    const short = { ...row(2032, 38, -40_000_000), financialAssets: -1, loanBalance: 39_999_999 };
+    expect(findDepletion([row(2030, 36, 10), short])?.year).toBe(2032);
   });
 
   it("デフォルト入力では枯渇なしで、判定は runSimulation の出力を変えない", () => {

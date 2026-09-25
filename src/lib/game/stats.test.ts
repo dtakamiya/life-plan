@@ -23,6 +23,8 @@ function results(assetsByYear: number[], startYear = 2030, startAge = 35): Yearl
     dividendTax: 0,
     cashFlow: 0,
     assets,
+    financialAssets: assets,
+    loanBalance: 0,
     taxableAssets: assets,
     taxFreeAssets: 0,
   }));
@@ -87,5 +89,13 @@ describe("computeStats", () => {
     expect(stats.minAssets).toBe(0);
     expect(stats.depletionAge).toBeNull();
     expect(stats.finalYear).toBe(0);
+  });
+
+  it("ローン残高で純資産がマイナスでも、金融資産がプラスなら枯渇扱いにしない", () => {
+    const rows = results([5_000_000, 6_000_000]);
+    rows[1] = { ...rows[1], assets: -30_000_000, loanBalance: 36_000_000 };
+    const stats = computeStats(rows);
+    expect(stats.depletionAge).toBeNull();
+    expect(stats.minAssets).toBe(-30_000_000);
   });
 });

@@ -66,4 +66,16 @@ describe("ConfirmDialog", () => {
     expect(onConfirm).toHaveBeenCalledOnce();
     expect(dialog.hasAttribute("open")).toBe(false);
   });
+
+  it("space-y-* の中に置いても中央に出るよう、margin を auto で固定する", () => {
+    const ref = createRef<ConfirmDialogHandle>();
+    const el = mount(
+      <div className="space-y-4">
+        <p>前の要素</p>
+        <ConfirmDialog ref={ref} title="t" description="d" onConfirm={() => {}} />
+      </div>,
+    );
+    const dialog = el.querySelector("dialog")!;
+    expect(dialog.className.split(/\s+/)).toContain("!m-auto");
+  });
 });

@@ -421,3 +421,42 @@ describe("継続支出のアクション（#18）", () => {
     expect(usePlanStore.getState().input.recurringExpenses).toEqual([]);
   });
 });
+
+describe("usePlanStore.updateSelf — 生年変更で終了年齢を保つ", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  const endAge = () => {
+    const { input } = usePlanStore.getState();
+    return input.endYear - input.self.birthYear;
+  };
+
+  it("生年を変えても終了年齢（本人が何歳になる年まで試算するか）は変わらない", () => {
+    const store = usePlanStore.getState();
+    store.updateSelf({ birthYear: 1991 });
+    store.setRange(2026, 1991 + 85);
+    expect(endAge()).toBe(85);
+
+    usePlanStore.getState().updateSelf({ birthYear: 1994 });
+    expect(endAge()).toBe(85);
+    expect(usePlanStore.getState().input.endYear).toBe(1994 + 85);
+  });
+
+  it("1 桁ずつ入力して途中で不正な生年を経由しても、最終的な終了年齢は保たれる", () => {
+    const store = usePlanStore.getState();
+    store.updateSelf({ birthYear: 1991 });
+    store.setRange(2026, 1991 + 95);
+    for (const birthYear of [1, 19, 199, 1994]) {
+      usePlanStore.getState().updateSelf({ birthYear });
+    }
+    expect(endAge()).toBe(95);
+    expect(usePlanStore.getState().input.endYear).toBe(1994 + 95);
+  });
+
+  it("生年以外の更新では終了年を動かさない", () => {
+    const before = usePlanStore.getState().input.endYear;
+    usePlanStore.getState().updateSelf({ grossAnnualIncome: 4_200_000 });
+    expect(usePlanStore.getState().input.endYear).toBe(before);
+  });
+});

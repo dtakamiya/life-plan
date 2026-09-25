@@ -121,4 +121,14 @@ describe("RecurringExpenseForm（#18）", () => {
     clickByText(el, "button", "削除する");
     expect(usePlanStore.getState().input.recurringExpenses).toHaveLength(0);
   });
+
+  it("年額が 0 のときだけ「0 円のうちは…」の注意を出す", () => {
+    act(() => usePlanStore.getState().addRecurringExpense());
+    const el = mount(<RecurringExpenseForm />);
+    expect(el.textContent).toContain("0 円のうちは収支に寄与しません");
+
+    const id = usePlanStore.getState().input.recurringExpenses[0].id;
+    act(() => usePlanStore.getState().updateRecurringExpense(id, { annualAmount: 1_140_000 }));
+    expect(el.textContent).not.toContain("0 円のうちは収支に寄与しません");
+  });
 });

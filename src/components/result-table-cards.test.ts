@@ -63,4 +63,10 @@ describe("カード項目定義", () => {
     ]);
     for (const f of CARD_DETAIL_FIELDS) expect(shown.has(f.key)).toBe(false);
   });
+
+  it("展開項目に金融資産とローン残高を含む", () => {
+    const labels = CARD_DETAIL_FIELDS.map((f) => f.label);
+    expect(labels).toContain("金融資産");
+    expect(labels).toContain("ローン残高");
+  });
 });

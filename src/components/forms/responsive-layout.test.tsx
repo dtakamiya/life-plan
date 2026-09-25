@@ -77,6 +77,19 @@ describe("フォームのレスポンシブグリッド（FR3.1）", () => {
     expect(hasResponsiveGrid(el)).toBe(true);
   });
 
+  it("EventForm は 1 行目に年・内容、2 行目に金額を全幅で置く（欄が切れない）", () => {
+    act(() => usePlanStore.getState().addEvent());
+    const el = mount(<EventForm />);
+    const amountLabel = [...el.querySelectorAll("label")].find((l) =>
+      l.textContent?.includes("金額"),
+    )!;
+    const grid = amountLabel.closest(".grid")!;
+    expect(grid.className.split(/\s+/)).not.toContain("sm:grid-cols-3");
+    // 金額欄を包むグリッド子要素が 2 列ぶんを占有する。
+    const cell = [...grid.children].find((c) => c.contains(amountLabel))!;
+    expect(cell.className.split(/\s+/)).toContain("sm:col-span-2");
+  });
+
   it("HouseholdForm は本人・子カードを含めて固定グリッドを持たない", () => {
     act(() => usePlanStore.getState().addChild());
     const el = mount(<HouseholdForm />);

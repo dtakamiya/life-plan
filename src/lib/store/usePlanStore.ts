@@ -183,8 +183,20 @@ export const usePlanStore = create<PlanState>()(
           };
         }),
 
+      // 終了年は西暦で保持するが、UI は「本人が◯歳になる年」（lp-031）で見せる。
+      // 生年が変わっても終了年齢が保たれるよう、生年の差分だけ終了年をずらす。
+      // 数値欄は1キーごとに確定するため、差分で追従させて途中の値（1→19→199…）に依存しない。
       updateSelf: (patch) =>
-        set((s) => ({ input: { ...s.input, self: { ...s.input.self, ...patch } } })),
+        set((s) => ({
+          input: {
+            ...s.input,
+            endYear:
+              patch.birthYear === undefined
+                ? s.input.endYear
+                : s.input.endYear + (patch.birthYear - s.input.self.birthYear),
+            self: { ...s.input.self, ...patch },
+          },
+        })),
 
       // lp-030: 配偶者の有無が実際に変わる場合のみ、既定の生活費・ローン・
       // イベントを新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。

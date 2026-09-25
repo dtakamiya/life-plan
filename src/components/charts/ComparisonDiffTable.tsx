@@ -59,7 +59,7 @@ export function ComparisonDiffTable({ items }: { items: ComparisonInput[] }) {
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-ink-mute">
         差は「比較対象 − 現在のプラン」の差額です。プラス（+）は現在より資産が多い／枯渇が遅いこと、マイナスはその逆です。
-        枯渇は年末純資産が初めて0円未満になった年で、サマリー（資産が尽きる年）と同じ基準です。
+        枯渇は年末の金融資産（ローン残高を引く前）が初めて0円未満になった年で、サマリー（資産が尽きる年）と同じ基準です。
       </p>
     </div>
   );

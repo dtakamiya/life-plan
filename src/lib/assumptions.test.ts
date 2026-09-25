@@ -53,7 +53,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(12);
+    expect(rows).toHaveLength(13);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -75,7 +75,15 @@ describe("buildAssumptionRows", () => {
       "年金の概算方式",
       "年金受給開始年齢",
       "世帯構成連動の既定値（生活費・住宅ローン）",
+      "純資産と資産枯渇の定義",
     ]);
+  });
+
+  it("純資産はローン残高を差し引き、枯渇は金融資産で判定することを明記する", () => {
+    const row = buildAssumptionRows(makeInput()).find((r) => r.label === "純資産と資産枯渇の定義")!;
+    expect(row.value).toContain("金融資産 − ローン残高");
+    expect(row.note).toContain("不動産");
+    expect(row.note).toContain("金融資産");
   });
 
   it("reflects the input inflation rate as a percent string", () => {

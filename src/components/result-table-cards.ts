@@ -44,4 +44,6 @@ export const CARD_DETAIL_FIELDS: readonly CardField[] = [
   { key: "grossIncome", label: "世帯収入(税込)" },
   { key: "recurringExpense", label: "継続支出" },
   { key: "dividendIncome", label: "配当(手取)" },
+  { key: "financialAssets", label: "金融資産" },
+  { key: "loanBalance", label: "ローン残高" },
 ];
