@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import type { YearlyResult } from "@/lib/simulation/types";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 import {
   CARD_DETAIL_FIELDS,
   CARD_SUMMARY_FIELDS,

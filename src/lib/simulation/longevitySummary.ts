@@ -5,7 +5,7 @@
  * そのまま再利用し、ここでは文言の組み立てだけを行う（判定ロジックの重複実装禁止）。
  */
 
-import { formatManYen } from "@/lib/format";
+import { formatManYen } from "@/shared/lib";
 import { summarizeResults } from "./summary";
 import type { YearlyResult } from "./types";
 

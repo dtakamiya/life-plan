@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { PlanInput } from "@/lib/simulation/types";
-import { normalizeNumberInput } from "./number-input";
+import { normalizeNumberInput } from "@/shared/ui";
 
 /**
  * lp-012 / QA#1 検証観点（AC#11）。

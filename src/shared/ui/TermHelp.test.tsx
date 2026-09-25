@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { GLOSSARY } from "@/lib/glossary";
+import { GLOSSARY } from "@/shared/lib";
 import { TermHelp } from "./TermHelp";
 
 (

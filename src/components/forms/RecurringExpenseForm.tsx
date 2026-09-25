@@ -2,9 +2,7 @@
 
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
-import { NumberField, Section, TextField } from "./fields";
+import { Button, ConfirmDialog, NumberField, Section, TextField, type ConfirmDialogHandle } from "@/shared/ui";
 import { usePlanErrors } from "./usePlanErrors";
 
 /**

@@ -2,10 +2,8 @@
 
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
+import { Button, ConfirmDialog, NumberField, PercentField, Section, TextField, type ConfirmDialogHandle } from "@/shared/ui";
 import { PROPERTY_VALUE_FLOOR_RATIO } from "@/lib/simulation/property";
-import { NumberField, PercentField, Section, TextField } from "./fields";
 import { usePlanErrors } from "./usePlanErrors";
 
 /**

@@ -14,7 +14,7 @@ import {
 import type { YearlyResult } from "@/lib/simulation/types";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import type { Snapshot } from "@/lib/store/usePlanStore";
-import { formatManYen, formatYen } from "@/lib/format";
+import { formatManYen, formatYen } from "@/shared/lib";
 import { ComparisonDiffTable } from "./ComparisonDiffTable";
 import {
   axisTick,
@@ -22,7 +22,7 @@ import {
   legendStyle,
   seriesPalette,
   tooltipStyle,
-} from "./chartTheme";
+} from "@/shared/ui";
 
 /**
  * 現在の計画と保存済みスナップショットの純資産推移を重ね描きする。

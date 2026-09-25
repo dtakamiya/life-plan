@@ -15,9 +15,9 @@ import {
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
 import { findDepletion } from "@/lib/simulation/summary";
-import { formatManYen, formatYen } from "@/lib/format";
+import { formatManYen, formatYen } from "@/shared/lib";
 import { netWorthChartData } from "./netWorthChartData";
-import { axisTick, chartColors, legendStyle, tooltipStyle } from "./chartTheme";
+import { axisTick, chartColors, legendStyle, tooltipStyle } from "@/shared/ui";
 
 /**
  * lp-ui-ux-audit-fix / FR6.1: `aria-describedby` で既存の `ResultTable`

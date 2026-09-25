@@ -3,10 +3,8 @@
 import { useRef, useState } from "react";
 import type { GameState } from "@/lib/game/types";
 import type { GameStats } from "@/lib/game/stats";
-import { Panel } from "@/components/ui/Panel";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
-import { formatYen } from "@/lib/format";
+import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
+import { formatYen } from "@/shared/lib";
 import { formatAssetDiff } from "@/lib/game/assetDiff";
 import {
   DEPLETION_DEFINITION,

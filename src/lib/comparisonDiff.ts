@@ -7,7 +7,7 @@
  */
 
 import { formatAssetDiff } from "@/lib/game/assetDiff";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 import { summarizeResults } from "@/lib/simulation/summary";
 import type { YearlyResult } from "@/lib/simulation/types";
 

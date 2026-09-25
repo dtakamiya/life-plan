@@ -2,7 +2,7 @@
 
 import type { PlanInput } from "@/lib/simulation/types";
 import { buildAssumptionRows } from "@/lib/assumptions";
-import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Eyebrow } from "@/shared/ui";
 
 /**
  * 結果セクションの「計算の前提」パネル。

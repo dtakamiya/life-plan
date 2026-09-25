@@ -7,7 +7,7 @@
  */
 
 import type { PlanInput } from "@/lib/simulation/types";
-import { formatPercent, formatYen } from "@/lib/format";
+import { formatPercent, formatYen } from "@/shared/lib";
 import { DEFAULT_END_AGE, endYearToEndAge } from "@/lib/simulation/endAge";
 import { HOUSEHOLD_DEFAULT_CONSTANTS } from "@/lib/simulation/householdDefaults";
 import {

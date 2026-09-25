@@ -1,10 +1,9 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Panel } from "@/components/ui/Panel";
-import { TermHelp } from "@/components/ui/TermHelp";
-import { formatManYenLabel } from "@/lib/format";
-import type { GlossaryTermKey } from "@/lib/glossary";
+import { Panel } from "./Panel";
+import { TermHelp } from "./TermHelp";
+import { formatManYenLabel, type GlossaryTermKey } from "@/shared/lib";
 import { formatGroupedNumber, normalizeNumberInput } from "./number-input";
 
 /** 万円換算の併記を出す下限。これ未満は桁の読み間違いが起きにくいので出さない。 */

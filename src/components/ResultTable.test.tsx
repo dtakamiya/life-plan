@@ -4,7 +4,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { YearlyResult } from "@/lib/simulation/types";
 import { ResultTable } from "./ResultTable";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 
 // react-dom の act(...) を有効化する
 (

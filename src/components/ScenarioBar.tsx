@@ -2,9 +2,7 @@
 
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { Panel } from "@/components/ui/Panel";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
+import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import {
   PLAN_FILE_MAX_BYTES,
   parsePlanFile,
