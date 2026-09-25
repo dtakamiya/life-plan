@@ -188,7 +188,8 @@ describe("runSimulation", () => {
     expect(retired.grossIncome).toBe(1_000_000);
     expect(retired.pension).toBe(1_000_000);
     expect(retired.tax).toBe(0); // 給与0なので給与課税は0
-    expect(retired.socialInsurance).toBe(0);
+    // 年金収入には国保・介護保険料を概算（年金100万円は最低額3万円）
+    expect(retired.socialInsurance).toBe(30_000);
   });
 
   it("lp-007: delaying pensionStartAge to 70 keeps pension at 0 through age 69 and pays the unreduced annualPension from 70", () => {

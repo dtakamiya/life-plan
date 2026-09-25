@@ -13,7 +13,10 @@ import {
   estimateRetirementIncomeTax,
   CAPITAL_GAINS_RATE,
 } from "./tax";
-import { estimateSocialInsurance } from "./socialInsurance";
+import {
+  estimateSocialInsurance,
+  estimatePensionSocialInsurance,
+} from "./socialInsurance";
 import { loanBalanceForYear, loanPaymentForYear } from "./loan";
 import { childAnnualCost } from "./education";
 import { recurringExpenseForYear } from "./recurringExpense";
@@ -56,9 +59,11 @@ function computePersonYearIncome(
   const isReceivingPension = age >= person.pensionStartAge;
   const pension = isReceivingPension ? person.annualPension : 0;
 
-  // 税・社保は給与に対してのみ概算する（年金収入は簡略化のため非課税扱い）。
+  // 税は給与に対してのみ概算する（年金収入は簡略化のため非課税扱い）。
+  // 社保は給与分に加え、年金収入には国民健康保険料・介護保険料を概算する。
   const tax = estimateIncomeTax(salary) + estimateResidenceTax(salary);
-  const socialInsurance = estimateSocialInsurance(salary);
+  const socialInsurance =
+    estimateSocialInsurance(salary) + estimatePensionSocialInsurance(pension);
 
   return { salary, pension, tax, socialInsurance };
 }

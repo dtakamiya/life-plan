@@ -22,3 +22,26 @@ export function estimateSocialInsurance(grossSalary: number): number {
   const base = Math.min(grossSalary, SOCIAL_INSURANCE_INCOME_CAP);
   return Math.round(base * SOCIAL_INSURANCE_RATE);
 }
+
+/** 公的年金等控除の概算（65歳以上の最低額、円）。 */
+export const PENSION_INCOME_DEDUCTION = 1_100_000;
+
+/** 年金受給者の国民健康保険料＋介護保険料の概算率（年金所得比）。 */
+export const PENSION_SOCIAL_INSURANCE_RATE = 0.15;
+
+/** 年金受給者の国民健康保険料＋介護保険料の最低額（均等割の軽減後の目安、円）。 */
+export const PENSION_SOCIAL_INSURANCE_MIN = 30_000;
+
+/**
+ * 年金収入に対する国民健康保険料・介護保険料の概算（円）。
+ * 公的年金等控除後の所得に一定率を掛け、低所得でも最低額（均等割）を課す。
+ * @param annualPension 年金の年額
+ */
+export function estimatePensionSocialInsurance(annualPension: number): number {
+  if (annualPension <= 0) return 0;
+  const income = Math.max(0, annualPension - PENSION_INCOME_DEDUCTION);
+  return Math.max(
+    PENSION_SOCIAL_INSURANCE_MIN,
+    Math.round(income * PENSION_SOCIAL_INSURANCE_RATE),
+  );
+}
