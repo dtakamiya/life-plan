@@ -114,6 +114,29 @@ describe("Home ページ — 「初期値に戻す」は確認ダイアログ経
   });
 });
 
+describe("Home ページ — 「単身・賃貸で始める」プリセット（低収入ペルソナ #8）", () => {
+  it("確認ダイアログの確定で配偶者・子・ローン・イベントのない単身世帯になる", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    const openButton = [...el.querySelectorAll("button")].find(
+      (b) => b.textContent === "単身・賃貸で始める" && !b.closest("dialog"),
+    ) as HTMLButtonElement;
+    act(() => openButton.click());
+    expect(usePlanStore.getState().input.spouse).not.toBeNull(); // まだ変わらない
+
+    const confirmButton = [...el.querySelectorAll("dialog button")].find(
+      (b) => b.textContent === "単身・賃貸で始める",
+    ) as HTMLButtonElement;
+    act(() => confirmButton.click());
+    const { input } = usePlanStore.getState();
+    expect(input.spouse).toBeNull();
+    expect(input.children).toEqual([]);
+    expect(input.loans).toEqual([]);
+    expect(input.events).toEqual([]);
+  });
+});
+
 describe("Home ページ — 試算結果の要約を常時表示する（issue #17）", () => {
   const summaryBar = (el: HTMLElement) =>
     el.querySelector('aside[aria-label="試算結果の要約"]');

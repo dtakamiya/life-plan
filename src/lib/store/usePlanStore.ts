@@ -12,7 +12,7 @@ import type {
   PlanInput,
   RecurringExpense,
 } from "@/lib/simulation/types";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { defaultPlanInput, singleRenterPlanInput } from "@/lib/simulation/defaults";
 import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
 import { newLoan } from "./newLoan";
 import { newRecurringExpense } from "./newRecurringExpense";
@@ -85,6 +85,8 @@ type PlanState = {
    */
   replaceInput: (input: PlanInput) => void;
   reset: () => void;
+  /** 低収入ペルソナレビュー #8: 「単身・賃貸」のプリセットで入力を置き換える。 */
+  resetSingle: () => void;
   /**
    * lp-030: 「まっさらから入力」。基礎生活費・ローン・イベントを 0/空にする。
    * self / spouse / children / assets には触れない。
@@ -440,6 +442,12 @@ export const usePlanStore = create<PlanState>()(
         set({
           input: structuredClone(defaultPlanInput),
           snapshots: [],
+          rangeAutoCorrected: false,
+        }),
+
+      resetSingle: () =>
+        set({
+          input: structuredClone(singleRenterPlanInput),
           rangeAutoCorrected: false,
         }),
 
