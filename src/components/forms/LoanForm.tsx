@@ -7,7 +7,7 @@ import { formatYen } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { TermHelp } from "@/components/ui/TermHelp";
-import { NumberField, PercentField, Section, TextField } from "./fields";
+import { CheckboxField, NumberField, PercentField, Section, TextField } from "./fields";
 import { usePlanErrors } from "./usePlanErrors";
 
 export function LoanForm() {
@@ -30,6 +30,10 @@ export function LoanForm() {
         </Button>
       }
     >
+      {/* 子育て共働きペルソナレビュー #5: 持ち家の維持費の入力先を案内する */}
+      <p className="mb-2 text-[11px] text-ink-mute">
+        固定資産税・修繕費は「継続支出」に期間指定で入力
+      </p>
       {loans.length === 0 ? (
         <p className="text-xs text-ink-mute">ローンなし</p>
       ) : (
@@ -94,6 +98,15 @@ export function LoanForm() {
                   error={errors[`loans.${index}.annualRate`]}
                   value={loan.annualRate}
                   onChange={(annualRate) => updateLoan(loan.id, { annualRate })}
+                />
+              </div>
+              <div className="mt-2">
+                {/* 子育て共働きペルソナレビュー #4 */}
+                <CheckboxField
+                  label="住宅ローン控除を受ける"
+                  hint="年末残高の0.7%を13年間、本人の税から差し引きます（概算）"
+                  checked={loan.taxCredit === true}
+                  onChange={(taxCredit) => updateLoan(loan.id, { taxCredit })}
                 />
               </div>
               <p className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-mute">

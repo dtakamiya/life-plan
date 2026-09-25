@@ -367,3 +367,39 @@ export function TextField({
     </label>
   );
 }
+
+/** チェックボックス（オン/オフの設定）。 */
+export function CheckboxField({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const id = useId();
+  const hintId = `${id}-hint`;
+  return (
+    <div>
+      <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2 text-xs text-ink-soft">
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          aria-describedby={hint ? hintId : undefined}
+          onChange={(e) => onChange(e.target.checked)}
+          className="h-4 w-4 cursor-pointer rounded border-line accent-brand focus:outline-none focus:ring-2 focus:ring-brand/25"
+        />
+        <span>{label}</span>
+      </label>
+      {hint && (
+        <span id={hintId} className="mt-1 block text-[11px] text-ink-mute">
+          {hint}
+        </span>
+      )}
+    </div>
+  );
+}

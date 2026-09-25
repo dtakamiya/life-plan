@@ -21,6 +21,18 @@ import {
   SOCIAL_INSURANCE_INCOME_CAP,
 } from "@/lib/simulation/socialInsurance";
 import {
+  ALLOWANCE_3_TO_HIGH_SCHOOL,
+  ALLOWANCE_THIRD_CHILD,
+  ALLOWANCE_UNDER_3,
+} from "@/lib/simulation/childAllowance";
+import {
+  HOUSING_LOAN_CREDIT_BALANCE_CAP,
+  HOUSING_LOAN_CREDIT_RATE,
+  HOUSING_LOAN_CREDIT_YEARS,
+  RESIDENCE_TAX_CREDIT_CAP,
+} from "@/lib/simulation/housingLoanCredit";
+import { PROPERTY_VALUE_FLOOR_RATIO } from "@/lib/simulation/property";
+import {
   BASIC_PENSION_ANNUAL,
   EARNINGS_RELATED_FACTOR,
   EARNINGS_RELATED_CAP,
@@ -130,17 +142,40 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       label: "世帯構成連動の既定値（生活費・住宅ローン）",
       value: `単身 ${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.singleBaseLivingExpense)}／夫婦 ${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.coupleBaseLivingExpense,
-      )}／子1人ごと +${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.perChildLivingExpense)}`,
-      note: `lp-030: 配偶者の有無・子の人数（householdDefaults.ts）から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
+      )}（子の養育費は下記の子ども費用として別途計上）`,
+      note: `lp-030: 配偶者の有無（householdDefaults.ts）から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanPrincipal,
       )}・金利${formatPercent(HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanAnnualRate)}・${HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanTermYears}年）と住宅購入イベント（頭金${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.housingDownPayment,
-      )}）も既定で付与し、子なし世帯には付与しない。ヘッダーの「まっさらから入力」で生活費・ローン・イベントを0/空から始めることもできる。`,
+      )}）・自宅（購入価格＝頭金＋借入額。純資産に計上）も既定で付与し、既定の住宅ローンは住宅ローン控除の対象とする。子なし世帯には付与しない。ヘッダーの「まっさらから入力」で生活費・ローン・イベントを0/空から始めることもできる。`,
+    },
+    {
+      label: "児童手当",
+      value: `0〜2歳 月${formatYen(ALLOWANCE_UNDER_3)}／3歳〜高校生 月${formatYen(
+        ALLOWANCE_3_TO_HIGH_SCHOOL,
+      )}／第3子以降 月${formatYen(ALLOWANCE_THIRD_CHILD)}`,
+      note: "2024年10月の制度改正後の支給額（所得制限なし）。子の年齢（その年 − 生年）から自動で計算し、非課税の収入として手取りに加える。第何子かは22歳までの子を生年順に数える。年度（4月始まり）や誕生月は考慮しない概算。",
+    },
+    {
+      label: "住宅ローン控除",
+      value: `年末残高（上限${formatYen(HOUSING_LOAN_CREDIT_BALANCE_CAP)}）の${formatPercent(
+        HOUSING_LOAN_CREDIT_RATE,
+      ).replace(/\.0%$/, "%")}を${HOUSING_LOAN_CREDIT_YEARS}年間`,
+      note: `「住宅ローン控除を受ける」にチェックしたローンが対象。子育て世帯・省エネ基準適合住宅（2024〜2025年入居）の上限を想定し、借入者を本人とみなして本人の所得税・住民税（住民税分は${formatYen(
+        RESIDENCE_TAX_CREDIT_CAP,
+      )}まで）から差し引く。住宅の種類・入居年による上限の違いや、夫婦での借入の按分は扱わない概算。`,
+    },
+    {
+      label: "収入の調整（育休・時短）",
+      value: "期間中の給与 × 給与の割合",
+      note: "「非課税の給付として扱う」をオンにした期間（育休給付金など）は、その人の給与分に税・社会保険料を掛けない。育休給付金は休業開始から180日は賃金の67%、以降は50%のため、1年通して休む場合は割合を低めにする。前年所得に基づく住民税の翌年への影響は考慮しない。",
     },
     {
       label: "純資産と資産枯渇の定義",
-      value: "純資産 ＝ 金融資産 − ローン残高",
-      note: "金融資産は課税口座（預金含む）＋非課税口座。不動産など実物資産の価値は含まないため、ローンを組んだ年は残高ぶん純資産が下がる。「資産が尽きる年」は金融資産（手元資金）が初めてマイナスになった年で判定する。課税口座が不足した年は非課税口座から自動で取り崩し、非課税口座への積立は課税口座の残高を上限とする。",
+      value: "純資産 ＝ 金融資産 ＋ 不動産の評価額 − ローン残高",
+      note: `金融資産は課税口座（預金含む）＋非課税口座。不動産の評価額は購入年に購入価格とし、以降は毎年の減価率で目減りさせ、土地分として購入価格の${Math.round(
+        PROPERTY_VALUE_FLOOR_RATIO * 100,
+      )}%を下限とする（相場の変動・売却は扱わない）。「資産が尽きる年」は金融資産（手元資金）が初めてマイナスになった年で判定する。課税口座が不足した年は非課税口座から自動で取り崩し、非課税口座への積立は課税口座の残高を上限とする。`,
     },
   ];
 }

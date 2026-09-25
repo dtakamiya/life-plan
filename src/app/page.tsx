@@ -19,6 +19,8 @@ import { RecurringExpenseForm } from "@/components/forms/RecurringExpenseForm";
 import { AssetForm } from "@/components/forms/AssetForm";
 import { EventForm } from "@/components/forms/EventForm";
 import { LoanForm } from "@/components/forms/LoanForm";
+import { IncomeAdjustmentForm } from "@/components/forms/IncomeAdjustmentForm";
+import { PropertyForm } from "@/components/forms/PropertyForm";
 import { NetWorthChart } from "@/components/charts/NetWorthChart";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { ComparisonChart } from "@/components/charts/ComparisonChart";
@@ -278,10 +280,12 @@ export default function Home() {
           {hydrated ? (
             <>
               <HouseholdForm />
+              <IncomeAdjustmentForm />
               <ExpenseForm />
               <RecurringExpenseForm />
               <AssetForm />
               <LoanForm />
+              <PropertyForm />
               <EventForm />
             </>
           ) : (
@@ -337,7 +341,7 @@ export default function Home() {
                   )}
 
                   <div className="animate-fade-up" style={{ animationDelay: "300ms" }}>
-                    <Panel eyebrow="Net worth" title="純資産推移">
+                    <Panel eyebrow="Net worth" title="資産推移">
                       <NetWorthChart results={results} />
                     </Panel>
                   </div>

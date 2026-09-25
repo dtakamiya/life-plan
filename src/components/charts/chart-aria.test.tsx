@@ -39,6 +39,8 @@ const results: YearlyResult[] = [
     socialInsurance: 900_000,
     investmentTax: 0,
     pension: 0,
+    childAllowance: 0,
+    housingLoanCredit: 0,
     netIncome: 4_300_000,
     livingExpense: 3_600_000,
     loanPayment: 0,
@@ -49,6 +51,7 @@ const results: YearlyResult[] = [
     dividendTax: 0,
     cashFlow: 700_000,
     assets: 5_700_000,
+    propertyValue: 0,
     financialAssets: 5_700_000,
     loanBalance: 0,
     taxableAssets: 5_700_000,
@@ -87,6 +90,14 @@ describe("チャートのテキスト代替（FR6.1）", () => {
     expect(
       el.querySelector('[aria-describedby="result-table"]'),
     ).not.toBeNull();
+  });
+
+  it("NetWorthChart の代替テキストは主系列が金融資産であることを示す（#11）", () => {
+    const el = mount(<NetWorthChart results={results} />);
+    const label = el.querySelector('[role="img"]')?.getAttribute("aria-label") ?? "";
+    expect(label).toContain("金融資産");
+    // ローンのない計画では純資産の破線は出さない
+    expect(label).not.toContain("破線");
   });
 
   it("ComparisonChart は result-table を aria-describedby で参照する", () => {

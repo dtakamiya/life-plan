@@ -2,8 +2,10 @@
 
 import {
   Area,
-  AreaChart,
   CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
   ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
@@ -14,7 +16,8 @@ import {
 import type { YearlyResult } from "@/lib/simulation/types";
 import { findDepletion } from "@/lib/simulation/summary";
 import { formatManYen, formatYen } from "@/lib/format";
-import { axisTick, chartColors, tooltipStyle } from "./chartTheme";
+import { netWorthChartData } from "./netWorthChartData";
+import { axisTick, chartColors, legendStyle, tooltipStyle } from "./chartTheme";
 
 /**
  * lp-ui-ux-audit-fix / FR6.1: `aria-describedby` で既存の `ResultTable`
@@ -29,29 +32,27 @@ export function NetWorthChart({
 }) {
   // 枯渇年（年末の金融資産が初めて0未満）。枯渇なしなら参照線は描かない。
   const depleted = findDepletion(results);
-  // 低収入ペルソナレビュー #13: 枯渇後もマイナス側へ線が大きく伸びると必要以上に
-  // 悲観的に見えるため、描画は0円で止め、枯渇後の期間は網掛けで示す。
-  // 実際の値（不足額）はツールチップと年次明細で確認できる。
-  // ローン残高による一時的なマイナス（枯渇前）はそのまま描く。
-  const data = results.map((r) => ({
-    ...r,
-    plotted:
-      depleted && r.year >= depleted.year ? Math.max(r.assets, 0) : r.assets,
-  }));
+  // 主系列は金融資産、ローンや不動産がある期間だけ純資産を破線で重ねる（#11・#2）。
+  // 枯渇後の期間は網掛けで示し、実際の不足額はツールチップと年次明細で確認できる（#13）。
+  const data = netWorthChartData(results);
+  const hasNetWorthLine = data.some((d) => d.netWorth !== null);
   const lastYear = results.at(-1)?.year;
   return (
     <div
       className="h-72 w-full"
       role="img"
-      aria-label={
-        depleted
-          ? "純資産推移の面グラフ（資産が尽きた後は0円で止め、網掛けで表示）"
-          : "純資産推移の面グラフ"
-      }
+      aria-label={[
+        "資産推移のグラフ（金融資産を面で表示",
+        hasNetWorthLine
+          ? "。ローンや不動産のある期間は純資産（金融資産＋不動産−ローン残高）を破線で表示"
+          : "",
+        depleted ? "。資産が尽きた後は0円で止め、網掛けで表示" : "",
+        "）",
+      ].join("")}
       aria-describedby={describedById}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
+        <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
           <defs>
             <linearGradient id="nwGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={chartColors.brand} stopOpacity={0.28} />
@@ -92,25 +93,39 @@ export function NetWorthChart({
           )}
           <Tooltip
             {...tooltipStyle}
-            formatter={(_value: number, _name, item) => {
-              const { assets, year } = item.payload as YearlyResult;
-              return depleted && year >= depleted.year && assets < 0
-                ? [formatYen(-assets), "不足額"]
-                : [formatYen(assets), "純資産"];
+            formatter={(_value: number, name, item) => {
+              const { assets, financialAssets } = item.payload as YearlyResult;
+              if (name === "純資産") return [formatYen(assets), "純資産"];
+              return financialAssets < 0
+                ? [formatYen(-financialAssets), "不足額"]
+                : [formatYen(financialAssets), "金融資産"];
             }}
             labelFormatter={(label) => `${label}年`}
           />
+          {hasNetWorthLine && <Legend wrapperStyle={legendStyle} />}
           <Area
             type="monotone"
-            dataKey="plotted"
-            name="純資産"
+            dataKey="financial"
+            name="金融資産"
             stroke={chartColors.brand}
             strokeWidth={2.25}
             fill="url(#nwGrad)"
             dot={false}
             activeDot={{ r: 4, strokeWidth: 0 }}
           />
-        </AreaChart>
+          {hasNetWorthLine && (
+            <Line
+              type="monotone"
+              dataKey="netWorth"
+              name="純資産"
+              stroke={chartColors.ink}
+              strokeWidth={1.5}
+              strokeDasharray="5 4"
+              dot={false}
+              connectNulls={false}
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

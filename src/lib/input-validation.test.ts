@@ -304,3 +304,43 @@ describe("v1 保存データ移行の回帰（永続化スキーマ）", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+/** 子育て共働きペルソナレビュー #2・#3: 追加した入力の検証。 */
+describe("validatePlanInput — 家族向けの拡張", () => {
+  const adjustment = {
+    id: "a",
+    person: "spouse" as const,
+    label: "育休",
+    startYear: 2028,
+    endYear: 2028,
+    ratio: 0.67,
+    nonTaxable: true,
+  };
+  const property = { id: "p", label: "自宅", purchaseYear: 2031, price: 35_000_000, annualDepreciationRate: 0.015 };
+
+  it("正しい収入調整・不動産は通る", () => {
+    expect(validatePlanInput({ ...fixedInput, incomeAdjustments: [adjustment], properties: [property] })).toEqual({ ok: true });
+  });
+
+  it("収入調整の割合は0〜100%、終了年は開始年以降", () => {
+    const r = validatePlanInput({
+      ...fixedInput,
+      incomeAdjustments: [{ ...adjustment, ratio: 1.2 }, { ...adjustment, startYear: 2030, endYear: 2029 }],
+    });
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.errors["incomeAdjustments.0.ratio"]).toBe("給与の割合は0%〜100%の範囲で入力してください");
+    expect(r.errors["incomeAdjustments.1.endYear"]).toBe("終了年は開始年以降にしてください");
+  });
+
+  it("不動産の購入価格・減価率を検証する", () => {
+    const r = validatePlanInput({
+      ...fixedInput,
+      properties: [{ ...property, price: -1, annualDepreciationRate: 0.5 }],
+    });
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.errors["properties.0.price"]).toContain("購入価格");
+    expect(r.errors["properties.0.annualDepreciationRate"]).toBe("年間の減価率は0%〜10%の範囲で入力してください");
+  });
+});

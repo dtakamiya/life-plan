@@ -271,8 +271,8 @@ describe("usePlanStore — 世帯構成連動の既定値（lp-030）", () => {
 
   it("配偶者を外し、子を削除すると、生活費が単身・子なしの既定値へ連動し、住宅ローン・イベントが残らない", () => {
     const store = usePlanStore.getState();
-    // 既定状態: 配偶者あり・子1人（360万円、住宅ローン・イベントあり）
-    expect(store.input.expenses.baseAnnualLivingExpense).toBe(3_600_000);
+    // 既定状態: 配偶者あり・子1人（300万円、住宅ローン・イベントあり）
+    expect(store.input.expenses.baseAnnualLivingExpense).toBe(3_000_000);
     expect(store.input.loans.length).toBe(1);
     expect(store.input.events.length).toBe(1);
 
@@ -284,6 +284,11 @@ describe("usePlanStore — 世帯構成連動の既定値（lp-030）", () => {
     expect(after.input.expenses.baseAnnualLivingExpense).toBe(2_400_000);
     expect(after.input.loans).toEqual([]);
     expect(after.input.events).toEqual([]);
+  });
+
+  it("子を追加しても基礎生活費は変わらない（子の養育費は計算側で計上するため）", () => {
+    usePlanStore.getState().addChild();
+    expect(usePlanStore.getState().input.expenses.baseAnnualLivingExpense).toBe(3_000_000);
   });
 
   it("子0→1→0人の往復で、住宅ローン・イベントの既定値が残留しない", () => {
@@ -458,5 +463,87 @@ describe("usePlanStore.updateSelf — 生年変更で終了年齢を保つ", () 
     const before = usePlanStore.getState().input.endYear;
     usePlanStore.getState().updateSelf({ grossAnnualIncome: 4_200_000 });
     expect(usePlanStore.getState().input.endYear).toBe(before);
+  });
+});
+
+/** 子育て共働きペルソナレビュー #8: 住宅購入（頭金）イベントがローンの返済開始年に連動する。 */
+describe("usePlanStore — 住宅ローンと頭金イベントの連動（#8）", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("ローンの返済開始年を変えると、同じ年の住宅購入（頭金）イベントも動く", () => {
+    const { loans, events } = usePlanStore.getState().input;
+    const loan = loans[0];
+    expect(events[0].year).toBe(loan.startYear);
+
+    usePlanStore.getState().updateLoan(loan.id, { startYear: loan.startYear + 2 });
+
+    const after = usePlanStore.getState().input;
+    expect(after.loans[0].startYear).toBe(loan.startYear + 2);
+    expect(after.events[0].year).toBe(loan.startYear + 2);
+    // 既定の自宅（不動産）の購入年も追従する（#2）
+    expect(after.properties?.[0].purchaseYear).toBe(loan.startYear + 2);
+  });
+
+  it("年がずれている頭金イベントや、他のラベルのイベントは動かさない", () => {
+    const { loans, events } = usePlanStore.getState().input;
+    const loan = loans[0];
+    usePlanStore.getState().updateEvent(events[0].id, { year: loan.startYear - 1 });
+    usePlanStore.getState().addEvent();
+    const added = usePlanStore.getState().input.events[1];
+    usePlanStore.getState().updateEvent(added.id, { year: loan.startYear, label: "車の購入" });
+
+    usePlanStore.getState().updateLoan(loan.id, { startYear: loan.startYear + 2 });
+
+    const after = usePlanStore.getState().input.events;
+    expect(after[0].year).toBe(loan.startYear - 1);
+    expect(after[1].year).toBe(loan.startYear);
+  });
+});
+
+/** 子育て共働きペルソナレビュー #2・#3: 収入調整と不動産の追加・更新・削除。 */
+describe("usePlanStore — 収入調整・不動産", () => {
+  beforeEach(() => {
+    usePlanStore.getState().reset();
+  });
+
+  it("既定の世帯には住宅ローン控除つきのローンと自宅があり、収入調整はない", () => {
+    const { input } = usePlanStore.getState();
+    expect(input.loans[0].taxCredit).toBe(true);
+    expect(input.properties).toHaveLength(1);
+    expect(input.incomeAdjustments).toEqual([]);
+  });
+
+  it("収入調整を追加すると、開始年の1年間・割合100%・課税の行が配偶者向けにできる", () => {
+    usePlanStore.getState().addIncomeAdjustment();
+    const [a] = usePlanStore.getState().input.incomeAdjustments ?? [];
+    const { startYear } = usePlanStore.getState().input;
+    expect(a).toMatchObject({ person: "spouse", startYear, endYear: startYear, ratio: 1, nonTaxable: false });
+
+    usePlanStore.getState().updateIncomeAdjustment(a.id, { ratio: 0.67, nonTaxable: true });
+    expect(usePlanStore.getState().input.incomeAdjustments?.[0]).toMatchObject({ ratio: 0.67, nonTaxable: true });
+
+    usePlanStore.getState().removeIncomeAdjustment(a.id);
+    expect(usePlanStore.getState().input.incomeAdjustments).toEqual([]);
+  });
+
+  it("配偶者がいない世帯では、収入調整は本人向けに追加する", () => {
+    usePlanStore.getState().toggleSpouse(false);
+    usePlanStore.getState().addIncomeAdjustment();
+    expect(usePlanStore.getState().input.incomeAdjustments?.[0].person).toBe("self");
+  });
+
+  it("不動産を追加・更新・削除できる", () => {
+    usePlanStore.getState().addProperty();
+    const properties = usePlanStore.getState().input.properties ?? [];
+    const added = properties[properties.length - 1];
+    expect(added).toMatchObject({ price: 0, annualDepreciationRate: 0.015 });
+
+    usePlanStore.getState().updateProperty(added.id, { price: 20_000_000 });
+    expect(usePlanStore.getState().input.properties?.find((p) => p.id === added.id)?.price).toBe(20_000_000);
+
+    usePlanStore.getState().removeProperty(added.id);
+    expect(usePlanStore.getState().input.properties?.some((p) => p.id === added.id)).toBe(false);
   });
 });

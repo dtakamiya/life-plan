@@ -59,6 +59,26 @@ export const loanSchema = z.object({
   principal: z.number(),
   annualRate: z.number(),
   termYears: z.number().int(),
+  // 住宅ローン控除の対象か。既存の保存データ（当フィールドを持たない）は対象外として通す。
+  taxCredit: z.boolean().optional(),
+});
+
+export const incomeAdjustmentSchema = z.object({
+  id: z.string(),
+  person: z.enum(["self", "spouse"]),
+  label: z.string(),
+  startYear: z.number().int(),
+  endYear: z.number().int(),
+  ratio: z.number(),
+  nonTaxable: z.boolean(),
+});
+
+export const propertySchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  purchaseYear: z.number().int(),
+  price: z.number(),
+  annualDepreciationRate: z.number(),
 });
 
 export const expenseSchema = z.object({
@@ -100,6 +120,9 @@ export const planInputSchema = z.object({
   recurringExpenses: z.array(recurringExpenseSchema).default([]),
   // 既存の保存データ（loans を持たない v1）でも検証を通すため既定で空配列。
   loans: z.array(loanSchema).default([]),
+  // 子育て共働きペルソナレビュー #2・#3 で追加。既存の保存データでも通すため既定で空配列。
+  incomeAdjustments: z.array(incomeAdjustmentSchema).default([]),
+  properties: z.array(propertySchema).default([]),
 });
 
 /**
@@ -255,8 +278,39 @@ export const planInputValidationSchema = z
         principal: amountField("借入額"),
         annualRate: rateField("金利"),
         termYears: boundedNumber("返済期間", INPUT_LIMITS.termYears, { int: true, format: (n) => `${n}年` }),
+        taxCredit: z.boolean().optional(),
       }),
     ),
+    incomeAdjustments: z
+      .array(
+        z
+          .object({
+            id: z.string(),
+            person: z.enum(["self", "spouse"]),
+            label: z.string(),
+            startYear: yearField("開始年"),
+            endYear: yearField("終了年"),
+            ratio: boundedNumber("給与の割合", { min: 0, max: 1 }, { format: percentFormat }),
+            nonTaxable: z.boolean(),
+          })
+          .superRefine((r, ctx) => {
+            if (r.endYear < r.startYear) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["endYear"], message: RANGE_ORDER_MESSAGE });
+            }
+          }),
+      )
+      .optional(),
+    properties: z
+      .array(
+        z.object({
+          id: z.string(),
+          label: z.string(),
+          purchaseYear: yearField("購入年"),
+          price: amountField("購入価格"),
+          annualDepreciationRate: boundedNumber("年間の減価率", { min: 0, max: 0.1 }, { format: percentFormat }),
+        }),
+      )
+      .optional(),
   })
   .superRefine((p, ctx) => {
     if (p.endYear < p.startYear) {

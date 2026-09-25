@@ -45,6 +45,8 @@ function makeRow(overrides: Partial<YearlyResult> = {}): YearlyResult {
     socialInsurance: 900_000,
     investmentTax: 0,
     pension: 0,
+    childAllowance: 0,
+    housingLoanCredit: 0,
     netIncome: 4_300_000,
     livingExpense: 3_000_000,
     eventNet: 0,
@@ -55,6 +57,7 @@ function makeRow(overrides: Partial<YearlyResult> = {}): YearlyResult {
     dividendTax: 0,
     cashFlow: 1_300_000,
     assets: 10_000_000,
+    propertyValue: 0,
     financialAssets: 10_000_000,
     loanBalance: 0,
     taxableAssets: 8_000_000,
@@ -338,6 +341,7 @@ describe("ResultTable — 金融資産・ローン残高の列", () => {
         results={[
           makeRow({
             assets: -26_000_000,
+            propertyValue: 0,
             financialAssets: 10_000_000,
             loanBalance: 36_000_000,
           }),
@@ -351,5 +355,16 @@ describe("ResultTable — 金融資産・ローン残高の列", () => {
     const cells = el.querySelectorAll("tbody tr")[0].children;
     expect(cells[getColumnIndex(el, "ローン残高")].textContent).toBe(formatYen(36_000_000));
     expect(cells[getColumnIndex(el, "金融資産")].textContent).toBe(formatYen(10_000_000));
+  });
+});
+
+/** 子育て共働きペルソナレビュー #2・#4: 追加した内訳の列。 */
+describe("ResultTable — 家族向けの内訳列", () => {
+  it("児童手当・ローン控除・不動産評価額の列を表示する", () => {
+    const el = mount(<ResultTable results={[makeRow({ childAllowance: 120_000, housingLoanCredit: 150_000, propertyValue: 30_000_000 })]} />);
+    for (const label of ["児童手当", "うちローン控除", "不動産評価額"]) {
+      expect(getHeaderCell(el, label)).toBeTruthy();
+    }
+    expect(el.textContent).toContain("¥30,000,000");
   });
 });

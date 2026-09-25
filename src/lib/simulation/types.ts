@@ -95,6 +95,49 @@ export type Loan = {
   annualRate: number;
   /** 返済期間（年） */
   termYears: number;
+  /**
+   * 住宅ローン控除の対象か（子育て共働きペルソナレビュー #4）。
+   * 未指定は対象外（既存の保存データとの互換のため任意項目）。
+   */
+  taxCredit?: boolean;
+};
+
+/**
+ * 期間付きの収入調整（育休・時短勤務など。子育て共働きペルソナレビュー #3）。
+ * 開始年から終了年まで（両端を含む）、対象者の給与に ratio を掛ける。
+ */
+export type IncomeAdjustment = {
+  id: string;
+  /** 対象者 */
+  person: "self" | "spouse";
+  label: string;
+  /** 開始年（西暦） */
+  startYear: number;
+  /** 終了年（西暦、この年も調整する） */
+  endYear: number;
+  /** 給与に掛ける割合（小数。例: 時短 0.8） */
+  ratio: number;
+  /**
+   * 調整後の収入を非課税の給付として扱うか（育休給付金など）。
+   * true の年は、その人の給与に所得税・住民税・社会保険料を掛けない。
+   */
+  nonTaxable: boolean;
+};
+
+/**
+ * 住宅などの不動産（子育て共働きペルソナレビュー #2）。
+ * 購入年以降、評価額を純資産に加える。評価額は毎年一定率で減価し、
+ * 土地分を考えて購入価格の一定割合を下限とする。
+ */
+export type Property = {
+  id: string;
+  label: string;
+  /** 購入年（西暦） */
+  purchaseYear: number;
+  /** 購入価格（円） */
+  price: number;
+  /** 年間の減価率（小数） */
+  annualDepreciationRate: number;
 };
 
 export type ExpenseSettings = {
@@ -128,6 +171,10 @@ export type PlanInput = {
   events: LifeEvent[];
   recurringExpenses: RecurringExpense[];
   loans: Loan[];
+  /** 期間付きの収入調整（育休・時短など）。未指定は調整なし */
+  incomeAdjustments?: IncomeAdjustment[];
+  /** 不動産。未指定は保有なし */
+  properties?: Property[];
 };
 
 /** 1年分のシミュレーション結果。 */
@@ -145,6 +192,10 @@ export type YearlyResult = {
   investmentTax: number;
   /** 年金収入（円、grossIncome の内数） */
   pension: number;
+  /** 児童手当（円、非課税。netIncome の内数） */
+  childAllowance: number;
+  /** 住宅ローン控除による減税額（円、tax から差し引き済み） */
+  housingLoanCredit: number;
   /** 手取り収入（円） */
   netIncome: number;
   /** 生活費（インフレ調整後＋子の教育費、円） */
@@ -164,10 +215,11 @@ export type YearlyResult = {
   /** 年間収支（円） */
   cashFlow: number;
   /**
-   * 年末純資産（円）＝ 金融資産 − ローン残高。
-   * 不動産など実物資産の価値は含まない。
+   * 年末純資産（円）＝ 金融資産 ＋ 不動産の評価額 − ローン残高。
    */
   assets: number;
+  /** 年末の不動産の評価額の合計（円） */
+  propertyValue: number;
   /** 年末の金融資産（円、課税口座＋非課税口座の合計）。枯渇判定に使う */
   financialAssets: number;
   /** 年末のローン残高の合計（円） */
