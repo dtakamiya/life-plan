@@ -6,17 +6,17 @@
 
 1. **見通し・変更容易性**: 1つの機能を変更するとき、1つの機能フォルダ内で作業が完結するようにする。
 2. **依存方向の強制**: ドメインロジックを React / Zustand / zod から独立させ、層と機能の境界をテストで機械的に守る。
-3. **ドメインモデルの表現力**: 値オブジェクト（金額・率・年・年齢）とエンティティの振る舞いとして概念を明示する。
+3. **ドメインモデルの表現力**: 個々の入力項目が持つルールをエンティティの振る舞いとして `plan/domain` に集め、概念を明示する（値オブジェクトは今回のスコープ外。8章参照）。
 
 ## 決定事項
 
 | 論点 | 決定 |
 |------|------|
 | フォルダ構成 | **機能ファースト + 機能内レイヤー**（`src/features/<feature>/{domain,application,infrastructure,ui}`） |
-| 値オブジェクト | **ブランド型 + 純粋関数モジュール**。データはプレーンオブジェクトのまま（クラスは使わない） |
+| 値オブジェクト | **今回は導入しない**（スコープ外。必要になったら別設計で検討する）。データはプレーンオブジェクトのまま |
 | 境界の強制 | **vitest のアーキテクチャテスト**（新規依存なし、既存 CI の `npm run test` で強制） |
 | Repository ポート | **導入しない**。永続化先は localStorage とファイルのみのため、Zustand persist の設定と zod 検証関数を infrastructure に置くだけとする |
-| スナップショット | plan のストアから分離し、scenario の別ストア（別 persist キー）にする。旧キーからの移行を行う |
+| スナップショット | plan のストアから分離し、scenario の別ストア（別 persist キー）にする。旧キーからの移行は plan ストアの persist `migrate` で行う |
 | 移行方法 | 機能単位の短命ブランチ・PR に分割した段階移行（各 PR は挙動不変） |
 
 見送った案:
@@ -24,6 +24,8 @@
 - レイヤーファースト（`src/domain/<feature>` 等）: 1機能の変更が4ディレクトリに散り、目的1と衝突する。
 - 2層（domain / ui）の軽量版: 永続化が ui 層に混ざり、目的2の境界が曖昧になる。
 - クラスによる値オブジェクト: Zustand 永続化・zod 検証・JSON 入出力にシリアライズ/復元の層が必要になる。
+- ブランド型による値オブジェクト（改訂前の PR 7）: ブランド型同士の演算結果は `number` に戻るため engine・tax 等の全計算箇所で再ラップが必要になり、フォームの生数値と zod `.brand()` を通したストアの型も合わなくなる。差分の大きさに対して防げる不具合（円と率の取り違え程度）が小さい。
+- scenario ストアの初期化時に旧キーから取り込む移行: 旧キーへ `snapshots` なしで書き込む plan ストアが先に書き込むと未移行のスナップショットが失われ、全ページが scenario ストアを読み込むという暗黙の前提に依存する。
 - ESLint による境界強制: CI で lint を実行しておらず、CLAUDE.md の「ESLint は next 設定の継承のみ」方針の変更も必要になる。
 - plan + scenario を束ねた単一ストアを `src/app` 側に置く案: 移行は不要だが、ストアが機能フォルダの外に出る。
 
@@ -38,7 +40,7 @@ shared ← plan ← simulation ← scenario
 
 | 機能 | 責務 |
 |------|------|
-| `shared` | 値オブジェクト、書式、用語集、共通 UI 部品、テーマ |
+| `shared` | 書式（金額差分の書式 `formatAssetDiff` を含む）、用語集、共通 UI 部品、テーマ |
 | `plan` | `PlanInput` 集約とその構成要素（Person, Child, Education, Loan, Property, LifeEvent, RecurringExpense, IncomeAdjustment, ExpenseSettings, AssetSettings）、各要素が持つルール、プリセット、編集ユースケース、入力検証、永続化、プランファイル入出力、入力フォーム |
 | `simulation` | 時間軸での年次集計と制度計算（税・社会保険・児童手当・住宅ローン控除）、`YearlyResult`、サマリー・枯渇対策・前提条件一覧、結果表示 UI |
 | `scenario` | スナップショットの保存・読込・比較差分、比較 UI |
@@ -63,11 +65,11 @@ shared ← plan ← simulation ← scenario
 src/
   app/                          Next.js ルーティング（コンポジションルート）
   shared/
-    domain/                     値オブジェクト（Yen, Rate, Year, Age）
+    domain/                     （予約。今回は作らない。アーキテクチャテストのルール上のみ存在）
     lib/                        フレームワーク非依存の汎用関数（format, glossary）
     ui/                         共通 UI 部品、fields、number-input、termHelpPosition、chartTheme
   features/<feature>/
-    domain/       index.ts      型・値オブジェクト・不変条件・計算の純粋関数
+    domain/       index.ts      型・不変条件・計算の純粋関数
     application/  index.ts      ユースケース（(plan, args) => plan の純粋関数）、zod による入力検証、IdGenerator 等の関数型
     infrastructure/ index.ts    persist の merge・キー移行、プランファイル入出力、ID 生成の実装
     ui/           index.ts      コンポーネント、Zustand ストア、hooks
@@ -95,21 +97,6 @@ src/
 - テストファイル（`*.test.ts(x)`）も対象ファイルと同じ層のルールに従う。コンポーネントテストの `react-dom/client` は ui 層なので許可される。
 - 下流機能の import（例: plan → simulation）と機能間の循環は違反とする。
 
-### 2.3 値オブジェクト
-
-`shared/domain` に次のブランド型とスマートコンストラクタ・演算関数を定義する。
-
-```ts
-export type Yen = number & { readonly __brand: "Yen" };
-export const yen = (value: number): Yen => value as Yen;
-// Rate（小数の率）, Year（西暦）, Age（歳）も同様
-```
-
-- domain の型（`Person.grossAnnualIncome: Yen` 等）に適用する。
-- zod スキーマは `.brand()` 等で検証済みデータを直接ブランド型として得る。
-- 既定値データなどの生値は `yen(3_000_000)` のようにスマートコンストラクタ経由で生成する。
-- 適用は移行の最終段（PR 7）で行い、ファイル移動とは混ぜない。
-
 ## 3. ストアの分解
 
 ### 3.1 plan ストア（`plan/ui/usePlanStore.ts`）
@@ -129,7 +116,11 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 ### 3.2 scenario ストア（`scenario/ui/useScenarioStore.ts`）
 
 - `snapshots` と `saveSnapshot` / `removeSnapshot` を持ち、新しい persist キー `life-plan/scenarios/v1` に保存する。
-- **旧データの移行**: 新キーが存在しない初回のみ、`life-plan/v1` の `snapshots` を zod（`snapshotSchema`）で1件ずつ検証して取り込む。検証に失敗した要素は除外し、旧キー自体が無い・壊れている場合は空配列とする。例外は投げない。移行ロジックは `scenario/infrastructure` に純粋関数として切り出す（`mergePersistedPlanState` と同様、Zustand が `localStorage` の無い環境で merge を呼ばないためテストから直接呼べるようにする）。
+- **旧データの移行**: plan ストアの persist を `version: 2` に上げ、`migrate`（`plan/infrastructure` の関数。新キーの読み書きに使う storage を引数で受け取り、テストではインメモリの storage を渡して直接呼べるようにする）で行う。
+  - 旧データ（version 1）に `snapshots` 配列があり、かつ新キー `life-plan/scenarios/v1` が存在しないときに限り、生の配列をそのまま新キーへ `{ state: { snapshots }, version: 1 }` の persist 形式で書き出す。新キーが既にあれば上書きしない（冪等）。
+  - `snapshots` が配列でない・旧データが壊れている場合は新キーへ何も書かない。いずれの場合も `snapshots` を取り除いた状態を返し、以降は `mergePersistedPlanState` が従来どおり `input` を検証する。
+  - 移行は plan ストアのハイドレート時に必ず実行されるため、ページごとのストア読み込み順に依存しない。scenario は plan の下流で plan ストアを import するので、scenario ストアのハイドレートは常に plan の移行後になる。
+  - plan は scenario のコードを import せず、新キーの文字列だけを知る（`plan/infrastructure` の定数）。スナップショット要素の zod 検証は scenario ストアの `merge`（`scenario/infrastructure` の純粋関数）で `snapshotSchema` により1件ずつ行い、失敗した要素は除外、キーが無い・壊れている場合は空配列とする。例外は投げない。
 - 2ストアにまたがる操作は scenario のユースケースとして実装し、plan ストアの公開アクションを呼ぶ（scenario → plan の向き）。
   - `loadSnapshot`: スナップショットの入力を複製し、ゲーム由来イベントのラベルに「（ゲーム）」を冪等に前置したうえで plan の `replaceInput` を呼ぶ。ラベル付与は `scenario/application` の純粋関数。
   - 全消去（現 `reset`）: plan の入力を既定値へ戻し、スナップショットも空にする。
@@ -149,7 +140,7 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 | `components/forms/fields.tsx`, `number-input.ts`, `NumberField.test.tsx`, `number-input*.test.ts` | `shared/ui/` |
 | `components/charts/chartTheme.ts` | `shared/ui/chartTheme.ts` |
 | `lib/theme-contrast.test.ts` | `shared/ui/` |
-| （新規）値オブジェクト | `shared/domain/` |
+| `lib/game/assetDiff.ts` | `shared/lib/assetDiff.ts`（scenario の `comparisonDiff` と game の双方が使うため。scenario → game の依存を避ける） |
 
 ### plan
 
@@ -191,7 +182,7 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 
 | 現在 | 移動先 |
 |------|------|
-| `lib/game/{types,rng,events,stages,satisfaction,stats,householdAge,assetDiff,depletionText,advance,project}.ts` | `game/domain/` |
+| `lib/game/{types,rng,events,stages,satisfaction,stats,householdAge,depletionText,advance,project}.ts` | `game/domain/` |
 | `lib/game/flow.ts`（画面遷移の reducer） | `game/application/` |
 | `components/game/*` | `game/ui/` |
 
@@ -203,21 +194,23 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 
 | # | ブランチ | 内容 |
 |---|------|------|
-| 1 | `refactor/architecture-test` | `src/architecture.test.ts` を追加（検査対象は `src/features`・`src/shared`・`src/app` のファイル。移行期間中は未移行の `src/lib`・`src/components` 配下のファイルを検査せず、それらを import 先とする import も判定から除外する）。`shared` の抽出 |
-| 2 | `refactor/plan-feature` | plan の domain・application・infrastructure・ui へのファイル移動と `types.ts` の分割。ストアは形を変えず移動のみ |
+| 1 | `refactor/architecture-test` | 済（#53）。`src/architecture.test.ts` の追加（移行期間中は未移行の `src/lib`・`src/components` を検査・判定から除外）と `shared` の抽出 |
+| 2a | `refactor/plan-domain` | `types.ts` の入力側の分割と、plan の domain・application・infrastructure へのファイル移動。ストア・フォームは旧位置のまま import だけ更新 |
+| 2b | `refactor/plan-ui` | ストアとフォーム（`usePlanErrors.ts` を含む）を `plan/ui` へ移動。ストアは形を変えず移動のみ |
 | 3 | `refactor/plan-usecases` | `usePlanStore` のアクション本体を `plan/application` の純粋関数へ抽出、`IdGenerator` 注入 |
 | 4 | `refactor/simulation-feature` | simulation 一式の移動 |
-| 5 | `refactor/scenario-feature` | scenario ストアの分離、persist キー移行、比較関連の移動 |
-| 6 | `refactor/game-feature` | game 一式の移動 |
-| 7 | `refactor/value-objects` | ブランド型の導入と domain 型への適用（差分が大きければ機能ごとに PR を分ける） |
-| 8 | `refactor/cleanup` | 空になった `src/lib`・`src/components` を削除、アーキテクチャテストの対象を `src` 全体へ拡大、CLAUDE.md の「構成」節を新構成に更新 |
+| 5 | `refactor/game-feature` | game 一式の移動。`assetDiff` を `shared/lib` へ移動 |
+| 6 | `refactor/scenario-feature` | scenario ストアの分離、plan ストアの `migrate` による persist キー移行、比較関連の移動 |
+| 7 | `refactor/cleanup` | 空になった `src/lib`・`src/components` を削除、アーキテクチャテストの対象を `src` 全体へ拡大、CLAUDE.md の「構成」節を新構成に更新 |
+
+リスクの高い scenario（永続化データの移行を伴う）は、単純な移動で済む game の後に回す。
 
 ## 6. テスト
 
 - **アーキテクチャテスト**（`src/architecture.test.ts`, `environment: "node"`）: 対象ディレクトリの `.ts`/`.tsx` を走査し、静的 import・`export ... from`・動的 `import()` の指定子を抽出する。`@/` と相対パスを `src` からのパスに解決して機能と層を判定し、2.2 のルールに照らした違反を「ファイル → import 先 → 理由」の一覧にして、違反ゼロを assert する。ルール判定関数は純粋関数として切り出し、代表的な許可・違反パターンの単体テストを添える。
 - **ユースケース**: `plan/application`・`scenario/application` に抽出した関数は TDD で単体テストを追加する。既存のストアテスト（`usePlanStore.test.ts`）は委譲後も残し、回帰検知に使う。
-- **persist キー移行**: 「新キーあり」「旧キーのみ」「旧キーのスナップショットが一部破損」「両方なし」の各ケースをテストする。
-- **各 PR の確認**: `npm run test` と `npm run build`。PR 5 は既存の localStorage データを持つブラウザで、スナップショットが引き継がれることを手動確認する。
+- **persist キー移行**: plan の `migrate` について「旧 snapshots あり・新キーなし → 新キーへコピー」「新キーあり → 上書きしない」「`snapshots` が配列でない・旧データ破損 → 新キーへ書かない」「2回実行しても結果が同じ」の各ケースを、scenario の `merge` について「一部の要素が破損 → 除外」「キーなし・破損 → 空配列」をテストする。
+- **各 PR の確認**: `npm run test` と `npm run build`。PR 6 は既存の localStorage データを持つブラウザで、スナップショットが引き継がれることを手動確認する。
 
 ## 7. エラー処理
 
@@ -229,3 +222,4 @@ CLAUDE.md の方針どおり例外は投げず、`try`/`catch` も使わない�
 - ドメイン用語・識別子の改名（必要なら別 PR で行う）
 - Repository インターフェース（ポート）の導入
 - CI への lint ステップ追加
+- 値オブジェクト（ブランド型）の導入
