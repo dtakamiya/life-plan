@@ -8,7 +8,7 @@
  * 区間分割はしない（区間の切り直しは昇給とインフレの複利を巻き戻すため）。
  */
 
-import type { LifeEvent, PlanInput } from "@/lib/simulation/types";
+import type { LifeEvent, PlanInput } from "@/features/plan/domain";
 import type { AppliedEffect, GameState } from "./types";
 
 /** 適用済み効果のうち、金銭を伴うものを LifeEvent へ変換する。 */

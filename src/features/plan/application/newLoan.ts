@@ -13,7 +13,7 @@
  * 既存の保存データ（v1 含む）のローン行はマイグレーション対象ではなく影響を受けない。
  */
 
-import type { Loan } from "@/lib/simulation/types";
+import type { Loan } from "@/features/plan/domain";
 
 export function newLoan(id: string, currentYear: number): Loan {
   return {

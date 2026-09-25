@@ -6,7 +6,7 @@
  * 本人の年齢を 10 歳区切りにしたブロックを 1 ターンとする。
  */
 
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import type { Stage, StageOption } from "./types";
 
 /**

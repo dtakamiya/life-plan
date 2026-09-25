@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { applyHouseholdDefaults } from "./householdDefaultsSync";
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 
 const START_YEAR = 2026;
 

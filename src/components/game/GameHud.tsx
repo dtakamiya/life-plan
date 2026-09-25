@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import type { Stage } from "@/lib/game/types";
 import type { GameStats } from "@/lib/game/stats";
 import {

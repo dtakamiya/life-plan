@@ -7,7 +7,7 @@
  */
 
 import { runSimulation } from "@/lib/simulation/engine";
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import type {
   AppliedEffect,
   GameEffect,

@@ -6,8 +6,7 @@ import {
   HOUSING_LOAN_CREDIT_YEARS,
   RESIDENCE_TAX_CREDIT_CAP,
 } from "./housingLoanCredit";
-import { loanBalanceForYear } from "./loan";
-import type { Loan } from "./types";
+import { loanBalanceForYear, type Loan } from "@/features/plan/domain";
 
 /** 子育て共働きペルソナレビュー #4: 住宅ローン控除の概算。 */
 

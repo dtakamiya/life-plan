@@ -6,10 +6,9 @@ import {
   planFileName,
   serializePlan,
 } from "./planFile";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import { runSimulation } from "@/lib/simulation/engine";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import type { PlanInput } from "@/lib/simulation/types";
 
 const rich = (): PlanInput => ({
   ...structuredClone(defaultPlanInput),

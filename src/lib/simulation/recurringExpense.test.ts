@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { recurringExpenseForYear } from "./recurringExpense";
-import type { RecurringExpense } from "./types";
+import type { RecurringExpense } from "@/features/plan/domain";
 
 /** テスト用の継続支出を作るヘルパー。 */
 function item(overrides: Partial<RecurringExpense> = {}): RecurringExpense {

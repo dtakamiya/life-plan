@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { newRecurringExpense } from "./newRecurringExpense";
 import { runSimulation } from "@/lib/simulation/engine";
-import type { PlanInput, Person } from "@/lib/simulation/types";
+import type { PlanInput, Person } from "@/features/plan/domain";
 
 const basePerson: Person = {
   name: "本人",

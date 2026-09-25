@@ -2,8 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
-import type { PlanInput } from "@/lib/simulation/types";
+import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import { DepletionAdvice } from "./DepletionAdvice";
 
 (

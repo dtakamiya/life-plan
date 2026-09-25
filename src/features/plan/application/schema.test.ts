@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { snapshotSchema, planInputSchema } from "./schema";
-import { defaultPlanInput } from "./simulation/defaults";
+import { defaultPlanInput } from "@/features/plan/domain";
 
 describe("snapshotSchema", () => {
   it("origin を持たない既存の保存データは manual として通る", () => {

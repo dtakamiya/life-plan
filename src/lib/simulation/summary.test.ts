@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { YearlyResult } from "./types";
 import { findDepletion, summarizeResults } from "./summary";
 import { runSimulation } from "./engine";
-import { defaultPlanInput } from "./defaults";
+import { defaultPlanInput } from "@/features/plan/domain";
 
 /** テストで使うフィールドだけを持つ年次結果を作る。 */
 function row(year: number, selfAge: number, assets: number): YearlyResult {

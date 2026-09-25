@@ -137,7 +137,7 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 | `lib/format.ts` | `shared/lib/format.ts` |
 | `lib/glossary.ts` | `shared/lib/glossary.ts` |
 | `components/ui/*`（Button, ConfirmDialog, Eyebrow, Panel, TermHelp, termHelpPosition） | `shared/ui/` |
-| `components/forms/fields.tsx`, `number-input.ts`, `NumberField.test.tsx`, `number-input*.test.ts` | `shared/ui/` |
+| `components/forms/fields.tsx`, `number-input.ts`, `NumberField.test.tsx`, `number-input.test.ts` | `shared/ui/` |
 | `components/charts/chartTheme.ts` | `shared/ui/chartTheme.ts` |
 | `lib/theme-contrast.test.ts` | `shared/ui/` |
 | `lib/game/assetDiff.ts` | `shared/lib/assetDiff.ts`（scenario の `comparisonDiff` と game の双方が使うため。scenario → game の依存を避ける） |
@@ -151,7 +151,6 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 | `lib/simulation/{defaults,householdDefaults,dateRange,endAge}.ts` | `plan/domain/` |
 | `lib/store/{newLoan,newRecurringExpense,nextChildName,householdDefaultsSync}.ts` | `plan/application/` |
 | `lib/schema.ts`（`planInputSchema`, `validatePlanInput` 等） | `plan/application/` |
-| `lib/input-validation.test.ts` と `__snapshots__` | `plan/application/` |
 | `lib/planFile.ts` | `plan/infrastructure/` |
 | `lib/store/usePlanStore.ts` | 3.1 のとおり分解し、ストア本体は `plan/ui/` |
 | `components/forms/*`（上記 shared 以外。`usePlanErrors.ts` を含む） | `plan/ui/` |
@@ -165,6 +164,8 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 | `lib/simulation/calc-coverage.test.ts` | `simulation/domain/` |
 | `lib/assumptions.ts` | `simulation/domain/` |
 | `lib/validatedSimulation.ts` | `simulation/application/` |
+| `lib/input-validation.test.ts` と `__snapshots__` | `simulation/application/`（`runValidatedSimulation` の呼び出しガードとシミュレーション結果のスナップショットを含み engine を `vi.mock` するため。PR 4 で `validatedSimulation.ts` と一緒に移す） |
+| `components/forms/number-input.integration.test.ts` | `simulation/ui/`（engine を使うため。PR 4 で移す） |
 | `components/{SummaryBar,DepletionAdvice,ResultTable,AssumptionsPanel}.tsx`, `result-table-cards.ts` | `simulation/ui/` |
 | `components/charts/{NetWorthChart,CashFlowChart}.tsx`, `netWorthChartData.ts`, `chart-aria.test.tsx` | `simulation/ui/` |
 

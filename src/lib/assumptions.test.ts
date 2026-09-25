@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { buildAssumptionRows } from "./assumptions";
 import { runSimulation } from "./simulation/engine";
 import { formatYen } from "@/shared/lib";
-import type { PlanInput } from "./simulation/types";
 import {
   CAPITAL_GAINS_RATE,
   INCOME_TAX_BRACKETS,
@@ -17,7 +16,8 @@ import {
   BASIC_PENSION_ANNUAL,
   EARNINGS_RELATED_FACTOR,
   EARNINGS_RELATED_CAP,
-} from "./simulation/pension";
+  type PlanInput,
+} from "@/features/plan/domain";
 
 function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
   return {

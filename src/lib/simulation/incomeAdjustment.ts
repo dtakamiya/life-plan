@@ -3,7 +3,7 @@
  * 育休・時短勤務など、一定期間だけ給与が下がる状況を表す。
  */
 
-import type { IncomeAdjustment } from "./types";
+import type { IncomeAdjustment } from "@/features/plan/domain";
 
 export type IncomeAdjustmentEffect = {
   /** 給与に掛ける割合 */

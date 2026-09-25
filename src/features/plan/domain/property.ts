@@ -6,7 +6,21 @@
  * 相場の変動や売却は扱わない。
  */
 
-import type { Property } from "./types";
+/**
+ * 住宅などの不動産（子育て共働きペルソナレビュー #2）。
+ * 購入年以降、評価額を純資産に加える。評価額は毎年一定率で減価し、
+ * 土地分を考えて購入価格の一定割合を下限とする。
+ */
+export type Property = {
+  id: string;
+  label: string;
+  /** 購入年（西暦） */
+  purchaseYear: number;
+  /** 購入価格（円） */
+  price: number;
+  /** 年間の減価率（小数） */
+  annualDepreciationRate: number;
+};
 
 /** 評価額の下限（購入価格に対する割合）。土地分の目安。 */
 export const PROPERTY_VALUE_FLOOR_RATIO = 0.3;

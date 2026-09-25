@@ -9,7 +9,7 @@ import {
   pendingGameEvent,
   resolveEventChoice,
 } from "./advance";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { defaultPlanInput } from "@/features/plan/domain";
 import type { GameState } from "./types";
 
 /** 常に指定 id の方針を選び、イベントが出たら指定 index の選択肢を採って最後まで進める。 */

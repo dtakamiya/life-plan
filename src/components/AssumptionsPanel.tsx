@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import { buildAssumptionRows } from "@/lib/assumptions";
 import { Eyebrow } from "@/shared/ui";
 

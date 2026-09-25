@@ -6,10 +6,7 @@
  * 読んで文字列へ整形するだけ（表示は結果に影響しない）。
  */
 
-import type { PlanInput } from "@/lib/simulation/types";
 import { formatPercent, formatYen } from "@/shared/lib";
-import { DEFAULT_END_AGE, endYearToEndAge } from "@/lib/simulation/endAge";
-import { HOUSEHOLD_DEFAULT_CONSTANTS } from "@/lib/simulation/householdDefaults";
 import {
   CAPITAL_GAINS_RATE,
   INCOME_TAX_BRACKETS,
@@ -31,12 +28,16 @@ import {
   HOUSING_LOAN_CREDIT_YEARS,
   RESIDENCE_TAX_CREDIT_CAP,
 } from "@/lib/simulation/housingLoanCredit";
-import { PROPERTY_VALUE_FLOOR_RATIO } from "@/lib/simulation/property";
 import {
   BASIC_PENSION_ANNUAL,
-  EARNINGS_RELATED_FACTOR,
+  DEFAULT_END_AGE,
   EARNINGS_RELATED_CAP,
-} from "@/lib/simulation/pension";
+  EARNINGS_RELATED_FACTOR,
+  HOUSEHOLD_DEFAULT_CONSTANTS,
+  PROPERTY_VALUE_FLOOR_RATIO,
+  endYearToEndAge,
+  type PlanInput,
+} from "@/features/plan/domain";
 
 /** 「計算の前提」パネルに表示する1行。 */
 export type AssumptionRow = {

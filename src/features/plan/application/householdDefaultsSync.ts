@@ -14,11 +14,11 @@
  * 子なし）は一致する要素を削除する。id は呼び出し側（ストア）が採番して渡す。
  */
 
-import type { PlanInput } from "@/lib/simulation/types";
 import {
   computeHouseholdDefaults,
   type HouseholdComposition,
-} from "@/lib/simulation/householdDefaults";
+  type PlanInput,
+} from "@/features/plan/domain";
 
 function omitId<T extends { id: string }>(item: T): Omit<T, "id"> {
   const rest = { ...item } as Partial<T>;

@@ -2,7 +2,7 @@
  * 初期表示用のサンプル世帯と、シミュレーションで使う共通定数。
  */
 
-import type { PlanInput } from "./types";
+import type { PlanInput } from "./planInput";
 import { estimateAnnualPension } from "./pension";
 import { DEFAULT_EDUCATION } from "./education";
 import { DEFAULT_END_AGE, endAgeToEndYear } from "./endAge";

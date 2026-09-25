@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { defaultPlanInput } from "./defaults";
+import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import { runSimulation } from "./engine";
 import { findDepletion } from "./summary";
 import { findDepletionRemedies } from "./depletionRemedies";
-import type { PlanInput } from "./types";
 
 /** 低収入ペルソナ（35歳単身・年収240万円・国民年金のみ）。 */
 const lowIncome: PlanInput = {

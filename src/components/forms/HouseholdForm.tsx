@@ -1,18 +1,21 @@
 "use client";
 
-import type {
-  Child,
-  Person,
-  SchoolType,
-  UniversityType,
-} from "@/lib/simulation/types";
 import { useId, useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { EDUCATION_PRESETS } from "@/lib/simulation/education";
-import { DEFAULT_END_AGE, endAgeToEndYear, endYearToEndAge } from "@/lib/simulation/endAge";
-import { ageField } from "@/lib/schema";
+import {
+  BASIC_PENSION_ANNUAL,
+  DEFAULT_END_AGE,
+  EDUCATION_PRESETS,
+  endAgeToEndYear,
+  endYearToEndAge,
+  estimateAnnualPension,
+  type Child,
+  type Person,
+  type SchoolType,
+  type UniversityType,
+} from "@/features/plan/domain";
+import { ageField } from "@/features/plan/application";
 import { Button, ConfirmDialog, NumberField, PercentField, Section, SelectField, TextField, type ConfirmDialogHandle } from "@/shared/ui";
-import { BASIC_PENSION_ANNUAL, estimateAnnualPension } from "@/lib/simulation/pension";
 import { usePlanErrors } from "./usePlanErrors";
 
 const endAgeValidationSchema = ageField("終了年齢");

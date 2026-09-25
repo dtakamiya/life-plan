@@ -6,7 +6,7 @@
  * （金融資産＋不動産の評価額−ローン残高）を計算する。
  */
 
-import type { Person, PlanInput, YearlyResult } from "./types";
+import type { YearlyResult } from "./types";
 import {
   estimateIncomeTax,
   estimateResidenceTax,
@@ -17,13 +17,18 @@ import {
   estimateSocialInsurance,
   estimatePensionSocialInsurance,
 } from "./socialInsurance";
-import { loanBalanceForYear, loanPaymentForYear } from "./loan";
-import { childAnnualCost } from "./education";
+import {
+  childAnnualCost,
+  loanBalanceForYear,
+  loanPaymentForYear,
+  propertyValueForYear,
+  type Person,
+  type PlanInput,
+} from "@/features/plan/domain";
 import { recurringExpenseForYear } from "./recurringExpense";
 import { incomeAdjustmentForYear, type IncomeAdjustmentEffect } from "./incomeAdjustment";
 import { childAllowanceForYear } from "./childAllowance";
 import { housingLoanCreditForYear } from "./housingLoanCredit";
-import { propertyValueForYear } from "./property";
 
 /** 退職所得控除の勤続年数を見積もるための、就労開始年齢の前提。 */
 const WORK_START_AGE = 22;

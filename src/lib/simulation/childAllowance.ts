@@ -9,7 +9,7 @@
  * 年度（4月始まり）と誕生月は考慮せず、年単位で近似する。
  */
 
-import type { Child } from "./types";
+import type { Child } from "@/features/plan/domain";
 
 /** 0〜2歳の月額（円）。 */
 export const ALLOWANCE_UNDER_3 = 15_000;

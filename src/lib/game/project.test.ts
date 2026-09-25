@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { projectInput, projectInputFromApplied, toLifeEvents } from "./project";
 import { runSimulation } from "@/lib/simulation/engine";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import type { GameState, AppliedEffect } from "./types";
-import type { PlanInput } from "@/lib/simulation/types";
 
 function makeState(
   applied: AppliedEffect[],

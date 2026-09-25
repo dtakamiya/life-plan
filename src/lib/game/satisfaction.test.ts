@@ -17,7 +17,7 @@ import {
 import { projectInput } from "./project";
 import { computeStats } from "./stats";
 import { runSimulation } from "@/lib/simulation/engine";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { defaultPlanInput } from "@/features/plan/domain";
 import type { GameState, LogEntry } from "./types";
 
 /** stageIndex と満足度だけを持つ最小の LogEntry を作る。 */

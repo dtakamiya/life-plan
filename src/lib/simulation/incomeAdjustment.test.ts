@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { incomeAdjustmentForYear } from "./incomeAdjustment";
-import type { IncomeAdjustment } from "./types";
+import type { IncomeAdjustment } from "@/features/plan/domain";
 
 /** 子育て共働きペルソナレビュー #3: 期間付きの収入調整（育休・時短）。 */
 

@@ -7,7 +7,35 @@
  * ならして含む想定。
  */
 
-import type { Child, Education, SchoolType, UniversityType } from "./types";
+/** 学校の種別（幼稚園〜高校）。 */
+export type SchoolType = "公立" | "私立";
+
+/** 大学の進路（年額が異なる）。 */
+export type UniversityType = "なし" | "国公立" | "私立文系" | "私立理系";
+
+/** 子の進路プラン。学齢ステージごとに進路を選ぶ。 */
+export type Education = {
+  /** 幼稚園（3〜5歳） */
+  kindergarten: SchoolType;
+  /** 小学校（6〜11歳） */
+  elementary: SchoolType;
+  /** 中学校（12〜14歳） */
+  juniorHigh: SchoolType;
+  /** 高校（15〜17歳） */
+  highSchool: SchoolType;
+  /** 大学（18〜21歳） */
+  university: UniversityType;
+};
+
+/** 子。基礎養育費と進路別の教育費の対象として扱う。 */
+export type Child = {
+  id: string;
+  name: string;
+  /** 生年（西暦） */
+  birthYear: number;
+  /** 進路プラン（学齢ステージ別の教育費を決める） */
+  education: Education;
+};
 
 /** 教育費とは別に発生する基礎養育費（食費・衣類・医療など）の年額（円）。 */
 export const BASE_CHILD_ANNUAL_COST = 600_000;

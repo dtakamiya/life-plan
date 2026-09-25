@@ -4,8 +4,9 @@
  */
 
 import { runSimulation } from "@/lib/simulation/engine";
-import type { PlanInput, YearlyResult } from "@/lib/simulation/types";
-import { validatePlanInput } from "@/lib/schema";
+import type { PlanInput } from "@/features/plan/domain";
+import type { YearlyResult } from "@/lib/simulation/types";
+import { validatePlanInput } from "@/features/plan/application";
 
 export function runValidatedSimulation(input: PlanInput): YearlyResult[] | null {
   return validatePlanInput(input).ok ? runSimulation(input) : null;

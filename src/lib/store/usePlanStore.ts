@@ -4,30 +4,32 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type {
-  Child,
-  IncomeAdjustment,
-  LifeEvent,
-  Loan,
-  Person,
-  PlanInput,
-  Property,
-  RecurringExpense,
-} from "@/lib/simulation/types";
-import { defaultPlanInput, singleRenterPlanInput } from "@/lib/simulation/defaults";
-import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
-import { newLoan } from "./newLoan";
-import { newRecurringExpense } from "./newRecurringExpense";
-import { nextChildName } from "./nextChildName";
-import { planInputSchema, snapshotSchema } from "@/lib/schema";
-import { correctDateRange } from "@/lib/simulation/dateRange";
-import { applyHouseholdDefaults } from "./householdDefaultsSync";
 import {
+  correctDateRange,
+  DEFAULT_EDUCATION,
+  DEFAULT_PROPERTY_DEPRECIATION_RATE,
+  defaultPlanInput,
   HOME_PROPERTY_LABEL,
   HOUSING_PURCHASE_EVENT_LABEL,
+  singleRenterPlanInput,
+  type Child,
   type HouseholdComposition,
-} from "@/lib/simulation/householdDefaults";
-import { DEFAULT_PROPERTY_DEPRECIATION_RATE } from "@/lib/simulation/property";
+  type IncomeAdjustment,
+  type LifeEvent,
+  type Loan,
+  type Person,
+  type PlanInput,
+  type Property,
+  type RecurringExpense,
+} from "@/features/plan/domain";
+import {
+  applyHouseholdDefaults,
+  newLoan,
+  newRecurringExpense,
+  nextChildName,
+  planInputSchema,
+  snapshotSchema,
+} from "@/features/plan/application";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";

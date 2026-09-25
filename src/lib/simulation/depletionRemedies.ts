@@ -8,7 +8,7 @@
 
 import { runSimulation } from "./engine";
 import { findDepletion } from "./summary";
-import type { PlanInput } from "./types";
+import type { PlanInput } from "@/features/plan/domain";
 
 /** 逆算した改善案（該当する手段がない項目は null）。 */
 export type DepletionRemedies = {

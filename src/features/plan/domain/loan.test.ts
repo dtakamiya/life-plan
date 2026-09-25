@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { annualLoanPayment, loanBalanceForYear } from "./loan";
-import type { Loan } from "./types";
+import { annualLoanPayment, loanBalanceForYear, type Loan } from "./loan";
 
 function loan(overrides: Partial<Loan> = {}): Loan {
   return {

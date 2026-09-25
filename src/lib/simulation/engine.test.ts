@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { runSimulation } from "./engine";
-import type { Child, PlanInput, Person, RecurringExpense } from "./types";
 import {
   estimateIncomeTax,
   estimateResidenceTax,
@@ -8,7 +7,14 @@ import {
   CAPITAL_GAINS_RATE,
 } from "./tax";
 import { estimateSocialInsurance } from "./socialInsurance";
-import { childAnnualCost, DEFAULT_EDUCATION } from "./education";
+import {
+  childAnnualCost,
+  DEFAULT_EDUCATION,
+  type Child,
+  type PlanInput,
+  type Person,
+  type RecurringExpense,
+} from "@/features/plan/domain";
 
 const basePerson: Person = {
   name: "本人",

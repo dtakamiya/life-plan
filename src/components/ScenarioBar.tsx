@@ -8,7 +8,7 @@ import {
   parsePlanFile,
   planFileName,
   serializePlan,
-} from "@/lib/planFile";
+} from "@/features/plan/infrastructure";
 
 /**
  * 現在の入力をスナップショットとして保存し、保存済みプランの読込・削除を行うバー。

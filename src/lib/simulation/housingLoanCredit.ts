@@ -7,8 +7,7 @@
  * 住宅の種類・入居年による上限の違いや、借入者の按分は扱わない。
  */
 
-import { loanBalanceForYear } from "./loan";
-import type { Loan } from "./types";
+import { loanBalanceForYear, type Loan } from "@/features/plan/domain";
 
 /** 控除率。 */
 export const HOUSING_LOAN_CREDIT_RATE = 0.007;

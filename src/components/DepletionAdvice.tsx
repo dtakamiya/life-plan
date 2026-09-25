@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { findDepletionRemedies } from "@/lib/simulation/depletionRemedies";
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import { formatManYen } from "@/shared/lib";
 
 /**

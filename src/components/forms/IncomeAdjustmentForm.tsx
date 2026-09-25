@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { Button, CheckboxField, ConfirmDialog, NumberField, PercentField, Section, SelectField, TextField, type ConfirmDialogHandle } from "@/shared/ui";
-import type { IncomeAdjustment } from "@/lib/simulation/types";
+import type { IncomeAdjustment } from "@/features/plan/domain";
 import { usePlanErrors } from "./usePlanErrors";
 
 const PERSON_LABELS = { self: "本人", spouse: "配偶者" } as const;

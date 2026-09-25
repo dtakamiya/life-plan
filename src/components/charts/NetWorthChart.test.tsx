@@ -4,7 +4,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { NetWorthChart } from "./NetWorthChart";
 import { runSimulation } from "@/lib/simulation/engine";
-import { singleRenterPlanInput } from "@/lib/simulation/defaults";
+import { singleRenterPlanInput } from "@/features/plan/domain";
 
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }

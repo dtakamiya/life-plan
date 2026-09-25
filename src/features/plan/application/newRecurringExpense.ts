@@ -6,7 +6,7 @@
  * （newLoan と同じ「0 円始まり」の方針）。
  */
 
-import type { RecurringExpense } from "@/lib/simulation/types";
+import type { RecurringExpense } from "@/features/plan/domain";
 
 export function newRecurringExpense(
   id: string,

@@ -6,7 +6,7 @@
  * これはモンテカルロ試行ではなく演出であり、発生確率に予測的な意味はない。
  */
 
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import type { GameEvent, Stage } from "./types";
 
 /** 抽選の文脈。年齢・子・配偶者・ローンはステージ中央年で判定する。 */

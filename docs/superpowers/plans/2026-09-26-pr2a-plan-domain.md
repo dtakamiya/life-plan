@@ -42,6 +42,7 @@
 | `features/plan/infrastructure/planFile.test.ts` の「プランJSON往復」の `runSimulation` 比較 | `runSimulation`（simulation。下流機能） | PR 4 |
 | `features/plan/application/{newLoan,newRecurringExpense}.test.ts` の `runSimulation` を使うケース | `runSimulation`（simulation。下流機能） | PR 4: `simulation/application` の統合テストへ分離する |
 | `src/lib/input-validation.test.ts` | — | PR 4: `simulation/application` へ移動（判断 4） |
+| `src/components/forms/number-input.integration.test.ts` | `runSimulation`（simulation。下流機能）。仕様 4 章の移動先 `shared/ui` では「shared → features」違反、PR 2b の `plan/ui` では「下流機能の import」違反になる | PR 2b では `src/components/forms/` に残し、PR 4 で `src/features/simulation/ui/` へ移す |
 
 ## File Structure
 

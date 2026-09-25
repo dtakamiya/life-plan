@@ -12,8 +12,8 @@
  * どちらかに失敗したら読み込みは中止され、呼び出し側は現在のプランを変更しない。
  */
 
-import { planInputSchema, validatePlanInput } from "@/lib/schema";
-import type { PlanInput } from "@/lib/simulation/types";
+import { planInputSchema, validatePlanInput } from "@/features/plan/application";
+import type { PlanInput } from "@/features/plan/domain";
 
 export const PLAN_FILE_FORMAT = "life-plan";
 /** 現在のファイル形式の版。 */

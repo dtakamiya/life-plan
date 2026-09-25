@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { EDUCATION_PRESETS } from "@/lib/simulation/education";
+import { EDUCATION_PRESETS } from "@/features/plan/domain";
 import { HouseholdForm } from "./HouseholdForm";
 
 (

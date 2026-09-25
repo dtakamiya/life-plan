@@ -4,7 +4,7 @@
  * 金額は「円」、cash のマイナスは支出。
  */
 
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 
 /** 効果の 2 軸。金銭と満足度は互いに換算しない。 */
 export type GameEffect = {

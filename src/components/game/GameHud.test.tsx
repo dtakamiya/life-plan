@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 import type { GameStats } from "@/lib/game/stats";
 import type { SatisfactionSummary } from "@/lib/game/satisfaction";
 import { GameHud } from "./GameHud";

@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { propertyValueForYear, PROPERTY_VALUE_FLOOR_RATIO } from "./property";
-import type { Property } from "./types";
+import { propertyValueForYear, PROPERTY_VALUE_FLOOR_RATIO, type Property } from "./property";
 
 /** 子育て共働きペルソナレビュー #2: 不動産の評価額。 */
 

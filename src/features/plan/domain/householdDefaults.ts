@@ -23,7 +23,9 @@
  * 子の人数そのものはローン・イベントの金額に影響しない（「いるかどうか」だけを見る）。
  */
 
-import type { LifeEvent, Loan, Property } from "./types";
+import type { LifeEvent } from "./lifeEvent";
+import type { Loan } from "./loan";
+import type { Property } from "./property";
 import { DEFAULT_PROPERTY_DEPRECIATION_RATE } from "./property";
 
 /** 既定の住宅購入イベントのラベル。ローンの返済開始年との連動判定にも使う。 */

@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { childAllowanceForYear } from "./childAllowance";
-import { DEFAULT_EDUCATION } from "./education";
-import type { Child } from "./types";
+import { DEFAULT_EDUCATION, type Child } from "@/features/plan/domain";
 
 /** 子育て共働きペルソナレビュー #4: 児童手当（2024年10月改正後）の概算。 */
 

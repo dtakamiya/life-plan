@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { deriveStages, stageOptionsFor } from "./stages";
-import type { PlanInput } from "@/lib/simulation/types";
+import type { PlanInput } from "@/features/plan/domain";
 
 function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
   return {

@@ -6,7 +6,7 @@
  * （戻り値の型で異常系を表現する方針に従う）。
  */
 
-import type { RecurringExpense } from "./types";
+import type { RecurringExpense } from "@/features/plan/domain";
 
 /** 指定年に発生する継続支出の合計（円）。 */
 export function recurringExpenseForYear(

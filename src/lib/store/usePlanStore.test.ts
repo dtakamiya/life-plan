@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { usePlanStore, mergePersistedPlanState } from "./usePlanStore";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
+import { defaultPlanInput } from "@/features/plan/domain";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { YearlyResult } from "@/lib/simulation/types";
 

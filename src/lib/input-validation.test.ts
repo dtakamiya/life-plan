@@ -3,10 +3,8 @@ import {
   INPUT_LIMITS,
   planInputSchema,
   validatePlanInput,
-} from "./schema";
-import type { PlanInput } from "./simulation/types";
-import { defaultPlanInput } from "./simulation/defaults";
-import { DEFAULT_EDUCATION } from "./simulation/education";
+} from "@/features/plan/application";
+import { DEFAULT_EDUCATION, defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 
 vi.mock("./simulation/engine", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./simulation/engine")>();

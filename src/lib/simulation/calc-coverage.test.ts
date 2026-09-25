@@ -12,7 +12,6 @@
 
 import { describe, it, expect } from "vitest";
 import { runSimulation } from "./engine";
-import type { Child, Loan, PlanInput, Person } from "./types";
 import {
   estimateIncomeTax,
   estimateResidenceTax,
@@ -23,14 +22,20 @@ import {
   estimateSocialInsurance,
   estimatePensionSocialInsurance,
 } from "./socialInsurance";
-import { annualLoanPayment, loanPaymentForYear } from "./loan";
 import {
-  childAnnualCost,
-  educationCostAtAge,
+  annualLoanPayment,
   BASE_CHILD_ANNUAL_COST,
+  BASIC_PENSION_ANNUAL,
+  childAnnualCost,
   DEFAULT_EDUCATION,
-} from "./education";
-import { estimateAnnualPension, BASIC_PENSION_ANNUAL } from "./pension";
+  educationCostAtAge,
+  estimateAnnualPension,
+  loanPaymentForYear,
+  type Child,
+  type Loan,
+  type PlanInput,
+  type Person,
+} from "@/features/plan/domain";
 
 // ---------------------------------------------------------------------------
 // 共通ヘルパー（engine.test.ts と同じ前提の縮小版）

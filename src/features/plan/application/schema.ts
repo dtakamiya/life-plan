@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { DEFAULT_EDUCATION } from "@/lib/simulation/education";
+import { DEFAULT_EDUCATION } from "@/features/plan/domain";
 
 const schoolTypeSchema = z.enum(["公立", "私立"]);
 const universityTypeSchema = z.enum(["なし", "国公立", "私立文系", "私立理系"]);

@@ -2,8 +2,7 @@ import { describe, it, expect } from "vitest";
 import { GAME_EVENTS, eligibleEvents, pickEvent } from "./events";
 import { deriveStages } from "./stages";
 import { stageRng } from "./rng";
-import { defaultPlanInput } from "@/lib/simulation/defaults";
-import type { PlanInput } from "@/lib/simulation/types";
+import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 
 const base: PlanInput = defaultPlanInput;
 const stages = deriveStages(base);
