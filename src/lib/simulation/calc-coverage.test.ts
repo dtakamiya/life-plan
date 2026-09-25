@@ -74,10 +74,10 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
  * engine.ts の資産更新をそのまま辿った期待値:
  *   taxableBase  = prevTaxable - contribution
  *   taxFreeBase  = prevTaxFree + contribution
- *   taxableGain  = taxableBase * returnRate
+ *   taxableGain  = max(taxableBase, 0) * returnRate（資金不足時は運用益なし）
  *   investmentTax = taxableGain > 0 ? round(taxableGain * RATE) : 0
- *   taxFreeGain  = taxFreeBase * returnRate
- *   期末 = round(taxFreeBase*(1+returnRate)) + round(taxableBase + taxableGain - investmentTax + cashFlow)
+ *   taxFreeGain  = max(taxFreeBase, 0) * returnRate
+ *   期末 = round(taxFreeBase + taxFreeGain) + round(taxableBase + taxableGain - investmentTax + cashFlow)
  *
  * ここでの「運用損益(税引後)」= taxableGain + taxFreeGain - investmentTax。
  * contribution（課税口座の残高が上限）と非課税口座からの取り崩しは口座間の
@@ -97,8 +97,8 @@ function assertConservation(input: PlanInput) {
     const actualContribution = Math.min(contribution, Math.max(prevTaxable, 0));
     const taxableBase = prevTaxable - actualContribution;
     const taxFreeBase = prevTaxFree + actualContribution;
-    const taxableGain = taxableBase * returnRate;
-    const taxFreeGain = taxFreeBase * returnRate;
+    const taxableGain = Math.max(taxableBase, 0) * returnRate;
+    const taxFreeGain = Math.max(taxFreeBase, 0) * returnRate;
     const investmentTax =
       taxableGain > 0 ? Math.round(taxableGain * CAPITAL_GAINS_RATE) : 0;
 

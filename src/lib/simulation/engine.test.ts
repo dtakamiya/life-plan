@@ -635,3 +635,17 @@ describe("runSimulation", () => {
     });
   });
 });
+
+describe("資金不足時の運用益（低収入ペルソナレビュー #2）", () => {
+  it("金融資産がマイナスの期間は運用利回りで赤字が膨らまない", () => {
+    const input = makeInput({
+      self: { ...basePerson, grossAnnualIncome: 0 },
+      expenses: { baseAnnualLivingExpense: 1_000_000, inflationRate: 0 },
+      assets: assets(-500_000, 0.05),
+    });
+    const results = runSimulation(input);
+    // 期首 -50万 に利回りは掛からず、収支 -100万 のみが積み上がる
+    expect(results[0].assets).toBe(-1_500_000);
+    expect(results[1].assets).toBe(-2_500_000);
+  });
+});

@@ -88,7 +88,10 @@ function Summary({ results }: { results: YearlyResult[] }) {
     {
       label: "最小純資産",
       value: formatYen(min.assets),
-      caption: `${min.year}年（本人${min.selfAge}歳）で最小`,
+      caption:
+        min.year === last.year
+          ? "最終年まで減り続けています"
+          : `${min.year}年（本人${min.selfAge}歳）で最小`,
       tone: min.assets < 0 ? "danger" : "ink",
     },
     {

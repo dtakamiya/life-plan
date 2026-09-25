@@ -13,7 +13,8 @@ import { DEFAULT_END_AGE, endAgeToEndYear, endYearToEndAge } from "@/lib/simulat
 import { ageField } from "@/lib/schema";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
-import { NumberField, Section, SelectField, TextField } from "./fields";
+import { NumberField, PercentField, Section, SelectField, TextField } from "./fields";
+import { BASIC_PENSION_ANNUAL, estimateAnnualPension } from "@/lib/simulation/pension";
 import { usePlanErrors } from "./usePlanErrors";
 
 const endAgeValidationSchema = ageField("終了年齢");
@@ -25,6 +26,12 @@ const UNIVERSITY_OPTIONS: readonly UniversityType[] = [
   "私立文系",
   "私立理系",
 ];
+
+/** これを超える年収は桁の入力ミスの可能性として注意を出す（円）。 */
+const INCOME_DIGIT_WARNING = 100_000_000;
+
+const PILL_CLASS =
+  "rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink-soft transition-colors hover:border-brand hover:bg-brand-50 hover:text-brand-700";
 
 /** 本人・配偶者で共通の個人入力欄。 */
 function PersonFields({
@@ -58,8 +65,21 @@ function PersonFields({
         grouped
         step={100_000}
         error={errors[`${prefix}.grossAnnualIncome`]}
+        hint={
+          person.grossAnnualIncome > INCOME_DIGIT_WARNING
+            ? "桁は合っていますか？（1億円超）"
+            : undefined
+        }
         value={person.grossAnnualIncome}
         onChange={(grossAnnualIncome) => onChange({ grossAnnualIncome })}
+      />
+      <PercentField
+        label="年収上昇率"
+        signed
+        hint="昇給が見込めない場合は0%"
+        error={errors[`${prefix}.incomeGrowthRate`]}
+        value={person.incomeGrowthRate}
+        onChange={(incomeGrowthRate) => onChange({ incomeGrowthRate })}
       />
       <NumberField
         label="退職年齢"
@@ -84,6 +104,25 @@ function PersonFields({
         value={person.annualPension}
         onChange={(annualPension) => onChange({ annualPension })}
       />
+      <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+        <span className="text-[11px] text-ink-mute">年金の目安:</span>
+        <button
+          type="button"
+          className={PILL_CLASS}
+          onClick={() =>
+            onChange({ annualPension: estimateAnnualPension(person.grossAnnualIncome) })
+          }
+        >
+          厚生年金あり（概算）
+        </button>
+        <button
+          type="button"
+          className={PILL_CLASS}
+          onClick={() => onChange({ annualPension: BASIC_PENSION_ANNUAL })}
+        >
+          国民年金のみ
+        </button>
+      </div>
       <NumberField
         label="退職一時金"
         hint="退職年齢で受取"
@@ -269,23 +308,35 @@ export function HouseholdForm() {
       <Section
         title="配偶者"
         action={
-          // lp-ui-ux-audit-fix / FR7.1: StageCard のカード選択・教育プリセットの
-          // ピル型ボタンと視覚的に揃える（native checkbox は sr-only で維持）。
-          <label
-            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
-              input.spouse !== null
-                ? "border-brand bg-brand-50 text-brand-700"
-                : "border-line bg-surface text-ink-soft hover:border-brand hover:bg-brand-50 hover:text-brand-700"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={input.spouse !== null}
-              onChange={(e) => toggleSpouse(e.target.checked)}
-              className="sr-only"
-            />
-            配偶者あり
-          </label>
+          // 「あり／なし」の2択を並べ、現在の状態をハイライトする
+          // （ボタン1つだと操作と状態のどちらを表すか分かりにくいため）。
+          <div role="radiogroup" aria-label="配偶者の有無" className="inline-flex gap-1">
+            {[
+              { label: "あり", value: true },
+              { label: "なし", value: false },
+            ].map((o) => {
+              const selected = (input.spouse !== null) === o.value;
+              return (
+                <label
+                  key={o.label}
+                  className={`inline-flex cursor-pointer items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                    selected
+                      ? "border-brand bg-brand-50 text-brand-700"
+                      : "border-line bg-surface text-ink-soft hover:border-brand hover:bg-brand-50 hover:text-brand-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="spouse-presence"
+                    checked={selected}
+                    onChange={() => toggleSpouse(o.value)}
+                    className="sr-only"
+                  />
+                  配偶者{o.label}
+                </label>
+              );
+            })}
+          </div>
         }
       >
         {input.spouse ? (

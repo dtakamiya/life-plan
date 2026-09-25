@@ -56,6 +56,10 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
     ? `本人 ${input.self.pensionStartAge}歳／配偶者 ${input.spouse.pensionStartAge}歳`
     : `本人 ${input.self.pensionStartAge}歳`;
 
+  const incomeGrowthValue = input.spouse
+    ? `本人 ${formatPercent(input.self.incomeGrowthRate)}／配偶者 ${formatPercent(input.spouse.incomeGrowthRate)}`
+    : `本人 ${formatPercent(input.self.incomeGrowthRate)}`;
+
   return [
     {
       // lp-031: 終了年は西暦固定値ではなく「本人が◯歳になる年」で指定する。
@@ -67,6 +71,11 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       label: "物価上昇率（インフレ）",
       value: formatPercent(expenses.inflationRate),
       note: "入力値。生活費を開始年から複利で調整するのに使用。",
+    },
+    {
+      label: "年収上昇率",
+      value: incomeGrowthValue,
+      note: "入力値。給与収入を開始年から複利で増やすのに使用（退職年齢で給与は停止）。",
     },
     {
       label: "資産運用の年間リターン",
@@ -110,7 +119,7 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       value: `基礎年金 ${formatYen(BASIC_PENSION_ANNUAL)}（定額）＋ 現役年収 × ${formatPercent(
         EARNINGS_RELATED_FACTOR,
       )}（上限 ${formatYen(EARNINGS_RELATED_CAP)}）`,
-      note: "概算（pension.ts の estimateAnnualPension）。フォーム初期値の算定に使用。入力欄で年額を上書きした場合はその値が優先される。",
+      note: "概算（pension.ts の estimateAnnualPension）。フォーム初期値の算定に使用。入力欄で年額を上書きした場合はその値が優先される。国民年金のみ（自営・未加入の非正規等）の場合は基礎年金の定額のみが目安。",
     },
     {
       label: "年金受給開始年齢",
