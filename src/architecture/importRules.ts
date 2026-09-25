@@ -39,6 +39,8 @@ export const SCAN_ROOTS: readonly string[] = ["features", "shared", "app"];
 const UI_PACKAGES: readonly string[] = ["react", "react-dom", "next", "zustand", "recharts"];
 
 const INDEX_REASON = "層の index 経由で import する（個別ファイルは不可）";
+const SELF_INDEX_REASON = "自層の index を import している（バレルの循環参照の原因になる）";
+const UPSTREAM_ALIAS_REASON = "他機能の import は @/features/<feature>/<layer> 形式を使う（相対パスは不可）";
 
 export type Location =
   | { area: "feature"; feature: Feature; layer: Layer; rest: string }
@@ -61,8 +63,10 @@ const SPECIFIER_PATTERNS: readonly RegExp[] = [
   /\bimport\s*["']([^"']+)["']/g,
   // 動的 import・import 型（import("x")）
   /\bimport\(\s*["']([^"']+)["']\s*\)/g,
-  // vi.mock("x") / vi.importActual<...>("x")
-  /\bvi\.(?:mock|importActual)\s*(?:<[^>]*>)?\(\s*["']([^"']+)["']/g,
+  // vi.mock("x") / vi.doMock("x") / vi.importActual<...>("x") / vi.importMock("x")
+  /\bvi\.(?:mock|doMock|importActual|importMock)\s*(?:<[^>]*>)?\(\s*["']([^"']+)["']/g,
+  // require("x")
+  /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
 ];
 
 export function extractSpecifiers(source: string): string[] {
@@ -137,7 +141,7 @@ function checkPackage(from: Checked, name: string, isTest: boolean): string | nu
   return `未許可の外部パッケージ: ${name}`;
 }
 
-function checkInternal(from: Checked, to: Location): string | null {
+function checkInternal(from: Checked, to: Location, isAlias: boolean): string | null {
   if (to.area === "legacy") return null;
   if (to.area === "unknown") return `機能・層として認識できない import 先: ${to.path}`;
   if (to.area === "app") {
@@ -148,7 +152,7 @@ function checkInternal(from: Checked, to: Location): string | null {
   }
   if (from.area === "shared") {
     if (to.area === "feature") return "shared から features は import できない";
-    if (to.sub === from.sub) return null;
+    if (to.sub === from.sub) return isIndex(to.rest) ? SELF_INDEX_REASON : null;
     if (!SHARED_ALLOWED[from.sub].includes(to.sub)) {
       return `shared/${from.sub} から shared/${to.sub} は import できない`;
     }
@@ -161,10 +165,13 @@ function checkInternal(from: Checked, to: Location): string | null {
   if (LAYERS.indexOf(to.layer) > LAYERS.indexOf(from.layer)) {
     return `外側の層は import できない（${from.layer} → ${to.layer}）`;
   }
-  if (to.feature === from.feature) return null;
+  if (to.feature === from.feature) {
+    return to.layer === from.layer && isIndex(to.rest) ? SELF_INDEX_REASON : null;
+  }
   if (!UPSTREAM[from.feature].includes(to.feature)) {
     return `上流でない機能は import できない（${from.feature} → ${to.feature}）`;
   }
+  if (!isAlias) return UPSTREAM_ALIAS_REASON;
   return isIndex(to.rest) ? null : INDEX_REASON;
 }
 
@@ -179,5 +186,5 @@ export function checkImport(fromSrcPath: string, specifier: string): string | nu
   if (target.kind === "outside-src") {
     return isTest ? null : `src 外のファイルを import できるのはテストファイルのみ: ${target.path}`;
   }
-  return checkInternal(from, classify(target.srcPath));
+  return checkInternal(from, classify(target.srcPath), specifier.startsWith("@/"));
 }

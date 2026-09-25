@@ -13,6 +13,9 @@ describe("extractSpecifiers", () => {
       `vi.mock("./mocked", () => ({}));`,
       `const x = await vi.importActual<typeof import("./typed")>("./actual");`,
       `import { d } from "./multi";`,
+      `const r = require("./required");`,
+      `vi.doMock("./do-mocked", () => ({}));`,
+      `const y = await vi.importMock("./import-mocked");`,
     ].join("\n");
     expect(extractSpecifiers(source).sort()).toEqual(
       [
@@ -24,6 +27,9 @@ describe("extractSpecifiers", () => {
         "./mocked",
         "./typed",
         "./actual",
+        "./required",
+        "./do-mocked",
+        "./import-mocked",
       ].sort(),
     );
   });
@@ -132,6 +138,11 @@ describe("checkImport: 違反となるパターン", () => {
     ["shared/lib/format.ts", "../../../foo", "src 外"],
     ["app/page.tsx", "@/features/plan/ui/LoanForm", "index 経由"],
     ["app/page.tsx", "@/shared/ui/Button", "index 経由"],
+    ["shared/ui/Foo.tsx", "@/shared/ui", "自層の index"],
+    ["shared/ui/Foo.tsx", "./index", "自層の index"],
+    ["features/plan/ui/Foo.tsx", "@/features/plan/ui", "自層の index"],
+    ["features/plan/domain/loan.ts", ".", "自層の index"],
+    ["features/simulation/domain/x.ts", "../../plan/domain", "@/features"],
   ])("%s → %s（%s）", (from, specifier, reason) => {
     expect(checkImport(from, specifier)).toContain(reason);
   });

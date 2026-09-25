@@ -31,7 +31,10 @@ function collectViolations(): string[] {
 
 describe("アーキテクチャ（import 境界）", () => {
   it("検査対象のファイルを走査できている", () => {
-    expect(listSourceFiles()).toContain("app/page.tsx");
+    const files = listSourceFiles();
+    expect(files).toContain("app/page.tsx");
+    expect(files).toContain("shared/lib/index.ts");
+    expect(files).toContain("shared/ui/index.ts");
   });
 
   it("features・shared・app に import ルール違反がない", () => {
