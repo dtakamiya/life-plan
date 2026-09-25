@@ -35,18 +35,33 @@ function mount(ui: React.ReactElement) {
   return container;
 }
 
-describe("HouseholdForm — 配偶者チェックボックスの見た目統一（FR7.1）", () => {
-  it("ピル型（rounded-full + border）のラベルスタイルを持ち、状態に応じて配色が変わる", () => {
-    const el = mount(<HouseholdForm />);
-    const checkbox = el.querySelector(
-      'input[type="checkbox"]',
-    ) as HTMLInputElement;
-    const label = checkbox.closest("label") as HTMLLabelElement;
+describe("HouseholdForm — 配偶者の有無（あり／なしの2択）", () => {
+  function options(el: HTMLElement) {
+    const radios = Array.from(
+      el.querySelectorAll('[role="radiogroup"] input[type="radio"]'),
+    ) as HTMLInputElement[];
+    return radios.map((r) => ({ radio: r, label: r.closest("label") as HTMLLabelElement }));
+  }
 
-    expect(label.className).toContain("rounded-full");
-    expect(label.className).toContain("border");
-    // デフォルトの seed データは配偶者ありなので選択状態のハイライトを持つ
-    expect(checkbox.checked).toBe(true);
-    expect(label.className).toContain("border-brand");
+  it("ピル型の「あり」「なし」が並び、現在の状態だけがハイライトされる", () => {
+    const el = mount(<HouseholdForm />);
+    const [yes, no] = options(el);
+    expect(yes.label.textContent).toBe("配偶者あり");
+    expect(no.label.textContent).toBe("配偶者なし");
+    expect(yes.label.className).toContain("rounded-full");
+    // デフォルトの seed データは配偶者あり
+    expect(yes.radio.checked).toBe(true);
+    expect(yes.label.className).toContain("border-brand");
+    expect(no.label.className).toContain("border-line");
+  });
+
+  it("「なし」を選ぶと配偶者が外れ、「なし」がハイライトされる", () => {
+    const el = mount(<HouseholdForm />);
+    act(() => options(el)[1].radio.click());
+    expect(usePlanStore.getState().input.spouse).toBeNull();
+    const [yes, no] = options(el);
+    expect(no.radio.checked).toBe(true);
+    expect(no.label.className).toContain("bg-brand-50 text-brand-700");
+    expect(yes.radio.checked).toBe(false);
   });
 });

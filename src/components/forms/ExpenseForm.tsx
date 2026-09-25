@@ -14,6 +14,7 @@ export function ExpenseForm() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <NumberField
           label="基礎生活費（年額）"
+          hint="家賃は「継続支出」に期間指定で入力"
           suffix="円"
           grouped
           step={100_000}

@@ -184,11 +184,15 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
 
     // 課税口座の運用益にのみ課税する。年間収支（配当を含む）は課税口座に入る
     // （その年は複利を効かせない、従来どおりの簡易扱い）。
-    const taxableGain = taxableBase * returnRate;
+    // 残高がマイナス（資金不足）の期間は運用益が生じないものとし、
+    // 不足額に利回りの複利を掛けて赤字を膨らませない。
+    const taxableGain = Math.max(taxableBase, 0) * returnRate;
     const investmentTax =
       taxableGain > 0 ? Math.round(taxableGain * CAPITAL_GAINS_RATE) : 0;
 
-    const taxFreeGrown = Math.round(taxFreeBase * (1 + returnRate));
+    const taxFreeGrown = Math.round(
+      taxFreeBase + Math.max(taxFreeBase, 0) * returnRate,
+    );
     const taxableGrown = Math.round(
       taxableBase + taxableGain - investmentTax + cashFlow,
     );
