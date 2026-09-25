@@ -4,7 +4,7 @@ import { buildComparisonDiff, diffDepletion } from "./comparisonDiff";
 import { summarizeResults } from "./simulation/summary";
 
 function row(year: number, selfAge: number, assets: number): YearlyResult {
-  return { year, selfAge, assets } as YearlyResult;
+  return { year, selfAge, assets, financialAssets: assets, loanBalance: 0 } as YearlyResult;
 }
 
 const solvent = [row(2030, 40, 5_000_000), row(2060, 70, 3_000_000)];

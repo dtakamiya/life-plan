@@ -30,7 +30,7 @@ function mount(ui: React.ReactElement) {
 }
 
 function row(year: number, selfAge: number, assets: number): YearlyResult {
-  return { year, selfAge, assets } as YearlyResult;
+  return { year, selfAge, assets, financialAssets: assets, loanBalance: 0 } as YearlyResult;
 }
 
 function item(el: HTMLElement, key: "last" | "min" | "depleted") {

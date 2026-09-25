@@ -1,12 +1,14 @@
 /**
  * 年次結果からゲームの HUD・リザルトで使う指標を取り出す。
  *
- * 純資産は「金融資産のみ」であり持ち家もローン残債も含まない。
+ * 純資産は「金融資産 − ローン残高」であり、持ち家の価値は含まない。
+ * 資産寿命（枯渇）は金融資産が尽きた年で判定する（サマリーと同じ基準）。
  * 老後の計画的な取り崩しは正常なので、減少そのものは失点として扱わない。
  * 実際に動く指標は「これまでの最小純資産」と「資産寿命」の 2 つ。
  */
 
 import type { YearlyResult } from "@/lib/simulation/types";
+import { findDepletion } from "@/lib/simulation/summary";
 
 export type GameStats = {
   /** 集計対象の最終年の純資産（円） */
@@ -17,7 +19,7 @@ export type GameStats = {
   minAssetsAge: number;
   /** 最小純資産をとった西暦年 */
   minAssetsYear: number;
-  /** 純資産が初めてマイナスになった年齢。枯渇しなければ null */
+  /** 金融資産が初めてマイナスになった年齢。枯渇しなければ null */
   depletionAge: number | null;
   /** 資産がプラスを保った最終年齢（枯渇しなければ最終年の年齢） */
   assetLifeAge: number;
@@ -58,7 +60,8 @@ export function computeStats(
     if (row.assets < min.assets) min = row;
   }
 
-  const depleted = scope.find((r) => r.assets < 0) ?? null;
+  // 枯渇はサマリーと同じ基準（金融資産が初めてマイナス）で判定する。
+  const depleted = findDepletion(scope);
   const last = scope[scope.length - 1];
 
   return {

@@ -2,7 +2,8 @@
  * ライフプラン・シミュレーションのコアエンジン。
  *
  * runSimulation は純関数であり、入力を破壊せず副作用も持たない。
- * 開始年から終了年まで1年刻みでループし、各年の収支と純資産を計算する。
+ * 開始年から終了年まで1年刻みでループし、各年の収支と純資産
+ * （金融資産−ローン残高）を計算する。
  */
 
 import type { Person, PlanInput, YearlyResult } from "./types";
@@ -13,7 +14,7 @@ import {
   CAPITAL_GAINS_RATE,
 } from "./tax";
 import { estimateSocialInsurance } from "./socialInsurance";
-import { loanPaymentForYear } from "./loan";
+import { loanBalanceForYear, loanPaymentForYear } from "./loan";
 import { childAnnualCost } from "./education";
 import { recurringExpenseForYear } from "./recurringExpense";
 
@@ -157,9 +158,11 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       computeRetirementBenefit(people, year),
     );
 
-    // 資産運用: まず非課税口座へ年間積立を移す。
-    const taxableBase = prevTaxable - contribution;
-    const taxFreeBase = prevTaxFree + contribution;
+    // 資産運用: まず非課税口座へ年間積立を移す。課税口座に無いお金は移せない
+    // ため、積立額は前年末の課税口座残高（マイナスなら 0）までに抑える。
+    const actualContribution = Math.min(contribution, Math.max(prevTaxable, 0));
+    const taxableBase = prevTaxable - actualContribution;
+    const taxFreeBase = prevTaxFree + actualContribution;
 
     // 配当・分配金: 運用利回りとは別枠で毎年現金で受け取る。課税口座分のみ課税し、
     // 残高がマイナスの口座は保有資産なしとみなして配当を 0 とする。
@@ -185,11 +188,20 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
     const investmentTax =
       taxableGain > 0 ? Math.round(taxableGain * CAPITAL_GAINS_RATE) : 0;
 
-    const taxFreeEnd = Math.round(taxFreeBase * (1 + returnRate));
-    const taxableEnd = Math.round(
+    const taxFreeGrown = Math.round(taxFreeBase * (1 + returnRate));
+    const taxableGrown = Math.round(
       taxableBase + taxableGain - investmentTax + cashFlow,
     );
-    const yearEndAssets = taxableEnd + taxFreeEnd;
+
+    // 課税口座（生活資金）が不足したら、非課税口座から取り崩して補う。
+    // 非課税口座の売却益は非課税なので税は掛からず、金融資産の合計は変わらない。
+    const withdrawal =
+      taxableGrown < 0 ? Math.min(-taxableGrown, Math.max(taxFreeGrown, 0)) : 0;
+    const taxableEnd = taxableGrown + withdrawal;
+    const taxFreeEnd = taxFreeGrown - withdrawal;
+
+    const financialAssets = taxableEnd + taxFreeEnd;
+    const loanBalance = Math.round(loanBalanceForYear(loans, year));
 
     results.push({
       year,
@@ -209,7 +221,9 @@ export function runSimulation(input: PlanInput): YearlyResult[] {
       dividendIncome,
       dividendTax,
       cashFlow,
-      assets: yearEndAssets,
+      assets: financialAssets - loanBalance,
+      financialAssets,
+      loanBalance,
       taxableAssets: taxableEnd,
       taxFreeAssets: taxFreeEnd,
     });

@@ -521,4 +521,117 @@ describe("runSimulation", () => {
       expect(year.dividendTax).toBe(0);
     });
   });
+
+  describe("ローン残高と純資産", () => {
+    const loanInput = (overrides: Partial<PlanInput> = {}) =>
+      makeInput({
+        startYear: 2030,
+        endYear: 2034,
+        loans: [
+          {
+            id: "l1",
+            label: "住宅ローン",
+            startYear: 2031,
+            principal: 3_000_000,
+            annualRate: 0,
+            termYears: 3,
+          },
+        ],
+        ...overrides,
+      });
+
+    it("年末のローン残高を loanBalance に出す", () => {
+      const results = runSimulation(loanInput());
+      expect(results.map((r) => r.loanBalance)).toEqual([
+        0, 2_000_000, 1_000_000, 0, 0,
+      ]);
+    });
+
+    it("金融資産は課税口座＋非課税口座、純資産は金融資産−ローン残高", () => {
+      for (const r of runSimulation(loanInput())) {
+        expect(r.financialAssets).toBe(r.taxableAssets + r.taxFreeAssets);
+        expect(r.assets).toBe(r.financialAssets - r.loanBalance);
+      }
+    });
+
+    it("ローンがなければ純資産と金融資産は一致する", () => {
+      for (const r of runSimulation(makeInput())) {
+        expect(r.loanBalance).toBe(0);
+        expect(r.assets).toBe(r.financialAssets);
+      }
+    });
+  });
+
+  describe("非課税口座への積立と取り崩し", () => {
+    function nisaInput(taxable: number, taxFree: number, contribution: number): PlanInput {
+      return makeInput({
+        startYear: 2030,
+        endYear: 2030,
+        // 収支 0 にして口座間の移動だけを見る。
+        self: { ...basePerson, grossAnnualIncome: 0 },
+        expenses: { baseAnnualLivingExpense: 0, inflationRate: 0 },
+        assets: {
+          taxableAssets: taxable,
+          taxFreeAssets: taxFree,
+          annualReturnRate: 0,
+          annualDividendYield: 0,
+          annualTaxFreeContribution: contribution,
+        },
+      });
+    }
+
+    it("積立額は課税口座の残高までに抑える", () => {
+      const [year] = runSimulation(nisaInput(200_000, 0, 480_000));
+      expect(year.taxFreeAssets).toBe(200_000);
+      expect(year.taxableAssets).toBe(0);
+    });
+
+    it("課税口座がマイナスなら積立しない", () => {
+      const input = nisaInput(0, 0, 480_000);
+      input.expenses.baseAnnualLivingExpense = 1_000_000;
+      const [year] = runSimulation(input);
+      expect(year.taxFreeAssets).toBe(0);
+      expect(year.taxableAssets).toBe(-1_000_000);
+    });
+
+    it("課税口座が年末にマイナスになったら非課税口座から取り崩して補う", () => {
+      const input = nisaInput(0, 3_000_000, 0);
+      input.expenses.baseAnnualLivingExpense = 1_000_000;
+      const [year] = runSimulation(input);
+      expect(year.taxableAssets).toBe(0);
+      expect(year.taxFreeAssets).toBe(2_000_000);
+      expect(year.financialAssets).toBe(2_000_000);
+    });
+
+    it("非課税口座で補いきれない不足は課税口座のマイナスとして残す", () => {
+      const input = nisaInput(0, 300_000, 0);
+      input.expenses.baseAnnualLivingExpense = 1_000_000;
+      const [year] = runSimulation(input);
+      expect(year.taxFreeAssets).toBe(0);
+      expect(year.taxableAssets).toBe(-700_000);
+    });
+
+    it("「うち非課税」は金融資産がプラスの間、金融資産を超えない", () => {
+      const input = makeInput({
+        startYear: 2030,
+        endYear: 2060,
+        expenses: { baseAnnualLivingExpense: 4_500_000, inflationRate: 0.01 },
+        assets: {
+          taxableAssets: 300_000,
+          taxFreeAssets: 2_000_000,
+          annualReturnRate: 0.03,
+          annualDividendYield: 0,
+          annualTaxFreeContribution: 480_000,
+        },
+      });
+      for (const r of runSimulation(input)) {
+        expect(r.taxFreeAssets).toBeGreaterThanOrEqual(0);
+        if (r.financialAssets >= 0) {
+          expect(r.taxFreeAssets).toBeLessThanOrEqual(r.financialAssets);
+        } else {
+          expect(r.taxFreeAssets).toBe(0);
+        }
+      }
+    });
+  });
 });

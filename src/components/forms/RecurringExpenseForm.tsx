@@ -94,7 +94,12 @@ export function RecurringExpenseForm() {
                     suffix="円"
                     grouped
                     step={100_000}
-                    hint="0 円のうちは収支に寄与しません"
+                    // 入力済みの行にまで注意が残らないよう、0 円のときだけ出す
+                    hint={
+                      item.annualAmount === 0
+                        ? "0 円のうちは収支に寄与しません"
+                        : undefined
+                    }
                     error={errors[`${path}.annualAmount`]}
                     value={item.annualAmount}
                     onChange={(annualAmount) =>

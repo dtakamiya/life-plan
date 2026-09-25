@@ -59,11 +59,6 @@ export function LoanForm() {
                   削除
                 </Button>
               </div>
-              {/*
-                新規追加直後のローン行は借入額・金利・返済期間がすべて 0 で、
-                返済には寄与しない。ただし返済期間は 1〜50 年が必須（lp-005）の
-                ため、入力するまで返済期間欄にエラーが出てシミュレーションは更新されない。
-              */}
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <NumberField
                   label="返済開始年"
@@ -84,7 +79,12 @@ export function LoanForm() {
                   suffix="円"
                   grouped
                   step={1_000_000}
-                  hint="0 円のうちは返済額に寄与しません"
+                  // 入力済みの行にまで注意が残らないよう、0 円のときだけ出す
+                  hint={
+                    loan.principal === 0
+                      ? "0 円のうちは返済額に寄与しません"
+                      : undefined
+                  }
                   error={errors[`loans.${index}.principal`]}
                   value={loan.principal}
                   onChange={(principal) => updateLoan(loan.id, { principal })}

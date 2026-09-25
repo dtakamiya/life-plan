@@ -38,7 +38,9 @@ const columns: {
   { key: "dividendIncome", label: "配当(手取)" },
   { key: "cashFlow", label: "収支" },
   { key: "assets", label: "純資産" },
+  { key: "financialAssets", label: "金融資産" },
   { key: "taxFreeAssets", label: "うち非課税" },
+  { key: "loanBalance", label: "ローン残高" },
 ];
 
 /** 金額列はキーごとに円フォーマットし、年・年齢はそのまま表示する。 */

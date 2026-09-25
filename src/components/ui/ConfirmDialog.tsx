@@ -39,7 +39,9 @@ export const ConfirmDialog = forwardRef<
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
-      className="rounded-2xl border border-line bg-surface p-5 text-ink shadow-panel backdrop:bg-ink/30"
+      // `!m-auto`: `space-y-*` の子に置かれると margin-top が auto を上書きし、
+      // 画面上端に寄ってしまうため、配置場所によらず中央に固定する。
+      className="!m-auto rounded-2xl border border-line bg-surface p-5 text-ink shadow-panel backdrop:bg-ink/30"
     >
       <h2 id={titleId} className="text-[15px] font-bold text-ink">
         {title}

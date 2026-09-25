@@ -33,7 +33,11 @@ export function EventForm() {
         <div className="space-y-2.5">
           {events.map((event, index) => (
             <div key={event.id} className="flex items-end gap-2">
-              <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
+              {/*
+                フォーム列は PC でも幅 380px 程度のため、3 列だと内容・金額が切れる。
+                1 行目に年・内容、2 行目に金額を全幅で置く。
+              */}
+              <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[5.5rem_1fr]">
                 <NumberField
                   label="年"
                   error={errors[`events.${index}.year`]}
@@ -45,16 +49,18 @@ export function EventForm() {
                   value={event.label}
                   onChange={(label) => updateEvent(event.id, { label })}
                 />
-                <NumberField
-                  label="金額(+収/−支)"
-                  suffix="円"
-                  grouped
-                  step={100_000}
-                  signed
-                  error={errors[`events.${index}.amount`]}
-                  value={event.amount}
-                  onChange={(amount) => updateEvent(event.id, { amount })}
-                />
+                <div className="sm:col-span-2">
+                  <NumberField
+                    label="金額(+収/−支)"
+                    suffix="円"
+                    grouped
+                    step={100_000}
+                    signed
+                    error={errors[`events.${index}.amount`]}
+                    value={event.amount}
+                    onChange={(amount) => updateEvent(event.id, { amount })}
+                  />
+                </div>
               </div>
               <Button
                 variant="danger"

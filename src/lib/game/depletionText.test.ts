@@ -9,7 +9,7 @@ import {
 
 const rows = (assets: number[]): YearlyResult[] =>
   assets.map(
-    (a, i) => ({ year: 2030 + i, selfAge: 35 + i, assets: a }) as unknown as YearlyResult,
+    (a, i) => ({ year: 2030 + i, selfAge: 35 + i, assets: a, financialAssets: a, loanBalance: 0 }) as unknown as YearlyResult,
   );
 
 const text = (assets: number[]) => describeDepletion(computeStats(rows(assets)));

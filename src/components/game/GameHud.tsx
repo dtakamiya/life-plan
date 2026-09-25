@@ -124,7 +124,7 @@ export function GameHud({
           <Row
             label="資産が尽きる年齢"
             value={`${stats.depletionAge}歳`}
-            note="年末純資産が初めてマイナスになる年"
+            note="年末の金融資産が初めてマイナスになる年"
           />
         )}
         <SatisfactionBar summary={satisfaction} />

@@ -52,6 +52,27 @@ describe("入力バリデーションのエラー表示（lp-005）", () => {
     expect(el.querySelectorAll('[role="alert"]').length).toBe(0);
   });
 
+  it("ローンを追加した直後の行はエラーにならない（ペルソナ操作で結果が消えた回帰）", () => {
+    const el = mount(<LoanForm />);
+    act(() => usePlanStore.getState().addLoan());
+    expect(el.querySelectorAll('[role="alert"]').length).toBe(0);
+  });
+
+  it("ローンの借入額が 0 のときだけ「0 円のうちは…」の注意を出す", () => {
+    const el = mount(<LoanForm />);
+    act(() => usePlanStore.getState().addLoan());
+    const loans = usePlanStore.getState().input.loans;
+    const added = loans[loans.length - 1];
+    const card = () =>
+      [...el.querySelectorAll("input")].find(
+        (i) => (i as HTMLInputElement).value === added.label,
+      )!.closest(".rounded-xl")!;
+    expect(card().textContent).toContain("0 円のうちは返済額に寄与しません");
+
+    act(() => usePlanStore.getState().updateLoan(added.id, { principal: 36_000_000 }));
+    expect(card().textContent).not.toContain("0 円のうちは返済額に寄与しません");
+  });
+
   it("本人の年金開始年齢が範囲外だと、その欄の直下に日本語エラーを出す", () => {
     const el = mount(<HouseholdForm />);
     act(() =>

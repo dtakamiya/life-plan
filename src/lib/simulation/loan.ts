@@ -28,3 +28,26 @@ export function loanPaymentForYear(loans: Loan[], year: number): number {
     return inRepayment ? sum + annualLoanPayment(loan) : sum;
   }, 0);
 }
+
+/** 1 本のローンについて、指定年の返済を終えた時点の年末残高（円）。 */
+function loanBalanceAfterYear(loan: Loan, year: number): number {
+  const { principal, annualRate: r, termYears: n, startYear } = loan;
+  if (n <= 0 || principal <= 0 || year < startYear) return 0;
+  // 返済回数（startYear の年も 1 回返済済みとみなす）。完済後は n で頭打ち。
+  const paid = Math.min(year - startYear + 1, n);
+  if (paid >= n) return 0;
+  if (r === 0) return principal - (principal / n) * paid;
+  const growth = Math.pow(1 + r, paid);
+  const balance =
+    principal * growth - (annualLoanPayment(loan) * (growth - 1)) / r;
+  return Math.max(balance, 0);
+}
+
+/**
+ * 指定年の年末ローン残高の合計（円）。
+ * 返済開始年より前は借入前として 0、完済年以降も 0。借入元本の受取は
+ * モデル化しないため、純資産（金融資産−ローン残高）は借入年に残高ぶん下がる。
+ */
+export function loanBalanceForYear(loans: Loan[], year: number): number {
+  return loans.reduce((sum, loan) => sum + loanBalanceAfterYear(loan, year), 0);
+}

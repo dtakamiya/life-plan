@@ -80,7 +80,8 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
  *   期末 = round(taxFreeBase*(1+returnRate)) + round(taxableBase + taxableGain - investmentTax + cashFlow)
  *
  * ここでの「運用損益(税引後)」= taxableGain + taxFreeGain - investmentTax。
- * contribution は課税→非課税の内部移動なので純資産合計には効かない。
+ * contribution（課税口座の残高が上限）と非課税口座からの取り崩しは口座間の
+ * 内部移動なので金融資産の合計には効かない。純資産は金融資産 − ローン残高。
  */
 function assertConservation(input: PlanInput) {
   const results = runSimulation(input);
@@ -93,8 +94,9 @@ function assertConservation(input: PlanInput) {
   for (const r of results) {
     const openingAssets = prevTaxable + prevTaxFree;
 
-    const taxableBase = prevTaxable - contribution;
-    const taxFreeBase = prevTaxFree + contribution;
+    const actualContribution = Math.min(contribution, Math.max(prevTaxable, 0));
+    const taxableBase = prevTaxable - actualContribution;
+    const taxFreeBase = prevTaxFree + actualContribution;
     const taxableGain = taxableBase * returnRate;
     const taxFreeGain = taxFreeBase * returnRate;
     const investmentTax =
@@ -104,15 +106,16 @@ function assertConservation(input: PlanInput) {
 
     // 期首 + 収支 + 運用損益(税引後) = 期末 （丸め分だけズレる）
     const reconstructed = openingAssets + r.cashFlow + netInvestmentReturn;
-    expect(Math.abs(r.assets - reconstructed)).toBeLessThanOrEqual(1);
+    expect(Math.abs(r.financialAssets - reconstructed)).toBeLessThanOrEqual(1);
 
     // 純資産系列が発散・NaN しないこと
     expect(Number.isFinite(r.assets)).toBe(true);
     expect(Number.isNaN(r.assets)).toBe(false);
     expect(Number.isFinite(r.taxableAssets)).toBe(true);
     expect(Number.isFinite(r.taxFreeAssets)).toBe(true);
-    // 口座内訳の合計が年末純資産に一致
-    expect(r.taxableAssets + r.taxFreeAssets).toBe(r.assets);
+    // 口座内訳の合計が年末金融資産に一致し、純資産はそこからローン残高を引いた額
+    expect(r.taxableAssets + r.taxFreeAssets).toBe(r.financialAssets);
+    expect(r.assets).toBe(r.financialAssets - r.loanBalance);
 
     prevTaxable = r.taxableAssets;
     prevTaxFree = r.taxFreeAssets;

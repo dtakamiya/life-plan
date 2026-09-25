@@ -4,7 +4,7 @@ import { describeAssetLongevity } from "./longevitySummary";
 
 /** テストで使うフィールドだけを持つ年次結果を作る（summary.test.ts と同じパターン）。 */
 function row(year: number, selfAge: number, assets: number): YearlyResult {
-  return { year, selfAge, assets } as YearlyResult;
+  return { year, selfAge, assets, financialAssets: assets, loanBalance: 0 } as YearlyResult;
 }
 
 describe("describeAssetLongevity（lp-031）", () => {

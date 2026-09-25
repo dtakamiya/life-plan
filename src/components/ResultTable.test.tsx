@@ -55,6 +55,8 @@ function makeRow(overrides: Partial<YearlyResult> = {}): YearlyResult {
     dividendTax: 0,
     cashFlow: 1_300_000,
     assets: 10_000_000,
+    financialAssets: 10_000_000,
+    loanBalance: 0,
     taxableAssets: 8_000_000,
     taxFreeAssets: 2_000_000,
     ...overrides,
@@ -326,5 +328,28 @@ describe("ResultTable — モバイルカード表示（lp-025）", () => {
     const negative = el.querySelectorAll("li")[1].querySelector("button .text-danger");
     expect(negative?.textContent).toBe(formatYen(-500_000));
     expect(el.querySelectorAll("li")[0].querySelector("button .text-danger")).toBeNull();
+  });
+});
+
+describe("ResultTable — 金融資産・ローン残高の列", () => {
+  it("純資産の直後に 金融資産 / うち非課税 / ローン残高 を並べて円表示する", () => {
+    const el = mount(
+      <ResultTable
+        results={[
+          makeRow({
+            assets: -26_000_000,
+            financialAssets: 10_000_000,
+            loanBalance: 36_000_000,
+          }),
+        ]}
+      />,
+    );
+    const netIndex = getColumnIndex(el, "純資産");
+    expect(getColumnIndex(el, "金融資産")).toBe(netIndex + 1);
+    expect(getColumnIndex(el, "うち非課税")).toBe(netIndex + 2);
+    expect(getColumnIndex(el, "ローン残高")).toBe(netIndex + 3);
+    const cells = el.querySelectorAll("tbody tr")[0].children;
+    expect(cells[getColumnIndex(el, "ローン残高")].textContent).toBe(formatYen(36_000_000));
+    expect(cells[getColumnIndex(el, "金融資産")].textContent).toBe(formatYen(10_000_000));
   });
 });

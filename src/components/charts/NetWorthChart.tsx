@@ -26,7 +26,7 @@ export function NetWorthChart({
   results: YearlyResult[];
   describedById?: string;
 }) {
-  // 枯渇年（年末純資産が初めて0未満）。枯渇なしなら参照線は描かない。
+  // 枯渇年（年末の金融資産が初めて0未満）。枯渇なしなら参照線は描かない。
   const depleted = findDepletion(results);
   return (
     <div
