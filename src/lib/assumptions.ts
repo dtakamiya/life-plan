@@ -95,12 +95,12 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
     {
       label: "住民税率",
       value: formatPercent(RESIDENCE_TAX_RATE),
-      note: "概算。課税所得に一律で適用（tax.ts の RESIDENCE_TAX_RATE）。住民税の非課税判定・均等割は未反映。",
+      note: "概算。課税所得に一律で適用（tax.ts の RESIDENCE_TAX_RATE）。給与所得が45万円（単身の非課税の目安、tax.ts の RESIDENCE_TAX_EXEMPT_INCOME）以下なら非課税。均等割・扶養による非課税ラインの違いは未反映。",
     },
     {
       label: "基礎控除",
       value: formatYen(BASIC_DEDUCTION),
-      note: "概算。課税所得の算定で給与所得控除・社会保険料控除と合わせて差し引く（tax.ts）。給与所得控除は別途『年収×20%＋44万円、上限195万円』で近似。2025年改正の基礎控除の引き上げ（低所得ほど大きい）は未反映のため、低所得の場合は税負担がやや多めに出る。",
+      note: "概算。表示の額は住民税の基礎控除。所得税は2025年改正後の段階式（給与所得132万円以下は95万円〜655万円超は58万円、tax.ts の INCOME_TAX_BASIC_DEDUCTION_TIERS）を使う。給与所得控除は『年収×20%＋44万円、下限65万円・上限195万円』で近似。",
     },
     {
       label: "運用益への課税率",
@@ -112,7 +112,7 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       value: formatPercent(SOCIAL_INSURANCE_RATE),
       note: `概算。給与の税込年収に適用（対象年収の上限 ${formatYen(
         SOCIAL_INSURANCE_INCOME_CAP,
-      )}、socialInsurance.ts の SOCIAL_INSURANCE_RATE）。年金収入には掛けないため、高齢期の国民健康保険料・介護保険料（低所得でも年数万円程度）は含まれない。必要なら継続支出に加える。`,
+      )}、socialInsurance.ts の SOCIAL_INSURANCE_RATE）。年金収入には別途、国民健康保険料＋介護保険料として（年金 − 公的年金等控除110万円）× 15%、最低3万円を概算する（estimatePensionSocialInsurance）。`,
     },
     {
       label: "年金の概算方式",

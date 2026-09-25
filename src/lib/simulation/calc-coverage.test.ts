@@ -19,7 +19,10 @@ import {
   estimateRetirementIncomeTax,
   CAPITAL_GAINS_RATE,
 } from "./tax";
-import { estimateSocialInsurance } from "./socialInsurance";
+import {
+  estimateSocialInsurance,
+  estimatePensionSocialInsurance,
+} from "./socialInsurance";
 import { annualLoanPayment, loanPaymentForYear } from "./loan";
 import {
   childAnnualCost,
@@ -808,14 +811,33 @@ describe("AC6補足: 税・社会保険の回帰固定（既存式のスナッ�
   it("estimateIncomeTax / estimateResidenceTax: 年収5,000,000 の既存式どおりの値", () => {
     // 給与所得控除 = min(5,000,000*0.2 + 440,000, 1,950,000) = min(1,440,000, 1,950,000) = 1,440,000
     // 社保 = 5,000,000 * 0.15 = 750,000
-    // 課税所得 = 5,000,000 - 1,440,000 - 750,000 - 480,000 = 2,330,000
-    // 所得税: 0〜1,950,000 は 5% → 97,500 ; 1,950,000〜2,330,000 は 10% → 38,000 ; 計 135,500
-    // 住民税: 2,330,000 * 0.1 = 233,000
-    expect(estimateIncomeTax(5_000_000)).toBe(135_500);
+    // 給与所得 = 3,560,000 → 所得税の基礎控除は 680,000（2025年改正後）
+    // 所得税の課税所得 = 3,560,000 - 750,000 - 680,000 = 2,130,000
+    // 所得税: 0〜1,950,000 は 5% → 97,500 ; 1,950,000〜2,130,000 は 10% → 18,000 ; 計 115,500
+    // 住民税の課税所得 = 3,560,000 - 750,000 - 480,000 = 2,330,000 → 233,000
+    expect(estimateIncomeTax(5_000_000)).toBe(115_500);
     expect(estimateResidenceTax(5_000_000)).toBe(233_000);
     // 収入0は両方0
     expect(estimateIncomeTax(0)).toBe(0);
     expect(estimateResidenceTax(0)).toBe(0);
+  });
+
+  it("低所得: 年収240万円は基礎控除88万円、年収100万円は所得税・住民税とも0", () => {
+    // 給与所得 = 2,400,000 - 920,000 = 1,480,000 → 基礎控除 880,000
+    // 所得税の課税所得 = 1,480,000 - 360,000 - 880,000 = 240,000 → 5% = 12,000
+    expect(estimateIncomeTax(2_400_000)).toBe(12_000);
+    // 住民税の課税所得 = 1,480,000 - 360,000 - 480,000 = 640,000 → 64,000
+    expect(estimateResidenceTax(2_400_000)).toBe(64_000);
+    // 給与所得控除の最低65万円 → 給与所得 350,000（非課税の目安45万円以下）
+    expect(estimateIncomeTax(1_000_000)).toBe(0);
+    expect(estimateResidenceTax(1_000_000)).toBe(0);
+  });
+
+  it("estimatePensionSocialInsurance: 年金所得の15%、最低3万円", () => {
+    expect(estimatePensionSocialInsurance(0)).toBe(0);
+    expect(estimatePensionSocialInsurance(800_000)).toBe(30_000);
+    // (2,000,000 - 1,100,000) * 0.15 = 135,000
+    expect(estimatePensionSocialInsurance(2_000_000)).toBe(135_000);
   });
 
   it("CAPITAL_GAINS_RATE は 0.20315（所得税15.315% + 住民税5%）", () => {
