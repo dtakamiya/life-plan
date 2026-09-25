@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
 import { findDepletion } from "@/lib/simulation/summary";
-import { formatManYen, formatYen } from "@/lib/format";
+import { formatManYen, formatYen } from "@/shared/lib";
 import { netWorthChartData } from "./netWorthChartData";
 import { axisTick, chartColors, legendStyle, tooltipStyle } from "./chartTheme";
 

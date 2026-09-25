@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildAssumptionRows } from "./assumptions";
 import { runSimulation } from "./simulation/engine";
-import { formatYen } from "./format";
+import { formatYen } from "@/shared/lib";
 import type { PlanInput } from "./simulation/types";
 import {
   CAPITAL_GAINS_RATE,

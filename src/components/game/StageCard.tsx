@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 
 export type CardChoice = {
   id: string;

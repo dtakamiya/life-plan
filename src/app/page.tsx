@@ -6,7 +6,7 @@ import { usePlanStore } from "@/lib/store/usePlanStore";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import { summarizeResults } from "@/lib/simulation/summary";
 import { describeAssetLongevity } from "@/lib/simulation/longevitySummary";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { Eyebrow } from "@/components/ui/Eyebrow";

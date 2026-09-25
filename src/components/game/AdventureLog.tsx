@@ -2,7 +2,7 @@
 
 import type { LogEntry, Stage } from "@/lib/game/types";
 import { Panel } from "@/components/ui/Panel";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 
 /** 選択の履歴。新しい行は aria-live で読み上げる。 */
 export function AdventureLog({

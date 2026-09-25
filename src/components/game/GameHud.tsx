@@ -8,7 +8,7 @@ import {
   type SatisfactionSummary,
 } from "@/lib/game/satisfaction";
 import { Panel } from "@/components/ui/Panel";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 import { formatMemberAge } from "@/lib/game/householdAge";
 
 /** ランダムイベントは演出であり確率の予測ではない旨の常設表示。 */

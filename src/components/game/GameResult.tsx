@@ -6,7 +6,7 @@ import type { GameStats } from "@/lib/game/stats";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 import { formatAssetDiff } from "@/lib/game/assetDiff";
 import {
   DEPLETION_DEFINITION,

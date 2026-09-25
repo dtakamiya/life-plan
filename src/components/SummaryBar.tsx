@@ -1,4 +1,4 @@
-import { formatManYen } from "@/lib/format";
+import { formatManYen } from "@/shared/lib";
 import { summarizeResults } from "@/lib/simulation/summary";
 import type { YearlyResult } from "@/lib/simulation/types";
 

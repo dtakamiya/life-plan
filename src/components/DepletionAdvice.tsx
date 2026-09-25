@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { findDepletionRemedies } from "@/lib/simulation/depletionRemedies";
 import type { PlanInput } from "@/lib/simulation/types";
-import { formatManYen } from "@/lib/format";
+import { formatManYen } from "@/shared/lib";
 
 /**
  * 資産が尽きる計画のときだけ、尽きなくするための逆算の目安（#12）と、

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { GLOSSARY, type GlossaryTermKey } from "@/lib/glossary";
+import { GLOSSARY, type GlossaryTermKey } from "@/shared/lib";
 import { computePanelPosition } from "./termHelpPosition";
 
 type PanelPosition = { top: number; left: number; width: number };

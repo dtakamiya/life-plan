@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
-import { formatManYen, formatYen } from "@/lib/format";
+import { formatManYen, formatYen } from "@/shared/lib";
 import { axisTick, chartColors, legendStyle, tooltipStyle } from "./chartTheme";
 
 /** 収入(+)・支出(-)・収支を年別に並べた棒グラフ用データに変換する。 */

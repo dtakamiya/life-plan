@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { annualLoanPayment } from "@/lib/simulation/loan";
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
 import { TermHelp } from "@/components/ui/TermHelp";

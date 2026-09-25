@@ -1,4 +1,4 @@
-import { formatYen } from "@/lib/format";
+import { formatYen } from "@/shared/lib";
 
 /**
  * 「基本計画との違い」セクションは常にベースプランとの相対値（差額）を示す。
