@@ -2,10 +2,8 @@
 
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
+import { Button, CheckboxField, ConfirmDialog, NumberField, PercentField, Section, SelectField, TextField, type ConfirmDialogHandle } from "@/shared/ui";
 import type { IncomeAdjustment } from "@/lib/simulation/types";
-import { CheckboxField, NumberField, PercentField, Section, SelectField, TextField } from "./fields";
 import { usePlanErrors } from "./usePlanErrors";
 
 const PERSON_LABELS = { self: "本人", spouse: "配偶者" } as const;

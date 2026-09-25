@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
 import { formatManYen, formatYen } from "@/shared/lib";
-import { axisTick, chartColors, legendStyle, tooltipStyle } from "./chartTheme";
+import { axisTick, chartColors, legendStyle, tooltipStyle } from "@/shared/ui";
 
 /** 収入(+)・支出(-)・収支を年別に並べた棒グラフ用データに変換する。 */
 function toChartData(results: YearlyResult[]) {

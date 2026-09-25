@@ -1,7 +1,7 @@
 "use client";
 
 import type { LogEntry, Stage } from "@/lib/game/types";
-import { Panel } from "@/components/ui/Panel";
+import { Panel } from "@/shared/ui";
 import { formatYen } from "@/shared/lib";
 
 /** 選択の履歴。新しい行は aria-live で読み上げる。 */

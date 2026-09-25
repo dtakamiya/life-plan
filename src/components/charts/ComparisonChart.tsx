@@ -22,7 +22,7 @@ import {
   legendStyle,
   seriesPalette,
   tooltipStyle,
-} from "./chartTheme";
+} from "@/shared/ui";
 
 /**
  * 現在の計画と保存済みスナップショットの純資産推移を重ね描きする。

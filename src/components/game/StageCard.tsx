@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Panel } from "@/components/ui/Panel";
-import { Button } from "@/components/ui/Button";
+import { Button, Panel } from "@/shared/ui";
 import { formatYen } from "@/shared/lib";
 
 export type CardChoice = {

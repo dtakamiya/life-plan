@@ -4,10 +4,7 @@ import { useRef, useState } from "react";
 import { usePlanStore } from "@/lib/store/usePlanStore";
 import { annualLoanPayment } from "@/lib/simulation/loan";
 import { formatYen } from "@/shared/lib";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
-import { TermHelp } from "@/components/ui/TermHelp";
-import { CheckboxField, NumberField, PercentField, Section, TextField } from "./fields";
+import { Button, CheckboxField, ConfirmDialog, NumberField, PercentField, Section, TermHelp, TextField, type ConfirmDialogHandle } from "@/shared/ui";
 import { usePlanErrors } from "./usePlanErrors";
 
 export function LoanForm() {

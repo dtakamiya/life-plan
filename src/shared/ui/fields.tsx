@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Panel } from "@/components/ui/Panel";
-import { TermHelp } from "@/components/ui/TermHelp";
+import { Panel } from "./Panel";
+import { TermHelp } from "./TermHelp";
 import { formatManYenLabel, type GlossaryTermKey } from "@/shared/lib";
 import { formatGroupedNumber, normalizeNumberInput } from "./number-input";
 

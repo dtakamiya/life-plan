@@ -7,7 +7,7 @@ import {
   satisfactionMark,
   type SatisfactionSummary,
 } from "@/lib/game/satisfaction";
-import { Panel } from "@/components/ui/Panel";
+import { Panel } from "@/shared/ui";
 import { formatYen } from "@/shared/lib";
 import { formatMemberAge } from "@/lib/game/householdAge";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePlanStore } from "@/lib/store/usePlanStore";
-import { NumberField, PercentField, Section } from "./fields";
+import { NumberField, PercentField, Section } from "@/shared/ui";
 import { usePlanErrors } from "./usePlanErrors";
 
 export function AssetForm() {

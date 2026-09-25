@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import config from "../../tailwind.config";
+import config from "../../../tailwind.config";
 
 /**
  * lp-ui-ux-audit-fix / FR1.1・NFR1 の回帰固定。

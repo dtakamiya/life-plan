@@ -11,9 +11,7 @@ import { usePlanStore } from "@/lib/store/usePlanStore";
 import { EDUCATION_PRESETS } from "@/lib/simulation/education";
 import { DEFAULT_END_AGE, endAgeToEndYear, endYearToEndAge } from "@/lib/simulation/endAge";
 import { ageField } from "@/lib/schema";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog, type ConfirmDialogHandle } from "@/components/ui/ConfirmDialog";
-import { NumberField, PercentField, Section, SelectField, TextField } from "./fields";
+import { Button, ConfirmDialog, NumberField, PercentField, Section, SelectField, TextField, type ConfirmDialogHandle } from "@/shared/ui";
 import { BASIC_PENSION_ANNUAL, estimateAnnualPension } from "@/lib/simulation/pension";
 import { usePlanErrors } from "./usePlanErrors";
 
