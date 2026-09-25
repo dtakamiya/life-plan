@@ -52,6 +52,18 @@ function EmptyResultsNotice() {
   );
 }
 
+/** localStorage 復元（ハイドレーション）待ちの共通プレースホルダー。 */
+function LoadingPlaceholder({ className }: { className: string }) {
+  return (
+    <div
+      className={`flex items-center justify-center gap-2 text-sm text-ink-mute ${className}`}
+    >
+      <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
+      読み込み中…
+    </div>
+  );
+}
+
 /** サマリーカード（最終純資産・最小純資産・赤字転落年）。 */
 function Summary({ results }: { results: YearlyResult[] }) {
   const summary = summarizeResults(results);
@@ -82,7 +94,13 @@ function Summary({ results }: { results: YearlyResult[] }) {
     {
       label: "資産が尽きる年",
       value: depleted ? `${depleted.year}年` : "なし",
-      caption: depleted ? `本人${depleted.selfAge}歳で初めて残高マイナス` : "生涯を通じて枯渇なし",
+      // 枯渇判定は金融資産（ローン残高を引く前）。純資産がマイナスの期間があると
+      // 「枯渇なし」と赤字表示が食い違って見えるため、基準の違いを補足する。
+      caption: depleted
+        ? `本人${depleted.selfAge}歳で初めて残高マイナス`
+        : min.assets < 0
+          ? `金融資産は枯渇なし（ローン残高を含む純資産は${min.year}年に最小）`
+          : "生涯を通じて枯渇なし",
       tone: depleted ? "danger" : "ink",
     },
   ];
@@ -233,12 +251,20 @@ export default function Home() {
           data-column="inputs"
           className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:pr-1"
         >
-          <HouseholdForm />
-          <ExpenseForm />
-          <RecurringExpenseForm />
-          <AssetForm />
-          <LoanForm />
-          <EventForm />
+          {/* 復元前に既定値を描画すると、保存済みの内容と食い違った状態で
+              入力できてしまうため、結果列と同じくハイドレーション後に描画する。 */}
+          {hydrated ? (
+            <>
+              <HouseholdForm />
+              <ExpenseForm />
+              <RecurringExpenseForm />
+              <AssetForm />
+              <LoanForm />
+              <EventForm />
+            </>
+          ) : (
+            <LoadingPlaceholder className="h-40" />
+          )}
         </div>
 
         {/*
@@ -265,6 +291,14 @@ export default function Home() {
                 </div>
               ) : (
                 <>
+                  {input.expenses.baseAnnualLivingExpense === 0 && (
+                    <p
+                      role="status"
+                      className="rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink-soft"
+                    >
+                      基礎生活費が0円のため、結果には生活費が含まれていません。実際より資産が多く見えます。
+                    </p>
+                  )}
                   <Summary results={results} />
 
                   <div className="animate-fade-up" style={{ animationDelay: "210ms" }}>
@@ -325,10 +359,7 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <div className="flex h-72 items-center justify-center gap-2 text-sm text-ink-mute">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
-              読み込み中…
-            </div>
+            <LoadingPlaceholder className="h-72" />
           )}
         </div>
       </div>

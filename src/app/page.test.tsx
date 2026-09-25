@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach, beforeAll } from "vitest";
+import { describe, it, expect, afterEach, beforeAll, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { usePlanStore } from "@/lib/store/usePlanStore";
@@ -210,5 +210,113 @@ describe("Home ページ — 比較の差分数値表（lp-035）", () => {
     // 枯渇年の差: 両方なし=差なし、両方あり=±0年（どちらでもゼロ差）
     expect(cells[3]).toMatch(/^(差なし（どちらも枯渇なし）|±0年)$/);
     expect(el.textContent).toContain("差は「比較対象 − 現在のプラン」の差額です");
+  });
+});
+
+describe("Home ページ — ハイドレーション前は入力列を描画しない", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("復元前は入力欄を出さず読み込み表示にし、復元完了後に入力欄を出す", async () => {
+    let finish: () => void = () => {};
+    vi.spyOn(usePlanStore.persist, "hasHydrated").mockReturnValue(false);
+    vi.spyOn(usePlanStore.persist, "onFinishHydration").mockImplementation((cb) => {
+      finish = () => cb(usePlanStore.getState());
+      return () => {};
+    });
+
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    const inputs = el.querySelector('[data-column="inputs"]');
+    expect(inputs?.querySelector("input")).toBeNull();
+    expect(inputs?.textContent).toContain("読み込み中…");
+
+    act(() => finish());
+    expect(inputs?.querySelector("input")).not.toBeNull();
+    expect(inputs?.textContent).not.toContain("読み込み中…");
+  });
+});
+
+describe("Home ページ — 基礎生活費が0円のときの注意", () => {
+  const notice = "基礎生活費が0円のため";
+
+  it("基礎生活費が0円なら注意を表示する（「まっさらから入力」直後の誤解防止）", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => usePlanStore.getState().startBlank());
+
+    expect(el.textContent).toContain(notice);
+  });
+
+  it("基礎生活費が0円でなければ注意は出ない", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => {
+      usePlanStore.setState((s) => ({
+        input: {
+          ...s.input,
+          expenses: { ...s.input.expenses, baseAnnualLivingExpense: 3_000_000 },
+        },
+      }));
+    });
+
+    expect(el.textContent).not.toContain(notice);
+  });
+});
+
+describe("Home ページ — 枯渇なしでも純資産がマイナスの期間があるときの補足", () => {
+  const depletedCard = (el: HTMLElement) =>
+    [...el.querySelectorAll('[data-column="results"] .rounded-2xl')].find((d) =>
+      d.textContent?.startsWith("資産が尽きる年"),
+    );
+
+  it("金融資産は枯渇しないがローンで純資産がマイナスなら、基準の違いを補足する", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => {
+      usePlanStore.getState().startBlank();
+      usePlanStore.setState((s) => ({
+        input: {
+          ...s.input,
+          expenses: { ...s.input.expenses, baseAnnualLivingExpense: 1_000_000 },
+          loans: [
+            {
+              id: "l1",
+              label: "住宅ローン",
+              startYear: s.input.startYear,
+              principal: 100_000_000,
+              annualRate: 0,
+              termYears: 50,
+            },
+          ],
+        },
+      }));
+    });
+
+    expect(depletedCard(el)?.textContent).toContain(
+      "金融資産は枯渇なし（ローン残高を含む純資産は",
+    );
+  });
+
+  it("純資産がマイナスにならなければ従来どおり『生涯を通じて枯渇なし』", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    act(() => {
+      usePlanStore.getState().startBlank();
+      usePlanStore.setState((s) => ({
+        input: {
+          ...s.input,
+          expenses: { ...s.input.expenses, baseAnnualLivingExpense: 1_000_000 },
+        },
+      }));
+    });
+
+    expect(depletedCard(el)?.textContent).toContain("生涯を通じて枯渇なし");
   });
 });
