@@ -114,3 +114,50 @@ describe("planInputSchema — annualDividendYield（配当利回り）", () => {
     expect(parsed.success && parsed.data.assets.annualDividendYield).toBe(0.025);
   });
 });
+
+/** 子育て共働きペルソナレビュー #2・#3・#4: 追加フィールドの互換性。 */
+describe("planInputSchema — 家族向けの拡張", () => {
+  it("incomeAdjustments / properties を持たない既存の保存データは空配列として通る", () => {
+    const legacy: Record<string, unknown> = { ...defaultPlanInput };
+    delete legacy.incomeAdjustments;
+    delete legacy.properties;
+    const parsed = planInputSchema.safeParse(legacy);
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.incomeAdjustments).toEqual([]);
+    expect(parsed.success && parsed.data.properties).toEqual([]);
+  });
+
+  it("taxCredit を持たない既存のローンも通る", () => {
+    const parsed = planInputSchema.safeParse({
+      ...defaultPlanInput,
+      loans: [{ id: "l", label: "住宅ローン", startYear: 2031, principal: 1, annualRate: 0.01, termYears: 35 }],
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.loans[0].taxCredit).toBeUndefined();
+  });
+
+  it("収入調整・不動産・ローン控除の指定を保持する", () => {
+    const input = {
+      ...defaultPlanInput,
+      incomeAdjustments: [
+        { id: "a", person: "spouse", label: "育休", startYear: 2028, endYear: 2028, ratio: 0.67, nonTaxable: true },
+      ],
+      properties: [{ id: "p", label: "自宅", purchaseYear: 2031, price: 35_000_000, annualDepreciationRate: 0.015 }],
+      loans: defaultPlanInput.loans.map((l) => ({ ...l, taxCredit: true })),
+    };
+    const parsed = planInputSchema.safeParse(input);
+    expect(parsed.success && parsed.data.incomeAdjustments).toEqual(input.incomeAdjustments);
+    expect(parsed.success && parsed.data.properties).toEqual(input.properties);
+    expect(parsed.success && parsed.data.loans[0].taxCredit).toBe(true);
+  });
+
+  it("収入調整の対象者が不正なら input 全体を弾く", () => {
+    const parsed = planInputSchema.safeParse({
+      ...defaultPlanInput,
+      incomeAdjustments: [
+        { id: "a", person: "child", label: "x", startYear: 2028, endYear: 2028, ratio: 1, nonTaxable: false },
+      ],
+    });
+    expect(parsed.success).toBe(false);
+  });
+});

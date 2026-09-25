@@ -32,10 +32,10 @@ export function NetWorthChart({
 }) {
   // 枯渇年（年末の金融資産が初めて0未満）。枯渇なしなら参照線は描かない。
   const depleted = findDepletion(results);
-  // 主系列は金融資産、ローンがある期間だけ純資産を破線で重ねる（#11）。
+  // 主系列は金融資産、ローンや不動産がある期間だけ純資産を破線で重ねる（#11・#2）。
   // 枯渇後の期間は網掛けで示し、実際の不足額はツールチップと年次明細で確認できる（#13）。
   const data = netWorthChartData(results);
-  const hasLoan = data.some((d) => d.netWorth !== null);
+  const hasNetWorthLine = data.some((d) => d.netWorth !== null);
   const lastYear = results.at(-1)?.year;
   return (
     <div
@@ -43,7 +43,9 @@ export function NetWorthChart({
       role="img"
       aria-label={[
         "資産推移のグラフ（金融資産を面で表示",
-        hasLoan ? "。ローンのある期間は純資産（金融資産−ローン残高）を破線で表示" : "",
+        hasNetWorthLine
+          ? "。ローンや不動産のある期間は純資産（金融資産＋不動産−ローン残高）を破線で表示"
+          : "",
         depleted ? "。資産が尽きた後は0円で止め、網掛けで表示" : "",
         "）",
       ].join("")}
@@ -100,7 +102,7 @@ export function NetWorthChart({
             }}
             labelFormatter={(label) => `${label}年`}
           />
-          {hasLoan && <Legend wrapperStyle={legendStyle} />}
+          {hasNetWorthLine && <Legend wrapperStyle={legendStyle} />}
           <Area
             type="monotone"
             dataKey="financial"
@@ -111,7 +113,7 @@ export function NetWorthChart({
             dot={false}
             activeDot={{ r: 4, strokeWidth: 0 }}
           />
-          {hasLoan && (
+          {hasNetWorthLine && (
             <Line
               type="monotone"
               dataKey="netWorth"

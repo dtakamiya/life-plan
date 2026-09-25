@@ -19,6 +19,8 @@ import { RecurringExpenseForm } from "@/components/forms/RecurringExpenseForm";
 import { AssetForm } from "@/components/forms/AssetForm";
 import { EventForm } from "@/components/forms/EventForm";
 import { LoanForm } from "@/components/forms/LoanForm";
+import { IncomeAdjustmentForm } from "@/components/forms/IncomeAdjustmentForm";
+import { PropertyForm } from "@/components/forms/PropertyForm";
 import { NetWorthChart } from "@/components/charts/NetWorthChart";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { ComparisonChart } from "@/components/charts/ComparisonChart";
@@ -278,10 +280,12 @@ export default function Home() {
           {hydrated ? (
             <>
               <HouseholdForm />
+              <IncomeAdjustmentForm />
               <ExpenseForm />
               <RecurringExpenseForm />
               <AssetForm />
               <LoanForm />
+              <PropertyForm />
               <EventForm />
             </>
           ) : (

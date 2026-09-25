@@ -53,7 +53,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(14);
+    expect(rows).toHaveLength(17);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -76,15 +76,28 @@ describe("buildAssumptionRows", () => {
       "年金の概算方式",
       "年金受給開始年齢",
       "世帯構成連動の既定値（生活費・住宅ローン）",
+      "児童手当",
+      "住宅ローン控除",
+      "収入の調整（育休・時短）",
       "純資産と資産枯渇の定義",
     ]);
   });
 
-  it("純資産はローン残高を差し引き、枯渇は金融資産で判定することを明記する", () => {
+  it("純資産は不動産を加えてローン残高を差し引き、枯渇は金融資産で判定することを明記する", () => {
     const row = buildAssumptionRows(makeInput()).find((r) => r.label === "純資産と資産枯渇の定義")!;
-    expect(row.value).toContain("金融資産 − ローン残高");
+    expect(row.value).toBe("純資産 ＝ 金融資産 ＋ 不動産の評価額 − ローン残高");
     expect(row.note).toContain("不動産");
     expect(row.note).toContain("金融資産");
+  });
+
+  it("児童手当・住宅ローン控除の前提を実際の定数から表示する（#4）", () => {
+    const rows = buildAssumptionRows(makeInput());
+    expect(rows.find((r) => r.label === "児童手当")!.value).toBe(
+      "0〜2歳 月¥15,000／3歳〜高校生 月¥10,000／第3子以降 月¥30,000",
+    );
+    expect(rows.find((r) => r.label === "住宅ローン控除")!.value).toBe(
+      "年末残高（上限¥40,000,000）の0.7%を13年間",
+    );
   });
 
   it("reflects the input inflation rate as a percent string", () => {

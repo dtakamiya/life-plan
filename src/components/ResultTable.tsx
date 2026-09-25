@@ -28,7 +28,9 @@ const columns: {
   { key: "selfAge", label: "本人年齢", sticky: "selfAge" },
   { key: "grossIncome", label: "世帯収入(税込)" },
   { key: "tax", label: "税" },
+  { key: "housingLoanCredit", label: "うちローン控除" },
   { key: "socialInsurance", label: "社会保険" },
+  { key: "childAllowance", label: "児童手当" },
   { key: "netIncome", label: "手取り" },
   { key: "livingExpense", label: "生活費" },
   { key: "recurringExpense", label: "継続支出" },
@@ -41,6 +43,7 @@ const columns: {
   { key: "financialAssets", label: "金融資産" },
   { key: "taxFreeAssets", label: "うち非課税" },
   { key: "loanBalance", label: "ローン残高" },
+  { key: "propertyValue", label: "不動産評価額" },
 ];
 
 /** 金額列はキーごとに円フォーマットし、年・年齢はそのまま表示する。 */
