@@ -101,7 +101,7 @@ describe("RecurringExpenseForm（#18）", () => {
     expect(el.textContent).toContain("終了年は開始年以降にしてください");
 
     // アクセシビリティ回帰（NumberField は error prop 指定時に aria-invalid /
-    // aria-describedby を付与する。src/components/forms/fields.tsx 参照）。
+    // aria-describedby を付与する。src/shared/ui/fields.tsx 参照）。
     const endYearInput = inputByLabel(el, "終了年");
     expect(endYearInput.getAttribute("aria-invalid")).toBe("true");
     const describedBy = endYearInput.getAttribute("aria-describedby");
