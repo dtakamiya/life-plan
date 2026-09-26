@@ -6,14 +6,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
   correctDateRange,
-  DEFAULT_EDUCATION,
-  DEFAULT_PROPERTY_DEPRECIATION_RATE,
   defaultPlanInput,
-  HOME_PROPERTY_LABEL,
-  HOUSING_PURCHASE_EVENT_LABEL,
-  singleRenterPlanInput,
   type Child,
-  type HouseholdComposition,
   type IncomeAdjustment,
   type LifeEvent,
   type Loan,
@@ -23,13 +17,37 @@ import {
   type RecurringExpense,
 } from "@/features/plan/domain";
 import {
-  applyHouseholdDefaults,
-  newLoan,
-  newRecurringExpense,
-  nextChildName,
+  addChild,
+  addEvent,
+  addIncomeAdjustment,
+  addLoan,
+  addProperty,
+  addRecurringExpense,
   planInputSchema,
+  removeChild,
+  removeEvent,
+  removeIncomeAdjustment,
+  removeLoan,
+  removeProperty,
+  removeRecurringExpense,
+  resetInput,
+  resetSingleInput,
+  setRange,
   snapshotSchema,
+  startBlank,
+  toggleSpouse,
+  updateAssets,
+  updateChild,
+  updateEvent,
+  updateExpenses,
+  updateIncomeAdjustment,
+  updateLoan,
+  updateProperty,
+  updateRecurringExpense,
+  updateSelf,
+  updateSpouse,
 } from "@/features/plan/application";
+import { makeId } from "@/features/plan/infrastructure";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";
@@ -165,15 +183,6 @@ export function mergePersistedPlanState<T extends RestoredPersistFragment>(
   };
 }
 
-/** ランダムな id を生成する（crypto があれば利用）。 */
-function makeId(prefix: string): string {
-  const rand =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2);
-  return `${prefix}-${rand}`;
-}
-
 export const usePlanStore = create<PlanState>()(
   persist(
     (set) => ({
@@ -182,327 +191,77 @@ export const usePlanStore = create<PlanState>()(
       rangeAutoCorrected: false,
 
       /**
-       * lp-019 / QA#1: 開始年・終了年を更新する。`correctDateRange`
-       * （純粋関数、例外を投げない）で相互検証し、無効な組み合わせ
-       * （開始年>終了年、または期間1年未満）は endYear を自動補正する。
-       * `rangeAutoCorrected` に補正の有無を反映し、UI 側（HouseholdForm）が
-       * 注意文言の表示に利用する。
+       * lp-019 / QA#1: 開始年・終了年を更新する。無効な組み合わせは endYear を
+       * 自動補正し、`rangeAutoCorrected` に補正の有無を反映する（本体は plan/application）。
        */
       setRange: (startYear, endYear) =>
-        set((s) => {
-          const corrected = correctDateRange(startYear, endYear);
-          return {
-            input: {
-              ...s.input,
-              startYear: corrected.startYear,
-              endYear: corrected.endYear,
-            },
-            rangeAutoCorrected: corrected.corrected,
-          };
-        }),
+        set((s) => setRange(s.input, startYear, endYear)),
 
-      // 終了年は西暦で保持するが、UI は「本人が◯歳になる年」（lp-031）で見せる。
-      // 生年が変わっても終了年齢が保たれるよう、生年の差分だけ終了年をずらす。
-      // 数値欄は1キーごとに確定するため、差分で追従させて途中の値（1→19→199…）に依存しない。
-      updateSelf: (patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            endYear:
-              patch.birthYear === undefined
-                ? s.input.endYear
-                : s.input.endYear + (patch.birthYear - s.input.self.birthYear),
-            self: { ...s.input.self, ...patch },
-          },
-        })),
+      updateSelf: (patch) => set((s) => ({ input: updateSelf(s.input, patch) })),
 
-      // lp-030: 配偶者の有無が実際に変わる場合のみ、既定の生活費・ローン・
-      // イベントを新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。
+      // 変更が無いときは state を更新しない（persist にも書き込まない）。
       toggleSpouse: (enabled) =>
         set((s) => {
-          const previousComposition: HouseholdComposition = {
-            hasSpouse: s.input.spouse !== null,
-            childCount: s.input.children.length,
-          };
-
-          let nextInput: PlanInput | null = null;
-          if (enabled && !s.input.spouse) {
-            const spouse: Person = { ...s.input.self, name: "配偶者" };
-            nextInput = { ...s.input, spouse };
-          } else if (!enabled) {
-            nextInput = { ...s.input, spouse: null };
-          }
-          if (!nextInput) return s;
-
-          const input = applyHouseholdDefaults(nextInput, previousComposition, {
-            loan: makeId("loan"),
-            event: makeId("event"),
-            property: makeId("property"),
-          });
-          return { input };
+          const input = toggleSpouse(s.input, enabled, makeId);
+          return input === s.input ? s : { input };
         }),
 
       updateSpouse: (patch) =>
         set((s) => {
-          if (!s.input.spouse) return s;
-          return {
-            input: { ...s.input, spouse: { ...s.input.spouse, ...patch } },
-          };
+          const input = updateSpouse(s.input, patch);
+          return input === s.input ? s : { input };
         }),
 
       updateExpenses: (patch) =>
-        set((s) => ({
-          input: { ...s.input, expenses: { ...s.input.expenses, ...patch } },
-        })),
+        set((s) => ({ input: updateExpenses(s.input, patch) })),
 
-      updateAssets: (patch) =>
-        set((s) => ({
-          input: { ...s.input, assets: { ...s.input.assets, ...patch } },
-        })),
+      updateAssets: (patch) => set((s) => ({ input: updateAssets(s.input, patch) })),
 
-      // lp-030: 子の人数が変わるので、既定の生活費・ローン・イベントを
-      // 新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。
-      addChild: () =>
-        set((s) => {
-          const previousComposition: HouseholdComposition = {
-            hasSpouse: s.input.spouse !== null,
-            childCount: s.input.children.length,
-          };
-          const child: Child = {
-            id: makeId("child"),
-            // lp-021: 既定名を「子1」「子2」…の連番にして判別できるようにする。
-            name: nextChildName(s.input.children),
-            birthYear: s.input.startYear,
-            education: DEFAULT_EDUCATION,
-          };
-          const withChild: PlanInput = {
-            ...s.input,
-            children: [...s.input.children, child],
-          };
-          const input = applyHouseholdDefaults(withChild, previousComposition, {
-            loan: makeId("loan"),
-            event: makeId("event"),
-            property: makeId("property"),
-          });
-          return { input };
-        }),
+      addChild: () => set((s) => ({ input: addChild(s.input, makeId) })),
 
       updateChild: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            children: s.input.children.map((c) =>
-              c.id === id ? { ...c, ...patch } : c,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateChild(s.input, id, patch) })),
 
-      // lp-030: 子の人数が変わるので、既定の生活費・ローン・イベントを
-      // 新しい世帯構成へ追従させる（編集済みの項目は上書きしない）。
-      removeChild: (id) =>
-        set((s) => {
-          const previousComposition: HouseholdComposition = {
-            hasSpouse: s.input.spouse !== null,
-            childCount: s.input.children.length,
-          };
-          const withoutChild: PlanInput = {
-            ...s.input,
-            children: s.input.children.filter((c) => c.id !== id),
-          };
-          const input = applyHouseholdDefaults(withoutChild, previousComposition, {
-            loan: makeId("loan"),
-            event: makeId("event"),
-            property: makeId("property"),
-          });
-          return { input };
-        }),
+      removeChild: (id) => set((s) => ({ input: removeChild(s.input, id, makeId) })),
 
-      addEvent: () =>
-        set((s) => {
-          const event: LifeEvent = {
-            id: makeId("event"),
-            year: s.input.startYear,
-            label: "イベント",
-            amount: 0,
-          };
-          return { input: { ...s.input, events: [...s.input.events, event] } };
-        }),
+      addEvent: () => set((s) => ({ input: addEvent(s.input, makeId) })),
 
       updateEvent: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            events: s.input.events.map((e) =>
-              e.id === id ? { ...e, ...patch } : e,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateEvent(s.input, id, patch) })),
 
-      removeEvent: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            events: s.input.events.filter((e) => e.id !== id),
-          },
-        })),
+      removeEvent: (id) => set((s) => ({ input: removeEvent(s.input, id) })),
 
-      // 新規行は年額 0 円・当年開始/終了。ユーザーが値を入れるまで収支に寄与しない。
       addRecurringExpense: () =>
-        set((s) => {
-          const item: RecurringExpense = newRecurringExpense(
-            makeId("rec"),
-            s.input.startYear,
-          );
-          return {
-            input: {
-              ...s.input,
-              recurringExpenses: [...s.input.recurringExpenses, item],
-            },
-          };
-        }),
+        set((s) => ({ input: addRecurringExpense(s.input, makeId) })),
 
       updateRecurringExpense: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            recurringExpenses: s.input.recurringExpenses.map((r) =>
-              r.id === id ? { ...r, ...patch } : r,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateRecurringExpense(s.input, id, patch) })),
 
       removeRecurringExpense: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            recurringExpenses: s.input.recurringExpenses.filter(
-              (r) => r.id !== id,
-            ),
-          },
-        })),
+        set((s) => ({ input: removeRecurringExpense(s.input, id) })),
 
-      addLoan: () =>
-        set((s) => {
-          // 新規行は 0 円始まり（借入額・金利・期間すべて 0）。ユーザーが値を
-          // 入れるまで返済額に寄与しない。既定値の定義は newLoan を参照。
-          const loan: Loan = newLoan(makeId("loan"), s.input.startYear);
-          return { input: { ...s.input, loans: [...s.input.loans, loan] } };
-        }),
+      addLoan: () => set((s) => ({ input: addLoan(s.input, makeId) })),
 
       updateLoan: (id, patch) =>
-        set((s) => {
-          const previous = s.input.loans.find((l) => l.id === id);
-          const nextStartYear = patch.startYear;
-          // 子育て共働きペルソナレビュー #8: 返済開始年と同じ年の住宅購入（頭金）
-          // イベントと自宅（不動産）は、返済開始年の変更に追従させる（購入年のずれを防ぐ）。
-          const moved =
-            previous !== undefined &&
-            nextStartYear !== undefined &&
-            nextStartYear !== previous.startYear;
-          const events = moved
-            ? s.input.events.map((e) =>
-                e.label === HOUSING_PURCHASE_EVENT_LABEL && e.year === previous.startYear
-                  ? { ...e, year: nextStartYear }
-                  : e,
-              )
-            : s.input.events;
-          const properties = moved
-            ? s.input.properties?.map((p) =>
-                p.label === HOME_PROPERTY_LABEL && p.purchaseYear === previous.startYear
-                  ? { ...p, purchaseYear: nextStartYear }
-                  : p,
-              )
-            : s.input.properties;
-          return {
-            input: {
-              ...s.input,
-              events,
-              properties,
-              loans: s.input.loans.map((l) =>
-                l.id === id ? { ...l, ...patch } : l,
-              ),
-            },
-          };
-        }),
+        set((s) => ({ input: updateLoan(s.input, id, patch) })),
 
-      removeLoan: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            loans: s.input.loans.filter((l) => l.id !== id),
-          },
-        })),
+      removeLoan: (id) => set((s) => ({ input: removeLoan(s.input, id) })),
 
-      // 新規行は開始年の1年間・割合100%（＝調整なし）。値を入れるまで収支は変わらない。
       addIncomeAdjustment: () =>
-        set((s) => {
-          const item: IncomeAdjustment = {
-            id: makeId("adj"),
-            person: s.input.spouse ? "spouse" : "self",
-            label: "収入の調整",
-            startYear: s.input.startYear,
-            endYear: s.input.startYear,
-            ratio: 1,
-            nonTaxable: false,
-          };
-          return {
-            input: {
-              ...s.input,
-              incomeAdjustments: [...(s.input.incomeAdjustments ?? []), item],
-            },
-          };
-        }),
+        set((s) => ({ input: addIncomeAdjustment(s.input, makeId) })),
 
       updateIncomeAdjustment: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            incomeAdjustments: (s.input.incomeAdjustments ?? []).map((a) =>
-              a.id === id ? { ...a, ...patch } : a,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateIncomeAdjustment(s.input, id, patch) })),
 
       removeIncomeAdjustment: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            incomeAdjustments: (s.input.incomeAdjustments ?? []).filter((a) => a.id !== id),
-          },
-        })),
+        set((s) => ({ input: removeIncomeAdjustment(s.input, id) })),
 
-      // 新規行は購入価格 0 円。値を入れるまで純資産は変わらない。
-      addProperty: () =>
-        set((s) => {
-          const item: Property = {
-            id: makeId("property"),
-            label: "不動産",
-            purchaseYear: s.input.startYear,
-            price: 0,
-            annualDepreciationRate: DEFAULT_PROPERTY_DEPRECIATION_RATE,
-          };
-          return {
-            input: { ...s.input, properties: [...(s.input.properties ?? []), item] },
-          };
-        }),
+      addProperty: () => set((s) => ({ input: addProperty(s.input, makeId) })),
 
       updateProperty: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            properties: (s.input.properties ?? []).map((p) =>
-              p.id === id ? { ...p, ...patch } : p,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateProperty(s.input, id, patch) })),
 
-      removeProperty: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            properties: (s.input.properties ?? []).filter((p) => p.id !== id),
-          },
-        })),
+      removeProperty: (id) => set((s) => ({ input: removeProperty(s.input, id) })),
 
       saveSnapshot: (name, input, origin = "manual") =>
         set((s) => {
@@ -551,40 +310,22 @@ export const usePlanStore = create<PlanState>()(
        * 前提: これは入力の全消去であり、テーマ等の UI 設定や
        * localStorage 上の別キーには一切触れない（persist の "life-plan/v1"
        * キー内の input / snapshots のみを初期化する）。
-       * defaultPlanInput は共有参照のため structuredClone して、
-       * 以降の編集が既定値オブジェクトを汚染しないようにする。
        */
       reset: () =>
         set({
-          input: structuredClone(defaultPlanInput),
+          input: resetInput(),
           snapshots: [],
           rangeAutoCorrected: false,
         }),
 
       resetSingle: () =>
         set({
-          input: structuredClone(singleRenterPlanInput),
+          input: resetSingleInput(),
           rangeAutoCorrected: false,
         }),
 
-      /**
-       * lp-030: 「まっさらから入力」。基礎生活費・ローン・イベントを 0/空にする。
-       * self / spouse / children / assets（保有資産・運用条件）には触れない
-       * ——世帯構成や年収・資産条件は決まっているが、支出面はこれから
-       * 自分で組み立てたいユーザー向けの開始地点。
-       * 以後、生活費は 0 のためどの世帯構成の既定値とも一致せず、
-       * applyHouseholdDefaults による自動追従の対象から外れる
-       * （ローン・イベントも空のため同様）。
-       */
-      startBlank: () =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            expenses: { ...s.input.expenses, baseAnnualLivingExpense: 0 },
-            loans: [],
-            events: [],
-          },
-        })),
+      /** lp-030: 「まっさらから入力」（本体は plan/application の startBlank）。 */
+      startBlank: () => set((s) => ({ input: startBlank(s.input) })),
     }),
     {
       name: "life-plan/v1",

@@ -9,3 +9,4 @@ export {
   type ParsePlanFileResult,
   type PlanFile,
 } from "./planFile";
+export { makeId } from "./makeId";
