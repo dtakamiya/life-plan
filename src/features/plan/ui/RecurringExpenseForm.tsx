@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { usePlanStore } from "@/features/plan/ui";
+import { usePlanStore } from "./usePlanStore";
 import { Button, ConfirmDialog, NumberField, Section, TextField, type ConfirmDialogHandle } from "@/shared/ui";
 import { usePlanErrors } from "./usePlanErrors";
 

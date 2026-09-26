@@ -1,6 +1,6 @@
 "use client";
 
-import { usePlanStore } from "@/features/plan/ui";
+import { usePlanStore } from "./usePlanStore";
 import { NumberField, PercentField, Section } from "@/shared/ui";
 import { usePlanErrors } from "./usePlanErrors";
 
