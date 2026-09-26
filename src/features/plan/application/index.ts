@@ -9,12 +9,23 @@ export {
 } from "./household";
 export { applyHouseholdDefaults } from "./householdDefaultsSync";
 export type { IdGenerator } from "./idGenerator";
+export {
+  addIncomeAdjustment,
+  removeIncomeAdjustment,
+  updateIncomeAdjustment,
+} from "./incomeAdjustments";
 export { addEvent, removeEvent, updateEvent } from "./lifeEvents";
 export { addLoan, removeLoan, updateLoan } from "./loans";
 export { newLoan } from "./newLoan";
 export { newRecurringExpense } from "./newRecurringExpense";
 export { nextChildName } from "./nextChildName";
 export { setRange } from "./period";
+export { addProperty, removeProperty, updateProperty } from "./properties";
+export {
+  addRecurringExpense,
+  removeRecurringExpense,
+  updateRecurringExpense,
+} from "./recurringExpenses";
 export {
   INPUT_LIMITS,
   ageField,

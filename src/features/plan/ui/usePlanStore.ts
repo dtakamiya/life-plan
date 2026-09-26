@@ -6,7 +6,6 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
   correctDateRange,
-  DEFAULT_PROPERTY_DEPRECIATION_RATE,
   defaultPlanInput,
   singleRenterPlanInput,
   type Child,
@@ -21,18 +20,26 @@ import {
 import {
   addChild,
   addEvent,
+  addIncomeAdjustment,
   addLoan,
-  newRecurringExpense,
+  addProperty,
+  addRecurringExpense,
   planInputSchema,
   removeChild,
   removeEvent,
+  removeIncomeAdjustment,
   removeLoan,
+  removeProperty,
+  removeRecurringExpense,
   setRange,
   snapshotSchema,
   toggleSpouse,
   updateChild,
   updateEvent,
+  updateIncomeAdjustment,
   updateLoan,
+  updateProperty,
+  updateRecurringExpense,
   updateSelf,
   updateSpouse,
 } from "@/features/plan/application";
@@ -225,40 +232,14 @@ export const usePlanStore = create<PlanState>()(
 
       removeEvent: (id) => set((s) => ({ input: removeEvent(s.input, id) })),
 
-      // 新規行は年額 0 円・当年開始/終了。ユーザーが値を入れるまで収支に寄与しない。
       addRecurringExpense: () =>
-        set((s) => {
-          const item: RecurringExpense = newRecurringExpense(
-            makeId("rec"),
-            s.input.startYear,
-          );
-          return {
-            input: {
-              ...s.input,
-              recurringExpenses: [...s.input.recurringExpenses, item],
-            },
-          };
-        }),
+        set((s) => ({ input: addRecurringExpense(s.input, makeId) })),
 
       updateRecurringExpense: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            recurringExpenses: s.input.recurringExpenses.map((r) =>
-              r.id === id ? { ...r, ...patch } : r,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateRecurringExpense(s.input, id, patch) })),
 
       removeRecurringExpense: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            recurringExpenses: s.input.recurringExpenses.filter(
-              (r) => r.id !== id,
-            ),
-          },
-        })),
+        set((s) => ({ input: removeRecurringExpense(s.input, id) })),
 
       addLoan: () => set((s) => ({ input: addLoan(s.input, makeId) })),
 
@@ -267,76 +248,21 @@ export const usePlanStore = create<PlanState>()(
 
       removeLoan: (id) => set((s) => ({ input: removeLoan(s.input, id) })),
 
-      // 新規行は開始年の1年間・割合100%（＝調整なし）。値を入れるまで収支は変わらない。
       addIncomeAdjustment: () =>
-        set((s) => {
-          const item: IncomeAdjustment = {
-            id: makeId("adj"),
-            person: s.input.spouse ? "spouse" : "self",
-            label: "収入の調整",
-            startYear: s.input.startYear,
-            endYear: s.input.startYear,
-            ratio: 1,
-            nonTaxable: false,
-          };
-          return {
-            input: {
-              ...s.input,
-              incomeAdjustments: [...(s.input.incomeAdjustments ?? []), item],
-            },
-          };
-        }),
+        set((s) => ({ input: addIncomeAdjustment(s.input, makeId) })),
 
       updateIncomeAdjustment: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            incomeAdjustments: (s.input.incomeAdjustments ?? []).map((a) =>
-              a.id === id ? { ...a, ...patch } : a,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateIncomeAdjustment(s.input, id, patch) })),
 
       removeIncomeAdjustment: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            incomeAdjustments: (s.input.incomeAdjustments ?? []).filter((a) => a.id !== id),
-          },
-        })),
+        set((s) => ({ input: removeIncomeAdjustment(s.input, id) })),
 
-      // 新規行は購入価格 0 円。値を入れるまで純資産は変わらない。
-      addProperty: () =>
-        set((s) => {
-          const item: Property = {
-            id: makeId("property"),
-            label: "不動産",
-            purchaseYear: s.input.startYear,
-            price: 0,
-            annualDepreciationRate: DEFAULT_PROPERTY_DEPRECIATION_RATE,
-          };
-          return {
-            input: { ...s.input, properties: [...(s.input.properties ?? []), item] },
-          };
-        }),
+      addProperty: () => set((s) => ({ input: addProperty(s.input, makeId) })),
 
       updateProperty: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            properties: (s.input.properties ?? []).map((p) =>
-              p.id === id ? { ...p, ...patch } : p,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateProperty(s.input, id, patch) })),
 
-      removeProperty: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            properties: (s.input.properties ?? []).filter((p) => p.id !== id),
-          },
-        })),
+      removeProperty: (id) => set((s) => ({ input: removeProperty(s.input, id) })),
 
       saveSnapshot: (name, input, origin = "manual") =>
         set((s) => {
