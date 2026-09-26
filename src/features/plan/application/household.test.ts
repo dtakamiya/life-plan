@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_EDUCATION, defaultPlanInput, type PlanInput } from "@/features/plan/domain";
+import {
+  computeHouseholdDefaults,
+  DEFAULT_EDUCATION,
+  defaultPlanInput,
+  type PlanInput,
+} from "@/features/plan/domain";
 import type { IdGenerator } from "./idGenerator";
 import {
   addChild,
@@ -57,6 +62,18 @@ describe("toggleSpouse", () => {
     const { idGen, calls } = sequentialIds();
     expect(toggleSpouse(input, true, idGen)).toBe(input);
     expect(calls()).toBe(0);
+  });
+
+  it("配偶者を外すと、世帯構成の既定値（基礎生活費）に追従し id を3件（loan/event/property分）採番する", () => {
+    const input = base();
+    const { idGen, calls } = sequentialIds();
+    const next = toggleSpouse(input, false, idGen);
+    const expectedExpense = computeHouseholdDefaults(
+      { hasSpouse: false, childCount: input.children.length },
+      input.startYear,
+    ).baseAnnualLivingExpense;
+    expect(next.expenses.baseAnnualLivingExpense).toBe(expectedExpense);
+    expect(calls()).toBe(3);
   });
 });
 
