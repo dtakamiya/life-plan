@@ -29,11 +29,11 @@ const SHARED_ALLOWED: Record<SharedSub, readonly SharedSub[]> = {
   ui: ["domain", "lib"],
 };
 
-/** 移行期間中は検査せず、import 先としても判定から除外する旧ディレクトリ。 */
-export const LEGACY_DIRS: readonly string[] = ["lib", "components"];
-
-/** アーキテクチャテストが走査するディレクトリ。 */
-export const SCAN_ROOTS: readonly string[] = ["features", "shared", "app"];
+/**
+ * アーキテクチャテスト自身（src/architecture.test.ts・src/architecture/）の、src からのパスの先頭要素。
+ * 検査の対象外とし、他のファイルからの import は違反とする。
+ */
+const TOOLING_PATHS: readonly string[] = ["architecture", "architecture.test.ts"];
 
 /** ui 層（shared/ui・src/app を含む）だけが import できる外部パッケージ。 */
 const UI_PACKAGES: readonly string[] = ["react", "react-dom", "next", "zustand", "recharts"];
@@ -46,7 +46,7 @@ export type Location =
   | { area: "feature"; feature: Feature; layer: Layer; rest: string }
   | { area: "shared"; sub: SharedSub; rest: string }
   | { area: "app"; rest: string }
-  | { area: "legacy" }
+  | { area: "tooling" }
   | { area: "unknown"; path: string };
 
 type Checked = Extract<Location, { area: "feature" | "shared" | "app" }>;
@@ -99,7 +99,7 @@ function isOneOf<T extends string>(list: readonly T[], value: string | undefined
 export function classify(srcPath: string): Location {
   const parts = srcPath.replace(/\/$/, "").split("/");
   const [top, second, third] = parts;
-  if (LEGACY_DIRS.includes(top)) return { area: "legacy" };
+  if (TOOLING_PATHS.includes(top)) return { area: "tooling" };
   if (top === "app") return { area: "app", rest: parts.slice(1).join("/") };
   if (top === "shared" && isOneOf(SHARED_SUBS, second)) {
     return { area: "shared", sub: second, rest: parts.slice(2).join("/") };
@@ -142,7 +142,7 @@ function checkPackage(from: Checked, name: string, isTest: boolean): string | nu
 }
 
 function checkInternal(from: Checked, to: Location, isAlias: boolean): string | null {
-  if (to.area === "legacy") return null;
+  if (to.area === "tooling") return "アーキテクチャテストのファイルは import できない";
   if (to.area === "unknown") return `機能・層として認識できない import 先: ${to.path}`;
   if (to.area === "app") {
     return from.area === "app" ? null : "src/app を import できるのは src/app のみ";
@@ -175,11 +175,18 @@ function checkInternal(from: Checked, to: Location, isAlias: boolean): string | 
   return isIndex(to.rest) ? null : INDEX_REASON;
 }
 
+/** `srcPath` のファイルの配置の違反理由を返す。許可なら null。 */
+export function checkPlacement(srcPath: string): string | null {
+  const location = classify(srcPath);
+  return location.area === "unknown" ? `機能・層として認識できない配置: ${location.path}` : null;
+}
+
 /** `fromSrcPath` のファイルが `specifier` を import することの違反理由を返す。許可なら null。 */
 export function checkImport(fromSrcPath: string, specifier: string): string | null {
+  const placement = checkPlacement(fromSrcPath);
+  if (placement !== null) return placement;
   const from = classify(fromSrcPath);
-  if (from.area === "legacy") return null;
-  if (from.area === "unknown") return `機能・層として認識できない配置: ${from.path}`;
+  if (from.area === "tooling" || from.area === "unknown") return null;
   const isTest = isTestFile(fromSrcPath);
   const target = resolveSpecifier(fromSrcPath, specifier);
   if (target.kind === "package") return checkPackage(from, target.name, isTest);

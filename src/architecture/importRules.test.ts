@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { checkImport, classify, extractSpecifiers, resolveSpecifier } from "./importRules";
+import { checkImport, checkPlacement, classify, extractSpecifiers, resolveSpecifier } from "./importRules";
 
 describe("extractSpecifiers", () => {
   it("静的 import・export from・副作用 import・動的 import・vi.mock を抽出する", () => {
@@ -71,9 +71,42 @@ describe("classify", () => {
     });
     expect(classify("shared/ui")).toEqual({ area: "shared", sub: "ui", rest: "" });
     expect(classify("app/game/page.tsx")).toEqual({ area: "app", rest: "game/page.tsx" });
-    expect(classify("lib/simulation/engine")).toEqual({ area: "legacy" });
-    expect(classify("components/forms/fields")).toEqual({ area: "legacy" });
+    expect(classify("lib/simulation/engine")).toEqual({ area: "unknown", path: "lib/simulation/engine" });
+    expect(classify("components/forms/fields")).toEqual({ area: "unknown", path: "components/forms/fields" });
+    expect(classify("architecture/importRules.ts")).toEqual({ area: "tooling" });
+    expect(classify("architecture.test.ts")).toEqual({ area: "tooling" });
+    expect(classify("architecture.ts")).toEqual({ area: "unknown", path: "architecture.ts" });
+    expect(classify("utils.ts")).toEqual({ area: "unknown", path: "utils.ts" });
     expect(classify("features/plan/helpers/x.ts")).toEqual({ area: "unknown", path: "features/plan/helpers/x.ts" });
+  });
+});
+
+describe("checkPlacement", () => {
+  it.each([
+    "features/plan/domain/loan.ts",
+    "features/game/ui/GameScreen.tsx",
+    "shared/lib/format.ts",
+    "shared/ui/Button.tsx",
+    "app/page.tsx",
+    "app/game/page.tsx",
+    "architecture.test.ts",
+    "architecture/importRules.ts",
+    "architecture/importRules.test.ts",
+  ])("%s は許可される", (srcPath) => {
+    expect(checkPlacement(srcPath)).toBeNull();
+  });
+
+  it.each([
+    "utils.ts",
+    "architecture.ts",
+    "architectureHelper.ts",
+    "lib/simulation/engine.ts",
+    "components/ScenarioBar.tsx",
+    "features/plan/helpers/x.ts",
+    "features/billing/ui/X.tsx",
+    "shared/hooks/useX.ts",
+  ])("%s は違反になる", (srcPath) => {
+    expect(checkPlacement(srcPath)).toBe(`機能・層として認識できない配置: ${srcPath}`);
   });
 });
 
@@ -104,9 +137,10 @@ describe("checkImport: 許可されるパターン", () => {
     ["app/page.tsx", "next/link"],
     ["app/layout.tsx", "./globals.css"],
     ["app/page.test.tsx", "./page"],
-    ["shared/ui/Button.tsx", "@/components/forms/fields"],
-    ["app/page.tsx", "@/lib/store/usePlanStore"],
-    ["lib/anything.ts", "react"],
+    ["architecture.test.ts", "node:fs"],
+    ["architecture.test.ts", "./architecture/importRules"],
+    ["architecture/importRules.ts", "node:path"],
+    ["architecture/importRules.test.ts", "vitest"],
   ])("%s → %s", (from, specifier) => {
     expect(checkImport(from, specifier)).toBeNull();
   });
@@ -143,6 +177,13 @@ describe("checkImport: 違反となるパターン", () => {
     ["features/plan/ui/Foo.tsx", "@/features/plan/ui", "自層の index"],
     ["features/plan/domain/loan.ts", ".", "自層の index"],
     ["features/simulation/domain/x.ts", "../../plan/domain", "@/features"],
+    ["shared/ui/Button.tsx", "@/components/forms/fields", "認識できない import 先"],
+    ["app/page.tsx", "@/lib/store/usePlanStore", "認識できない import 先"],
+    ["lib/anything.ts", "react", "認識できない配置"],
+    ["components/Foo.tsx", "@/shared/ui", "認識できない配置"],
+    ["utils.ts", "@/shared/lib", "認識できない配置"],
+    ["features/plan/domain/x.ts", "@/architecture/importRules", "アーキテクチャテスト"],
+    ["app/page.tsx", "../architecture/importRules", "アーキテクチャテスト"],
   ])("%s → %s（%s）", (from, specifier, reason) => {
     expect(checkImport(from, specifier)).toContain(reason);
   });

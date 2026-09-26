@@ -5,13 +5,15 @@
 ## 構成
 
 - `src/features/<feature>/{domain,application,infrastructure,ui}` と
-  `src/shared/{lib,ui}` による機能別レイヤー構成へ移行中。import の許可ルールは
+  `src/shared/{lib,ui}` による機能別レイヤー構成。機能は `plan`・`simulation`・
+  `scenario`・`game` で、依存方向は `shared ← plan ← simulation ← scenario / game`。
+- import の許可ルールは
   `docs/superpowers/specs/2026-09-26-feature-based-clean-architecture-design.md`
-  の 2.2 節にあり、`src/architecture.test.ts` が検証する。
-- 移行前の `src/components/`（UI）→ `src/lib/store`（Zustand）→
-  `src/lib/simulation` / `src/lib/game`（ドメインロジック）は旧構成として残り、
-  アーキテクチャテストの対象外。ここでも逆方向の依存（`lib` から `components`
-  を import する等）は行わない。
+  の 2.2 節にあり、`src/architecture.test.ts` が `src` 全体を検証する。
+  `src/app`・`src/features/<feature>/<layer>`・`src/shared/<sub>` 以外に
+  ファイルを置くことも違反になる。
+- 他機能・`src/app` からは層の index（`@/features/<feature>/<layer>`）経由で
+  import し、層内の個別ファイルを直接 import しない。
 
 ## コーディング規約
 
