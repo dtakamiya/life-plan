@@ -9,6 +9,8 @@ export {
 } from "./household";
 export { applyHouseholdDefaults } from "./householdDefaultsSync";
 export type { IdGenerator } from "./idGenerator";
+export { addEvent, removeEvent, updateEvent } from "./lifeEvents";
+export { addLoan, removeLoan, updateLoan } from "./loans";
 export { newLoan } from "./newLoan";
 export { newRecurringExpense } from "./newRecurringExpense";
 export { nextChildName } from "./nextChildName";

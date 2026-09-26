@@ -8,8 +8,6 @@ import {
   correctDateRange,
   DEFAULT_PROPERTY_DEPRECIATION_RATE,
   defaultPlanInput,
-  HOME_PROPERTY_LABEL,
-  HOUSING_PURCHASE_EVENT_LABEL,
   singleRenterPlanInput,
   type Child,
   type IncomeAdjustment,
@@ -22,14 +20,19 @@ import {
 } from "@/features/plan/domain";
 import {
   addChild,
-  newLoan,
+  addEvent,
+  addLoan,
   newRecurringExpense,
   planInputSchema,
   removeChild,
+  removeEvent,
+  removeLoan,
   setRange,
   snapshotSchema,
   toggleSpouse,
   updateChild,
+  updateEvent,
+  updateLoan,
   updateSelf,
   updateSpouse,
 } from "@/features/plan/application";
@@ -215,34 +218,12 @@ export const usePlanStore = create<PlanState>()(
 
       removeChild: (id) => set((s) => ({ input: removeChild(s.input, id, makeId) })),
 
-      addEvent: () =>
-        set((s) => {
-          const event: LifeEvent = {
-            id: makeId("event"),
-            year: s.input.startYear,
-            label: "イベント",
-            amount: 0,
-          };
-          return { input: { ...s.input, events: [...s.input.events, event] } };
-        }),
+      addEvent: () => set((s) => ({ input: addEvent(s.input, makeId) })),
 
       updateEvent: (id, patch) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            events: s.input.events.map((e) =>
-              e.id === id ? { ...e, ...patch } : e,
-            ),
-          },
-        })),
+        set((s) => ({ input: updateEvent(s.input, id, patch) })),
 
-      removeEvent: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            events: s.input.events.filter((e) => e.id !== id),
-          },
-        })),
+      removeEvent: (id) => set((s) => ({ input: removeEvent(s.input, id) })),
 
       // 新規行は年額 0 円・当年開始/終了。ユーザーが値を入れるまで収支に寄与しない。
       addRecurringExpense: () =>
@@ -279,57 +260,12 @@ export const usePlanStore = create<PlanState>()(
           },
         })),
 
-      addLoan: () =>
-        set((s) => {
-          // 新規行は 0 円始まり（借入額・金利・期間すべて 0）。ユーザーが値を
-          // 入れるまで返済額に寄与しない。既定値の定義は newLoan を参照。
-          const loan: Loan = newLoan(makeId("loan"), s.input.startYear);
-          return { input: { ...s.input, loans: [...s.input.loans, loan] } };
-        }),
+      addLoan: () => set((s) => ({ input: addLoan(s.input, makeId) })),
 
       updateLoan: (id, patch) =>
-        set((s) => {
-          const previous = s.input.loans.find((l) => l.id === id);
-          const nextStartYear = patch.startYear;
-          // 子育て共働きペルソナレビュー #8: 返済開始年と同じ年の住宅購入（頭金）
-          // イベントと自宅（不動産）は、返済開始年の変更に追従させる（購入年のずれを防ぐ）。
-          const moved =
-            previous !== undefined &&
-            nextStartYear !== undefined &&
-            nextStartYear !== previous.startYear;
-          const events = moved
-            ? s.input.events.map((e) =>
-                e.label === HOUSING_PURCHASE_EVENT_LABEL && e.year === previous.startYear
-                  ? { ...e, year: nextStartYear }
-                  : e,
-              )
-            : s.input.events;
-          const properties = moved
-            ? s.input.properties?.map((p) =>
-                p.label === HOME_PROPERTY_LABEL && p.purchaseYear === previous.startYear
-                  ? { ...p, purchaseYear: nextStartYear }
-                  : p,
-              )
-            : s.input.properties;
-          return {
-            input: {
-              ...s.input,
-              events,
-              properties,
-              loans: s.input.loans.map((l) =>
-                l.id === id ? { ...l, ...patch } : l,
-              ),
-            },
-          };
-        }),
+        set((s) => ({ input: updateLoan(s.input, id, patch) })),
 
-      removeLoan: (id) =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            loans: s.input.loans.filter((l) => l.id !== id),
-          },
-        })),
+      removeLoan: (id) => set((s) => ({ input: removeLoan(s.input, id) })),
 
       // 新規行は開始年の1年間・割合100%（＝調整なし）。値を入れるまで収支は変わらない。
       addIncomeAdjustment: () =>
