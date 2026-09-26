@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "./usePlanStore";
 import { RecurringExpenseForm } from "./RecurringExpenseForm";
 
 (

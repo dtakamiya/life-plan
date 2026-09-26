@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "./usePlanStore";
 import {
   BASIC_PENSION_ANNUAL,
   DEFAULT_END_AGE,

@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "./usePlanStore";
 import { BASIC_PENSION_ANNUAL, estimateAnnualPension } from "@/features/plan/domain";
 import { HouseholdForm } from "./HouseholdForm";
 import { ExpenseForm } from "./ExpenseForm";

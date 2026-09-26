@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import type { YearlyResult } from "@/lib/simulation/types";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
-import type { Snapshot } from "@/lib/store/usePlanStore";
+import type { Snapshot } from "@/features/plan/ui";
 import { formatManYen, formatYen } from "@/shared/lib";
 import { ComparisonDiffTable } from "./ComparisonDiffTable";
 import {

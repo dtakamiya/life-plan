@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { usePlanStore, mergePersistedPlanState } from "./usePlanStore";
-import { defaultPlanInput } from "@/features/plan/domain";
+import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
+import { PLAN_FILE_FORMAT, parsePlanFile, serializePlan } from "@/features/plan/infrastructure";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { YearlyResult } from "@/lib/simulation/types";
 
@@ -545,5 +546,59 @@ describe("usePlanStore — 収入調整・不動産", () => {
 
     usePlanStore.getState().removeProperty(added.id);
     expect(usePlanStore.getState().input.properties?.some((p) => p.id === added.id)).toBe(false);
+  });
+});
+
+/** プランファイルの読み込みテスト用の、子・ローン・イベント入りの入力。 */
+const rich = (): PlanInput => ({
+  ...structuredClone(defaultPlanInput),
+  children: [
+    {
+      id: "c1",
+      name: "長男",
+      birthYear: 2024,
+      education: {
+        kindergarten: "私立",
+        elementary: "公立",
+        juniorHigh: "私立",
+        highSchool: "公立",
+        university: "私立理系",
+      },
+    },
+  ],
+  events: [{ id: "e1", year: 2030, label: "車", amount: -3_000_000 }],
+  loans: [{ id: "l1", label: "住宅", startYear: 2027, principal: 40_000_000, annualRate: 0.015, termYears: 35 }],
+  recurringExpenses: [{ id: "r1", label: "習い事", startYear: 2028, endYear: 2035, annualAmount: 240_000 }],
+});
+
+function serializeRaw(input: unknown) {
+  return JSON.stringify({ format: PLAN_FILE_FORMAT, version: 1, input });
+}
+
+describe("読み込み失敗時に現在のプランが不変", () => {
+  it("失敗した parse の後、ストアの input は参照・値とも変わらない", () => {
+    const store = usePlanStore.getState();
+    store.reset();
+    store.updateSelf({ name: "変更済み" });
+    const before = usePlanStore.getState().input;
+    const snapshot = structuredClone(before);
+    for (const t of ["", "{", "[]", serializeRaw({ foo: 1 })]) {
+      const r = parsePlanFile(t);
+      if (r.ok) usePlanStore.getState().replaceInput(r.input);
+    }
+    expect(usePlanStore.getState().input).toBe(before);
+    expect(usePlanStore.getState().input).toEqual(snapshot);
+  });
+
+  it("成功時は replaceInput で置換され、snapshots は保持される", () => {
+    const store = usePlanStore.getState();
+    store.reset();
+    store.saveSnapshot("keep");
+    const src = rich();
+    const r = parsePlanFile(serializePlan(src));
+    if (r.ok) usePlanStore.getState().replaceInput(r.input);
+    expect(usePlanStore.getState().input).toEqual(src);
+    expect(usePlanStore.getState().snapshots).toHaveLength(1);
+    store.reset();
   });
 });

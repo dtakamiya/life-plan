@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "@/features/plan/ui";
 import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import {
   PLAN_FILE_MAX_BYTES,

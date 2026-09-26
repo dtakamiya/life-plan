@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "./usePlanStore";
 import { annualLoanPayment } from "@/features/plan/domain";
 import { formatYen } from "@/shared/lib";
 import { Button, CheckboxField, ConfirmDialog, NumberField, PercentField, Section, TermHelp, TextField, type ConfirmDialogHandle } from "@/shared/ui";

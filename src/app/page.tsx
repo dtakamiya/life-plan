@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import {
+  AssetForm,
+  EventForm,
+  ExpenseForm,
+  HouseholdForm,
+  IncomeAdjustmentForm,
+  LoanForm,
+  PropertyForm,
+  RecurringExpenseForm,
+  usePlanStore,
+} from "@/features/plan/ui";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import { summarizeResults } from "@/lib/simulation/summary";
 import { describeAssetLongevity } from "@/lib/simulation/longevitySummary";
@@ -10,14 +20,6 @@ import { formatYen } from "@/shared/lib";
 import { Button, ConfirmDialog, Eyebrow, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import { SummaryBar } from "@/components/SummaryBar";
 import { DepletionAdvice } from "@/components/DepletionAdvice";
-import { HouseholdForm } from "@/components/forms/HouseholdForm";
-import { ExpenseForm } from "@/components/forms/ExpenseForm";
-import { RecurringExpenseForm } from "@/components/forms/RecurringExpenseForm";
-import { AssetForm } from "@/components/forms/AssetForm";
-import { EventForm } from "@/components/forms/EventForm";
-import { LoanForm } from "@/components/forms/LoanForm";
-import { IncomeAdjustmentForm } from "@/components/forms/IncomeAdjustmentForm";
-import { PropertyForm } from "@/components/forms/PropertyForm";
 import { NetWorthChart } from "@/components/charts/NetWorthChart";
 import { CashFlowChart } from "@/components/charts/CashFlowChart";
 import { ComparisonChart } from "@/components/charts/ComparisonChart";
