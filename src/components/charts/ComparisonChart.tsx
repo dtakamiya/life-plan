@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { YearlyResult } from "@/features/simulation/domain";
-import { runValidatedSimulation } from "@/lib/validatedSimulation";
+import { runValidatedSimulation } from "@/features/simulation/application";
 import type { Snapshot } from "@/features/plan/ui";
 import { formatManYen, formatYen } from "@/shared/lib";
 import { ComparisonDiffTable } from "./ComparisonDiffTable";

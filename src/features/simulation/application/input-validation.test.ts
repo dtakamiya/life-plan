@@ -6,12 +6,12 @@ import {
 } from "@/features/plan/application";
 import { DEFAULT_EDUCATION, defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 
-vi.mock("@/features/simulation/domain/engine", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/simulation/domain/engine")>();
+vi.mock("../domain/engine", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../domain/engine")>();
   return { ...actual, runSimulation: vi.fn(actual.runSimulation) };
 });
 
-import { runSimulation } from "@/features/simulation/domain/engine";
+import { runSimulation } from "../domain/engine";
 import { runValidatedSimulation } from "./validatedSimulation";
 
 /** 現在年に依存しない、退職あり＋ローンあり＋子あり＋配偶者ありの入力。 */
@@ -241,7 +241,7 @@ describe("runValidatedSimulation — 呼び出しガード", () => {
 
 describe("シミュレーション結果不変（退職あり＋ローンあり＋子あり）", () => {
   it("ガード経由の年次系列が直接呼び出しと完全一致し、固定される", async () => {
-    const actual = await vi.importActual<typeof import("@/features/simulation/domain/engine")>("@/features/simulation/domain/engine");
+    const actual = await vi.importActual<typeof import("../domain/engine")>("../domain/engine");
     const direct = actual.runSimulation(fixedInput);
     expect(runValidatedSimulation(fixedInput)).toEqual(direct);
     // 退職・ローン・子の教育費が系列に効いていること（空回りの検証で終わらせない）

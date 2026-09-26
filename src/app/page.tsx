@@ -13,7 +13,7 @@ import {
   RecurringExpenseForm,
   usePlanStore,
 } from "@/features/plan/ui";
-import { runValidatedSimulation } from "@/lib/validatedSimulation";
+import { runValidatedSimulation } from "@/features/simulation/application";
 import { describeAssetLongevity, summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 import { formatYen } from "@/shared/lib";
 import { Button, ConfirmDialog, Eyebrow, Panel, type ConfirmDialogHandle } from "@/shared/ui";
