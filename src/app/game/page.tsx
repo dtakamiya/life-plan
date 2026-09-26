@@ -5,10 +5,7 @@ import Link from "next/link";
 import { usePlanStore } from "@/features/plan/ui";
 import { runSimulation } from "@/features/simulation/domain";
 import { Button, Eyebrow, Panel } from "@/shared/ui";
-import { GameHud } from "@/components/game/GameHud";
-import { StageCard, type CardChoice } from "@/components/game/StageCard";
-import { AdventureLog } from "@/components/game/AdventureLog";
-import { GameResult } from "@/components/game/GameResult";
+import { AdventureLog, GameHud, GameResult, StageCard, type CardChoice } from "@/features/game/ui";
 import {
   computeStats,
   createGame,
