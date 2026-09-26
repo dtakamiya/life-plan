@@ -1,4 +1,4 @@
-import { buildComparisonDiff, type ComparisonInput, type DiffDirection } from "@/lib/comparisonDiff";
+import { buildComparisonDiff, type ComparisonInput, type DiffDirection } from "@/features/scenario/domain";
 
 const directionClass: Record<DiffDirection, string> = {
   改善: "text-ink",
