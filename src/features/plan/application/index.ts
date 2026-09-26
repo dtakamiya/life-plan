@@ -28,8 +28,6 @@ export {
   updateRecurringExpense,
 } from "./recurringExpenses";
 export {
-  INPUT_LIMITS,
-  ageField,
   assetSchema,
   childSchema,
   educationSchema,
@@ -39,11 +37,15 @@ export {
   loanSchema,
   personSchema,
   planInputSchema,
-  planInputValidationSchema,
   propertySchema,
   recurringExpenseSchema,
+} from "./persistedPlanSchema";
+export {
+  INPUT_LIMITS,
+  ageField,
+  planInputValidationSchema,
   validatePlanInput,
   type PlanInputErrors,
   type PlanInputValidation,
-} from "./schema";
+} from "./planInputValidation";
 export { updateAssets, updateExpenses } from "./settings";

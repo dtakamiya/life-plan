@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planInputSchema } from "./schema";
+import { planInputSchema } from "./persistedPlanSchema";
 import { defaultPlanInput } from "@/features/plan/domain";
 
 describe("planInputSchema — recurringExpenses（#18）", () => {
