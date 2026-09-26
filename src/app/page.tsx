@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "@/features/plan/ui";
 import { runValidatedSimulation } from "@/lib/validatedSimulation";
 import { summarizeResults } from "@/lib/simulation/summary";
 import { describeAssetLongevity } from "@/lib/simulation/longevitySummary";

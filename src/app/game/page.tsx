@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useReducer, useState } from "react";
 import Link from "next/link";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "@/features/plan/ui";
 import { runSimulation } from "@/lib/simulation/engine";
 import { Button, Eyebrow, Panel } from "@/shared/ui";
 import { GameHud } from "@/components/game/GameHud";

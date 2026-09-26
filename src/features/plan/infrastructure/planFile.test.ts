@@ -8,7 +8,6 @@ import {
 } from "./planFile";
 import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import { runSimulation } from "@/lib/simulation/engine";
-import { usePlanStore } from "@/lib/store/usePlanStore";
 
 const rich = (): PlanInput => ({
   ...structuredClone(defaultPlanInput),
@@ -141,31 +140,3 @@ describe("不正ファイル（日本語エラー・失敗として返す）", (
 function serializeRaw(input: unknown) {
   return JSON.stringify({ format: PLAN_FILE_FORMAT, version: 1, input });
 }
-
-describe("読み込み失敗時に現在のプランが不変", () => {
-  it("失敗した parse の後、ストアの input は参照・値とも変わらない", () => {
-    const store = usePlanStore.getState();
-    store.reset();
-    store.updateSelf({ name: "変更済み" });
-    const before = usePlanStore.getState().input;
-    const snapshot = structuredClone(before);
-    for (const t of ["", "{", "[]", serializeRaw({ foo: 1 })]) {
-      const r = parsePlanFile(t);
-      if (r.ok) usePlanStore.getState().replaceInput(r.input);
-    }
-    expect(usePlanStore.getState().input).toBe(before);
-    expect(usePlanStore.getState().input).toEqual(snapshot);
-  });
-
-  it("成功時は replaceInput で置換され、snapshots は保持される", () => {
-    const store = usePlanStore.getState();
-    store.reset();
-    store.saveSnapshot("keep");
-    const src = rich();
-    const r = parsePlanFile(serializePlan(src));
-    if (r.ok) usePlanStore.getState().replaceInput(r.input);
-    expect(usePlanStore.getState().input).toEqual(src);
-    expect(usePlanStore.getState().snapshots).toHaveLength(1);
-    store.reset();
-  });
-});

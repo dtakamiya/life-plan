@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { usePlanStore } from "@/lib/store/usePlanStore";
+import { usePlanStore } from "@/features/plan/ui";
 import { validatePlanInput, type PlanInputErrors } from "@/features/plan/application";
 
 const NO_ERRORS: PlanInputErrors = {};
