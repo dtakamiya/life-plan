@@ -115,6 +115,18 @@ describe("Home ページ — 「初期値に戻す」は確認ダイアログ経
   });
 });
 
+describe("Home ページ — ヘッダーの操作ボタンの並び", () => {
+  it("「まっさらから入力」「単身・賃貸で始める」「初期値に戻す」の順に並ぶ", async () => {
+    const el = mount(<Home />);
+    await waitForHydration();
+
+    const labels = [...el.querySelectorAll("header button")]
+      .filter((b) => !b.closest("dialog"))
+      .map((b) => b.textContent);
+    expect(labels).toEqual(["まっさらから入力", "単身・賃貸で始める", "初期値に戻す"]);
+  });
+});
+
 describe("Home ページ — 「単身・賃貸で始める」プリセット（低収入ペルソナ #8）", () => {
   it("確認ダイアログの確定で配偶者・子・ローン・イベントのない単身世帯になる", async () => {
     const el = mount(<Home />);

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useMemo } from "react";
 import {
   AssetForm,
   EventForm,
@@ -9,162 +8,34 @@ import {
   HouseholdForm,
   IncomeAdjustmentForm,
   LoanForm,
+  PlanPresetActions,
   PropertyForm,
   RecurringExpenseForm,
+  usePlanHydrated,
   usePlanStore,
 } from "@/features/plan/ui";
-import { ComparisonChart, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
+import { GameModeIntro } from "./GameModeIntro";
+import { ComparisonChart, ResetAllAction, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
 import { runValidatedSimulation } from "@/features/simulation/application";
-import { describeAssetLongevity, summarizeResults, type YearlyResult } from "@/features/simulation/domain";
-import { formatYen } from "@/shared/lib";
-import { Button, ConfirmDialog, Eyebrow, Panel, type ConfirmDialogHandle } from "@/shared/ui";
+import type { YearlyResult } from "@/features/simulation/domain";
+import { Eyebrow, LoadingPlaceholder, Panel } from "@/shared/ui";
 import {
   AssumptionsPanel,
   CashFlowChart,
   DepletionAdvice,
+  EmptyResultsNotice,
   NetWorthChart,
   ResultTable,
   SummaryBar,
+  SummaryCards,
 } from "@/features/simulation/ui";
-
-type Tone = "brand" | "ink" | "danger";
-
-const toneAccent: Record<Tone, string> = {
-  brand: "bg-brand",
-  ink: "bg-ink/30",
-  danger: "bg-danger",
-};
-const toneText: Record<Tone, string> = {
-  brand: "text-brand-700",
-  ink: "text-ink",
-  danger: "text-danger",
-};
-
-/**
- * lp-019 / QA#1: `results` が空のときに Summary/ResultTable/各チャートの
- * 代わりに表示する共通メッセージ。例外は投げず、呼び出し側が
- * `results.length === 0` を判定して差し替える戻り値ベースの表現とする。
- */
-function EmptyResultsNotice() {
-  return (
-    <div className="flex h-40 items-center justify-center rounded-2xl border border-line bg-surface p-6 text-center text-sm text-ink-mute">
-      表示できる結果がありません。シミュレーション期間や入力内容をご確認ください。
-    </div>
-  );
-}
-
-/** localStorage 復元（ハイドレーション）待ちの共通プレースホルダー。 */
-function LoadingPlaceholder({ className }: { className: string }) {
-  return (
-    <div
-      className={`flex items-center justify-center gap-2 text-sm text-ink-mute ${className}`}
-    >
-      <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
-      読み込み中…
-    </div>
-  );
-}
-
-/** サマリーカード（最終純資産・最小純資産・赤字転落年）。 */
-function Summary({ results }: { results: YearlyResult[] }) {
-  const summary = summarizeResults(results);
-  if (!summary) return null;
-  const { last, min, depleted } = summary;
-  // lp-031: 結果冒頭の1行判定。判定は lp-003 の summarizeResults を再利用し、
-  // ここでは文言の描画のみ行う。
-  const longevityText = describeAssetLongevity(results);
-
-  const cards: {
-    label: string;
-    value: string;
-    caption: string;
-    tone: Tone;
-  }[] = [
-    {
-      label: "最終純資産",
-      value: formatYen(last.assets),
-      caption: `${last.year}年（本人${last.selfAge}歳）時点`,
-      tone: last.assets < 0 ? "danger" : "brand",
-    },
-    {
-      label: "最小純資産",
-      value: formatYen(min.assets),
-      caption:
-        min.year === last.year
-          ? "最終年まで減り続けています"
-          : `${min.year}年（本人${min.selfAge}歳）で最小`,
-      tone: min.assets < 0 ? "danger" : "ink",
-    },
-    {
-      label: "資産が尽きる年",
-      value: depleted ? `${depleted.year}年` : "なし",
-      // 枯渇判定は金融資産（ローン残高を引く前）。純資産がマイナスの期間があると
-      // 「枯渇なし」と赤字表示が食い違って見えるため、基準の違いを補足する。
-      caption: depleted
-        ? `本人${depleted.selfAge}歳で初めて残高マイナス`
-        : min.assets < 0
-          ? `金融資産は枯渇なし（ローン残高を含む純資産は${min.year}年に最小）`
-          : "生涯を通じて枯渇なし",
-      tone: depleted ? "danger" : "ink",
-    },
-  ];
-
-  return (
-    <div className="space-y-3">
-      {longevityText && (
-        <p className="font-display text-[15px] font-semibold text-ink">
-          {longevityText}
-        </p>
-      )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {cards.map((c, i) => (
-          <div
-            key={c.label}
-            className="animate-fade-up relative overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-panel"
-            style={{ animationDelay: `${i * 70}ms` }}
-          >
-            <span
-              className={`absolute inset-y-0 left-0 w-1 ${toneAccent[c.tone]}`}
-              aria-hidden
-            />
-            <Eyebrow>{c.label}</Eyebrow>
-            <div
-              className={`mt-2 font-display text-[28px] font-semibold leading-tight tabular-nums ${toneText[c.tone]}`}
-            >
-              {c.value}
-            </div>
-            <div className="mt-1.5 text-[11px] text-ink-mute">{c.caption}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function Home() {
   const input = usePlanStore((s) => s.input);
   const snapshots = useScenarioStore((s) => s.snapshots);
-  // 「初期値に戻す」は全消去（入力と保存済み比較プラン。scenario ストアの reset）
-  const reset = useScenarioStore((s) => s.reset);
-  const startBlank = usePlanStore((s) => s.startBlank);
-  const resetSingle = usePlanStore((s) => s.resetSingle);
-
-  // issue #15: 「初期値に戻す」は破壊的操作のため確認ダイアログを経由する
-  const resetConfirmRef = useRef<ConfirmDialogHandle>(null);
-  // lp-030: 「まっさらから入力」も生活費・ローン・イベントを消去する破壊的
-  // 操作のため、同様に確認ダイアログを経由する
-  const blankConfirmRef = useRef<ConfirmDialogHandle>(null);
-  // 低収入ペルソナレビュー #8: 単身・賃貸にするための削除操作を1回で済ませる
-  const singleConfirmRef = useRef<ConfirmDialogHandle>(null);
-
   // localStorage からの復元（ハイドレーション）後にのみ結果を描画し、
   // サーバー描画とのミスマッチを避ける。
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(usePlanStore.persist.hasHydrated());
-    const unsub = usePlanStore.persist.onFinishHydration(() => setHydrated(true));
-    return unsub;
-  }, []);
+  const hydrated = usePlanHydrated();
 
   // lp-005: バリデーション通過時のみ runSimulation を呼ぶ。エラー中は結果を
   // 空にして共通メッセージ（EmptyResultsNotice）へフォールバックする。
@@ -214,53 +85,10 @@ export default function Home() {
         {/* lp-030: サンプル世帯からではなく自分の数字だけで組み立てたい
             ユーザー向けの導線。初回表示から常に見える位置に置く。 */}
         <div className="flex shrink-0 flex-wrap gap-2 self-start sm:self-auto">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => blankConfirmRef.current?.open()}
-          >
-            まっさらから入力
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => singleConfirmRef.current?.open()}
-          >
-            単身・賃貸で始める
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => resetConfirmRef.current?.open()}
-          >
-            初期値に戻す
-          </Button>
+          <PlanPresetActions />
+          <ResetAllAction />
         </div>
       </header>
-
-      <ConfirmDialog
-        ref={resetConfirmRef}
-        title="入力内容を初期値に戻しますか？"
-        description="世帯構成・支出・資産・イベントなどすべての入力が初期値に戻ります。この操作は元に戻せません（保存済みプランは削除されません）。"
-        confirmLabel="初期値に戻す"
-        onConfirm={reset}
-      />
-
-      <ConfirmDialog
-        ref={singleConfirmRef}
-        title="単身・賃貸の例で始めますか？"
-        description="配偶者・子・住宅ローン・住宅購入イベントのない単身世帯の例に置き換わります。年収・生活費・資産は目安の値になるので、ご自身の数字に書き換えてください。この操作は元に戻せません（保存済みプランは削除されません）。"
-        confirmLabel="単身・賃貸で始める"
-        onConfirm={resetSingle}
-      />
-
-      <ConfirmDialog
-        ref={blankConfirmRef}
-        title="生活費・ローン・イベントをまっさらにしますか？"
-        description="基礎生活費・住宅ローンなどの借入・単発イベントがすべて0/空になります。本人・配偶者・子・資産の入力はそのまま残ります。この操作は元に戻せません。"
-        confirmLabel="まっさらにする"
-        onConfirm={startBlank}
-      />
 
       {/* issue #17: 入力を編集しながら結果を確認できるよう要約を上部に固定する */}
       {hydrated && <SummaryBar results={results} />}
@@ -324,7 +152,7 @@ export default function Home() {
                       基礎生活費が0円のため、結果には生活費が含まれていません。実際より資産が多く見えます。
                     </p>
                   )}
-                  <Summary results={results} />
+                  <SummaryCards results={results} />
                   {validated && <DepletionAdvice input={input} />}
 
                   <div className="animate-fade-up" style={{ animationDelay: "210ms" }}>
@@ -364,24 +192,7 @@ export default function Home() {
               </div>
 
               <div className="animate-fade-up" style={{ animationDelay: "500ms" }}>
-                <Panel eyebrow="Game mode" title="人生の選択を進めてみる">
-                  <p className="text-sm leading-relaxed text-ink-soft">
-                    10 年ごとの節目に方針を選びながら、このプランがどう動くかを追う
-                    モードです。10〜15 分で 1 回分の人生を通せます。ここでの選択は
-                    上の入力・グラフ・年次明細を書き換えません。
-                  </p>
-                  <p className="mt-2 text-[11px] leading-relaxed text-ink-mute">
-                    イベントはゲーム上の演出です。あなたに起こる確率の予測ではありません。
-                  </p>
-                  <div className="mt-4">
-                    <Link
-                      href="/game"
-                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-px hover:bg-brand-700 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-1 focus-visible:ring-offset-paper"
-                    >
-                      人生の選択をはじめる
-                    </Link>
-                  </div>
-                </Panel>
+                <GameModeIntro />
               </div>
             </>
           ) : (
