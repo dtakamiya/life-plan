@@ -35,9 +35,6 @@ const SHARED_ALLOWED: Record<SharedSub, readonly SharedSub[]> = {
  */
 const TOOLING_PATHS: readonly string[] = ["architecture", "architecture.test.ts"];
 
-/** アーキテクチャテストが走査するディレクトリ。 */
-export const SCAN_ROOTS: readonly string[] = ["features", "shared", "app"];
-
 /** ui 層（shared/ui・src/app を含む）だけが import できる外部パッケージ。 */
 const UI_PACKAGES: readonly string[] = ["react", "react-dom", "next", "zustand", "recharts"];
 
