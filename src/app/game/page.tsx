@@ -20,7 +20,7 @@ import {
   summarizeSatisfaction,
   type GameState,
 } from "@/features/game/domain";
-import { createFlow, gameFlowReducer, type GameFlow } from "@/lib/game/flow";
+import { createFlow, gameFlowReducer, type GameFlow } from "@/features/game/application";
 
 /** seed を作る。SSR とクライアントで食い違わないよう、レンダー本体では呼ばない。 */
 function makeSeed(): number {
@@ -31,7 +31,7 @@ export default function GamePage() {
   const input = usePlanStore((s) => s.input);
   const saveSnapshot = usePlanStore((s) => s.saveSnapshot);
   const [hydrated, setHydrated] = useState(false);
-  // 選択（プレビュー）と確定の状態機械は lib/game/flow.ts。
+  // 選択（プレビュー）と確定の状態機械は features/game/application/flow.ts。
   const [flow, dispatch] = useReducer(
     (f: GameFlow | null, a: Parameters<typeof gameFlowReducer>[1] | { type: "start"; game: GameState }) =>
       a.type === "start" ? createFlow(a.game) : f ? gameFlowReducer(f, a) : f,
