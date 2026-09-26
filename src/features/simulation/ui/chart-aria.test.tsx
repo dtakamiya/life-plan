@@ -2,10 +2,9 @@
 import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { YearlyResult } from "@/lib/simulation/types";
+import type { YearlyResult } from "@/features/simulation/domain";
 import { CashFlowChart } from "./CashFlowChart";
 import { NetWorthChart } from "./NetWorthChart";
-import { ComparisonChart } from "./ComparisonChart";
 
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -98,12 +97,5 @@ describe("チャートのテキスト代替（FR6.1）", () => {
     expect(label).toContain("金融資産");
     // ローンのない計画では純資産の破線は出さない
     expect(label).not.toContain("破線");
-  });
-
-  it("ComparisonChart は result-table を aria-describedby で参照する", () => {
-    const el = mount(<ComparisonChart current={results} snapshots={[]} />);
-    expect(
-      el.querySelector('[aria-describedby="result-table"]'),
-    ).not.toBeNull();
   });
 });

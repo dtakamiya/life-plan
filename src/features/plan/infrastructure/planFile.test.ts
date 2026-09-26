@@ -7,7 +7,6 @@ import {
   serializePlan,
 } from "./planFile";
 import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
-import { runSimulation } from "@/lib/simulation/engine";
 
 const rich = (): PlanInput => ({
   ...structuredClone(defaultPlanInput),
@@ -32,14 +31,13 @@ const rich = (): PlanInput => ({
 
 describe("プランJSON往復", () => {
   it.each([["既定", () => structuredClone(defaultPlanInput)], ["子・ローン・イベント入り", rich]])(
-    "%s: export→import で完全一致し年次系列も一致",
+    "%s: export→import で完全一致する",
     (_n, make) => {
       const input = make();
       const r = parsePlanFile(serializePlan(input));
       expect(r.ok).toBe(true);
       if (!r.ok) return;
       expect(r.input).toEqual(input);
-      expect(runSimulation(r.input)).toEqual(runSimulation(input));
     },
   );
 

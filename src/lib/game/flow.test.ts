@@ -3,7 +3,7 @@ import { createGame, currentStage, pendingGameEvent } from "./advance";
 import { createFlow, gameFlowReducer, selectableIds, type GameFlow } from "./flow";
 import { STAGE_OPTION_TABLE, stageOptionCashLabel } from "./stages";
 import { projectInput } from "./project";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import { defaultPlanInput } from "@/features/plan/domain";
 
 const select = (f: GameFlow, id: string) =>

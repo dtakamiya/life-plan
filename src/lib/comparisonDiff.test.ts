@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { YearlyResult } from "./simulation/types";
+import { summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 import { buildComparisonDiff, diffDepletion } from "./comparisonDiff";
-import { summarizeResults } from "./simulation/summary";
 
 function row(year: number, selfAge: number, assets: number): YearlyResult {
   return { year, selfAge, assets, financialAssets: assets, loanBalance: 0 } as YearlyResult;

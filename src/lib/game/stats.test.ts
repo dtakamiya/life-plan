@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { computeStats } from "./stats";
-import type { YearlyResult } from "@/lib/simulation/types";
+import type { YearlyResult } from "@/features/simulation/domain";
 
 /** assets と年齢だけを持つ最小の YearlyResult を作る。 */
 function results(assetsByYear: number[], startYear = 2030, startAge = 35): YearlyResult[] {

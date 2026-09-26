@@ -13,20 +13,20 @@ import {
   RecurringExpenseForm,
   usePlanStore,
 } from "@/features/plan/ui";
-import { runValidatedSimulation } from "@/lib/validatedSimulation";
-import { summarizeResults } from "@/lib/simulation/summary";
-import { describeAssetLongevity } from "@/lib/simulation/longevitySummary";
+import { runValidatedSimulation } from "@/features/simulation/application";
+import { describeAssetLongevity, summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 import { formatYen } from "@/shared/lib";
 import { Button, ConfirmDialog, Eyebrow, Panel, type ConfirmDialogHandle } from "@/shared/ui";
-import { SummaryBar } from "@/components/SummaryBar";
-import { DepletionAdvice } from "@/components/DepletionAdvice";
-import { NetWorthChart } from "@/components/charts/NetWorthChart";
-import { CashFlowChart } from "@/components/charts/CashFlowChart";
+import {
+  AssumptionsPanel,
+  CashFlowChart,
+  DepletionAdvice,
+  NetWorthChart,
+  ResultTable,
+  SummaryBar,
+} from "@/features/simulation/ui";
 import { ComparisonChart } from "@/components/charts/ComparisonChart";
-import { ResultTable } from "@/components/ResultTable";
-import { AssumptionsPanel } from "@/components/AssumptionsPanel";
 import { ScenarioBar } from "@/components/ScenarioBar";
-import type { YearlyResult } from "@/lib/simulation/types";
 
 type Tone = "brand" | "ink" | "danger";
 

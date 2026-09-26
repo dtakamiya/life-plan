@@ -7,7 +7,7 @@
 
 import { formatManYen } from "@/shared/lib";
 import { summarizeResults } from "./summary";
-import type { YearlyResult } from "./types";
+import type { YearlyResult } from "./yearlyResult";
 
 /**
  * 年次結果から1行判定の文言を作る。結果が空のときは null。

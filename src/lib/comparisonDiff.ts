@@ -8,8 +8,7 @@
 
 import { formatAssetDiff } from "@/lib/game/assetDiff";
 import { formatYen } from "@/shared/lib";
-import { summarizeResults } from "@/lib/simulation/summary";
-import type { YearlyResult } from "@/lib/simulation/types";
+import { summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 
 export type ComparisonInput = {
   key: string;

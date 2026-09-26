@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { YearlyResult } from "./types";
+import type { YearlyResult } from "./yearlyResult";
 import { describeAssetLongevity } from "./longevitySummary";
 
 /** テストで使うフィールドだけを持つ年次結果を作る（summary.test.ts と同じパターン）。 */
