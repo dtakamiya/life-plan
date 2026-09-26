@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/features/plan/ui";
+import { useScenarioStore } from "@/features/scenario/ui";
 import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import {
   PLAN_FILE_MAX_BYTES,
@@ -15,10 +16,10 @@ import {
  * 保存したプランは比較グラフに重ねて表示される。
  */
 export function ScenarioBar() {
-  const snapshots = usePlanStore((s) => s.snapshots);
-  const saveSnapshot = usePlanStore((s) => s.saveSnapshot);
-  const removeSnapshot = usePlanStore((s) => s.removeSnapshot);
-  const loadSnapshot = usePlanStore((s) => s.loadSnapshot);
+  const snapshots = useScenarioStore((s) => s.snapshots);
+  const saveSnapshot = useScenarioStore((s) => s.saveSnapshot);
+  const removeSnapshot = useScenarioStore((s) => s.removeSnapshot);
+  const loadSnapshot = useScenarioStore((s) => s.loadSnapshot);
   const replaceInput = usePlanStore((s) => s.replaceInput);
   const [name, setName] = useState("");
   // lp-033: ファイル読み込みの結果表示。失敗時は現在のプランを変更しない。

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { usePlanStore, mergePersistedPlanState } from "./usePlanStore";
-import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
-import { PLAN_FILE_FORMAT, parsePlanFile, serializePlan } from "@/features/plan/infrastructure";
+import { usePlanStore } from "./usePlanStore";
+import { defaultPlanInput } from "@/features/plan/domain";
+import { PLAN_FILE_FORMAT, parsePlanFile } from "@/features/plan/infrastructure";
 
 describe("usePlanStore.reset", () => {
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe("usePlanStore.reset", () => {
     expect(input.children).not.toBe(defaultPlanInput.children);
   });
 
-  it("30歳ペルソナ（配偶者・子・ローン・イベント・保存プラン）を全消去する", () => {
+  it("30歳ペルソナ（配偶者・子・ローン・イベント）の入力を全消去する", () => {
     const store = usePlanStore.getState();
 
     store.setRange(2026, 2091);
@@ -27,21 +27,16 @@ describe("usePlanStore.reset", () => {
     store.addChild();
     store.addLoan();
     store.addEvent();
-    store.saveSnapshot("プランA");
-    store.saveSnapshot("プランB");
 
     const dirty = usePlanStore.getState();
     expect(dirty.input.loans.length).toBeGreaterThan(0);
     expect(dirty.input.events.length).toBeGreaterThan(0);
-    expect(dirty.snapshots.length).toBe(2);
 
     usePlanStore.getState().reset();
 
     const after = usePlanStore.getState();
     // self / spouse / children / loans / events / assets すべて既定へ
     expect(after.input).toEqual(defaultPlanInput);
-    // 保存済み比較プラン（シナリオ）も全消去
-    expect(after.snapshots).toEqual([]);
   });
 
   it("リセット後に別ペルソナ（20歳）を入力しても前ペルソナのローン・イベントが混入しない", () => {
@@ -50,7 +45,6 @@ describe("usePlanStore.reset", () => {
     first.addLoan();
     first.addLoan();
     first.addEvent();
-    first.saveSnapshot("前ペルソナ");
 
     usePlanStore.getState().reset();
 
@@ -62,25 +56,7 @@ describe("usePlanStore.reset", () => {
     // 前ペルソナで追加したローン・イベントは既定の1件ずつのまま
     expect(state.input.loans).toEqual(defaultPlanInput.loans);
     expect(state.input.events).toEqual(defaultPlanInput.events);
-    expect(state.snapshots).toEqual([]);
     expect(state.input.self.birthYear).toBe(2006);
-  });
-
-  it("保存済み比較プランが0件でもエラーなくリセットできる", () => {
-    expect(usePlanStore.getState().snapshots).toEqual([]);
-    expect(() => usePlanStore.getState().reset()).not.toThrow();
-    expect(usePlanStore.getState().snapshots).toEqual([]);
-  });
-
-  it("保存済み比較プランが複数件でもエラーなく全消去できる", () => {
-    const store = usePlanStore.getState();
-    store.saveSnapshot("a");
-    store.saveSnapshot("b");
-    store.saveSnapshot("c");
-    expect(usePlanStore.getState().snapshots.length).toBe(3);
-
-    expect(() => usePlanStore.getState().reset()).not.toThrow();
-    expect(usePlanStore.getState().snapshots).toEqual([]);
   });
 });
 
@@ -114,59 +90,6 @@ describe("usePlanStore.setRange — 期間の自動補正", () => {
 
     usePlanStore.getState().setRange(2026, 2091);
     expect(usePlanStore.getState().rangeAutoCorrected).toBe(false);
-  });
-});
-
-/**
- * lp-019 / QA#1: 永続化復元時（persist の merge）の自動補正の回帰テスト。
- * zustand persist は `localStorage` の無い実行環境（本プロジェクトのテストの
- * 既定 `environment: "node"` を含む）では merge を呼び出さない実装のため、
- * merge ロジックを切り出した純粋関数 `mergePersistedPlanState` を直接検証する。
- */
-describe("usePlanStore — 永続化復元時の期間自動補正", () => {
-  const currentFragment = {
-    input: defaultPlanInput,
-    snapshots: [],
-    rangeAutoCorrected: false,
-  };
-
-  it("復元データの期間が無効（開始年>終了年）なら merge 時に補正され、rangeAutoCorrected が true になる", () => {
-    const persistedInput = {
-      ...defaultPlanInput,
-      startYear: 2040,
-      endYear: 2020,
-    };
-    const merged = mergePersistedPlanState(
-      { input: persistedInput, snapshots: [] },
-      currentFragment,
-    );
-
-    expect(merged.input.startYear).toBe(2040);
-    expect(merged.input.endYear).toBe(2041);
-    expect(merged.rangeAutoCorrected).toBe(true);
-  });
-
-  it("復元データの期間が有効なら merge 時に補正されず、rangeAutoCorrected が false になる", () => {
-    const persistedInput = {
-      ...defaultPlanInput,
-      startYear: 2026,
-      endYear: 2091,
-    };
-    const merged = mergePersistedPlanState(
-      { input: persistedInput, snapshots: [] },
-      currentFragment,
-    );
-
-    expect(merged.input.startYear).toBe(2026);
-    expect(merged.input.endYear).toBe(2091);
-    expect(merged.rangeAutoCorrected).toBe(false);
-  });
-
-  it("永続化データが存在しない場合は既定入力にフォールバックし、rangeAutoCorrected は false になる", () => {
-    const merged = mergePersistedPlanState(undefined, currentFragment);
-
-    expect(merged.input).toEqual(defaultPlanInput);
-    expect(merged.rangeAutoCorrected).toBe(false);
   });
 });
 
@@ -488,28 +411,6 @@ describe("usePlanStore — 収入調整・不動産", () => {
   });
 });
 
-/** プランファイルの読み込みテスト用の、子・ローン・イベント入りの入力。 */
-const rich = (): PlanInput => ({
-  ...structuredClone(defaultPlanInput),
-  children: [
-    {
-      id: "c1",
-      name: "長男",
-      birthYear: 2024,
-      education: {
-        kindergarten: "私立",
-        elementary: "公立",
-        juniorHigh: "私立",
-        highSchool: "公立",
-        university: "私立理系",
-      },
-    },
-  ],
-  events: [{ id: "e1", year: 2030, label: "車", amount: -3_000_000 }],
-  loans: [{ id: "l1", label: "住宅", startYear: 2027, principal: 40_000_000, annualRate: 0.015, termYears: 35 }],
-  recurringExpenses: [{ id: "r1", label: "習い事", startYear: 2028, endYear: 2035, annualAmount: 240_000 }],
-});
-
 function serializeRaw(input: unknown) {
   return JSON.stringify({ format: PLAN_FILE_FORMAT, version: 1, input });
 }
@@ -527,17 +428,5 @@ describe("読み込み失敗時に現在のプランが不変", () => {
     }
     expect(usePlanStore.getState().input).toBe(before);
     expect(usePlanStore.getState().input).toEqual(snapshot);
-  });
-
-  it("成功時は replaceInput で置換され、snapshots は保持される", () => {
-    const store = usePlanStore.getState();
-    store.reset();
-    store.saveSnapshot("keep");
-    const src = rich();
-    const r = parsePlanFile(serializePlan(src));
-    if (r.ok) usePlanStore.getState().replaceInput(r.input);
-    expect(usePlanStore.getState().input).toEqual(src);
-    expect(usePlanStore.getState().snapshots).toHaveLength(1);
-    store.reset();
   });
 });

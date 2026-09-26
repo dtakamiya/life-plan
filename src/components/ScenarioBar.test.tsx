@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { usePlanStore } from "@/features/plan/ui";
+import { useScenarioStore } from "@/features/scenario/ui";
 import { ScenarioBar } from "./ScenarioBar";
 
 (
@@ -29,10 +29,7 @@ let root: Root;
 afterEach(() => {
   act(() => root.unmount());
   container.remove();
-  usePlanStore.getState().reset();
-  for (const snap of usePlanStore.getState().snapshots) {
-    usePlanStore.getState().removeSnapshot(snap.id);
-  }
+  useScenarioStore.getState().reset();
 });
 
 function mount(ui: React.ReactElement) {
@@ -47,20 +44,20 @@ function mount(ui: React.ReactElement) {
 
 describe("ScenarioBar — 保存済みプランの削除は確認ダイアログ経由（FR4.1）", () => {
   it("✕ボタン単体では消えず、確認ダイアログの「削除する」で消える", () => {
-    act(() => usePlanStore.getState().saveSnapshot("テストプラン"));
+    act(() => useScenarioStore.getState().saveSnapshot("テストプラン"));
     const el = mount(<ScenarioBar />);
-    expect(usePlanStore.getState().snapshots).toHaveLength(1);
+    expect(useScenarioStore.getState().snapshots).toHaveLength(1);
 
     const removeButton = el.querySelector(
       'button[aria-label="テストプランを削除"]',
     ) as HTMLButtonElement;
     act(() => removeButton.click());
-    expect(usePlanStore.getState().snapshots).toHaveLength(1); // まだ消えない
+    expect(useScenarioStore.getState().snapshots).toHaveLength(1); // まだ消えない
 
     const confirmButton = [...el.querySelectorAll("button")].find(
       (b) => b.textContent === "削除する",
     ) as HTMLButtonElement;
     act(() => confirmButton.click());
-    expect(usePlanStore.getState().snapshots).toHaveLength(0);
+    expect(useScenarioStore.getState().snapshots).toHaveLength(0);
   });
 });

@@ -15,3 +15,4 @@ export {
   SCENARIOS_STORAGE_VERSION,
   migratePersistedPlanState,
 } from "./migratePersistedPlanState";
+export { mergePersistedPlanState } from "./mergePersistedPlanState";

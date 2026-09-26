@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
 import Link from "next/link";
 import { usePlanStore } from "@/features/plan/ui";
+import { useScenarioStore } from "@/features/scenario/ui";
 import { runSimulation } from "@/features/simulation/domain";
 import { Button, Eyebrow, Panel } from "@/shared/ui";
 import { AdventureLog, GameHud, GameResult, StageCard, type CardChoice } from "@/features/game/ui";
@@ -26,7 +27,7 @@ function makeSeed(): number {
 
 export default function GamePage() {
   const input = usePlanStore((s) => s.input);
-  const saveSnapshot = usePlanStore((s) => s.saveSnapshot);
+  const saveSnapshot = useScenarioStore((s) => s.saveSnapshot);
   const [hydrated, setHydrated] = useState(false);
   // 選択（プレビュー）と確定の状態機械は features/game/application/flow.ts。
   const [flow, dispatch] = useReducer(
