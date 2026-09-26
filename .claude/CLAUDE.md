@@ -52,5 +52,5 @@
 
 ## CI
 
-- `.github/workflows/ci.yml` で `npm run test`（vitest run）と `npm run build`
-  を実行する。
+- `.github/workflows/ci.yml` で `npm run lint`（ESLint CLI の `eslint .`）、
+  `npm run test`（vitest run）、`npm run build` を実行する。
