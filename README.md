@@ -13,7 +13,7 @@
 
 ## 機能
 
-- 収支キャッシュフローの年次シミュレーション（純関数エンジン `src/lib/simulation/engine.ts`）
+- 収支キャッシュフローの年次シミュレーション（純関数エンジン `src/features/simulation/domain/engine.ts`）
 - ライフイベント（単発の臨時収支）の反映
 - **住宅ローン・借入**（元利均等返済を返済期間中だけ支出計上）
 - **教育費の精緻化**（子ごとに幼稚園〜大学の進路＝公立/私立/国公立/私立文系・理系を選択。基礎養育費＋進路別の教育費を年齢に応じて自動計算。プリセットあり）
@@ -63,7 +63,10 @@ npm run test   # シミュレーションエンジンの単体テスト（Vitest
 
 ## 構成
 
-- `src/app/` — App Router のページ・レイアウト
-- `src/lib/simulation/` — ドメイン型・シミュレーションエンジン・税/年金/社保/教育費/ローンの概算
-- `src/lib/store/` — Zustand + persist による入力・スナップショットのストア（localStorage）
-- `src/components/` — 入力フォーム・グラフ（純資産/キャッシュフロー/比較）・結果テーブル・シナリオバー
+- `src/app/` — App Router のページ・レイアウト（`/` と `/game`）
+- `src/features/plan/` — 入力（`PlanInput`）のドメイン・編集ユースケース・検証・永続化・入力フォーム
+- `src/features/simulation/` — シミュレーションエンジン・税/年金/社保等の制度計算・結果表示（グラフ・テーブル）
+- `src/features/scenario/` — スナップショットの保存・比較と比較 UI
+- `src/features/game/` — ゲームモード
+- `src/shared/` — 書式・用語集などの汎用関数と共通 UI 部品
+- 各機能は `domain`・`application`・`infrastructure`・`ui` の層に分かれ、import の境界は `src/architecture.test.ts` が検証する

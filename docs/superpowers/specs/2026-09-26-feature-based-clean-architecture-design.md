@@ -96,6 +96,7 @@ src/
 - `src/app` は各機能の層 index と `shared` を import できる（層の個別ファイルは不可）。
 - テストファイル（`*.test.ts(x)`）も対象ファイルと同じ層のルールに従う。コンポーネントテストの `react-dom/client` は ui 層なので許可される。
 - 下流機能の import（例: plan → simulation）と機能間の循環は違反とする。
+- `src/app`・`src/features/<feature>/<layer>`・`src/shared/{domain,lib,ui}` 以外への `.ts`/`.tsx` の配置は違反とする。ただしアーキテクチャテスト自身（`src/architecture.test.ts`・`src/architecture/`）は判定の対象外とし、他のファイルからそれらを import することは違反とする。
 
 ## 3. ストアの分解
 
@@ -202,7 +203,7 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 | 4 | `refactor/simulation-feature` | simulation 一式の移動 |
 | 5 | `refactor/game-feature` | game 一式の移動。`assetDiff` を `shared/lib` へ移動 |
 | 6 | `refactor/scenario-feature` | scenario ストアの分離、plan ストアの `migrate` による persist キー移行、比較関連の移動 |
-| 7 | `refactor/cleanup` | 空になった `src/lib`・`src/components` を削除、アーキテクチャテストの対象を `src` 全体へ拡大、CLAUDE.md の「構成」節を新構成に更新 |
+| 7 | `refactor/cleanup` | 済。空になった `src/lib`・`src/components` を削除（PR 6 までに消滅済み）、アーキテクチャテストの対象を `src` 全体へ拡大、CLAUDE.md の「構成」節を新構成に更新 |
 
 リスクの高い scenario（永続化データの移行を伴う）は、単純な移動で済む game の後に回す。
 
