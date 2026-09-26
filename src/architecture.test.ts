@@ -47,6 +47,7 @@ describe("アーキテクチャ（import 境界）", () => {
     expect(files).toContain("features/game/ui/index.ts");
     expect(files).toContain("features/scenario/domain/index.ts");
     expect(files).toContain("features/scenario/application/index.ts");
+    expect(files).toContain("features/scenario/infrastructure/index.ts");
   });
 
   it("features・shared・app に import ルール違反がない", () => {
