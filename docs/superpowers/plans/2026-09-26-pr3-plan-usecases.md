@@ -59,14 +59,14 @@
 
 **Files:** なし
 
-- [ ] **Step 1: ブランチを作成する**
+- [x] **Step 1: ブランチを作成する**
 
 ```bash
 git switch main && git pull
 git switch -c refactor/plan-usecases
 ```
 
-- [ ] **Step 2: テスト件数のベースラインを記録する**
+- [x] **Step 2: テスト件数のベースラインを記録する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・M を控える。本 PR ではテストを追加するだけなので、最終的に N・M はそれぞれ増え、減ることはない。
@@ -86,7 +86,7 @@ Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・
 **Interfaces:**
 - Produces: `@/features/plan/application` から `type IdGenerator = (prefix: string) => string`。`@/features/plan/infrastructure` から `makeId: IdGenerator`（戻り値 `${prefix}-${乱数}`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/infrastructure/makeId.test.ts`:
 
@@ -114,12 +114,12 @@ describe("makeId", () => {
 });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/features/plan/infrastructure/makeId.test.ts`
 Expected: FAIL（`./makeId` が見つからない）
 
-- [ ] **Step 3: 型と実装を書く**
+- [x] **Step 3: 型と実装を書く**
 
 `src/features/plan/application/idGenerator.ts`:
 
@@ -160,12 +160,12 @@ export const makeId: IdGenerator = (prefix) => {
 export { makeId } from "./makeId";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/infrastructure/makeId.test.ts`
 Expected: PASS（3 件）
 
-- [ ] **Step 5: ストアのローカル makeId を置き換える**
+- [x] **Step 5: ストアのローカル makeId を置き換える**
 
 `src/features/plan/ui/usePlanStore.ts` から次のブロックを削除する:
 
@@ -186,12 +186,12 @@ function makeId(prefix: string): string {
 import { makeId } from "@/features/plan/infrastructure";
 ```
 
-- [ ] **Step 6: 全テストとアーキテクチャテストを確認する**
+- [x] **Step 6: 全テストとアーキテクチャテストを確認する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。Tests は M + 3。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/plan/application/idGenerator.ts src/features/plan/application/index.ts src/features/plan/infrastructure/makeId.ts src/features/plan/infrastructure/makeId.test.ts src/features/plan/infrastructure/index.ts src/features/plan/ui/usePlanStore.ts
@@ -224,7 +224,7 @@ EOF
   - `updateChild(input: PlanInput, id: string, patch: Partial<Child>): PlanInput`
   - `removeChild(input: PlanInput, id: string, idGen: IdGenerator): PlanInput`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/application/period.test.ts`:
 
@@ -369,12 +369,12 @@ describe("updateChild / removeChild", () => {
 });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/features/plan/application/period.test.ts src/features/plan/application/household.test.ts`
 Expected: FAIL（`./period`・`./household` が見つからない）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `src/features/plan/application/period.ts`:
 
@@ -519,12 +519,12 @@ export {
 export { setRange } from "./period";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/application/period.test.ts src/features/plan/application/household.test.ts`
 Expected: PASS（2 件 + 10 件）
 
-- [ ] **Step 5: ストアを委譲に書き換える**
+- [x] **Step 5: ストアを委譲に書き換える**
 
 `src/features/plan/ui/usePlanStore.ts` の `@/features/plan/application` の import に `addChild`, `removeChild`, `setRange`, `toggleSpouse`, `updateChild`, `updateSelf`, `updateSpouse` を追加する。`setRange` から `removeChild` までのアクション（`setRange:` の JSDoc の直前から `removeChild` の閉じ `}),` まで）を次に置き換える:
 
@@ -573,12 +573,12 @@ Expected: PASS（2 件 + 10 件）
 
 使われなくなった import（`correctDateRange`, `DEFAULT_EDUCATION`, `applyHouseholdDefaults`, `nextChildName`, 型 `Child`, `HouseholdComposition`, `Person`）を削除する。ただし `PlanState` の型定義が使う型（`Child`, `Person` 等）は残す。判断は Step 6 の `npx tsc --noEmit` と `npm run lint`（未使用 import の警告）に従う。
 
-- [ ] **Step 6: 全テスト・型・lint を確認する**
+- [x] **Step 6: 全テスト・型・lint を確認する**
 
 Run: `npx vitest run 2>&1 | tail -6 && npx tsc --noEmit && npm run lint`
 Expected: すべて PASS（`usePlanStore.test.ts` の setRange・updateSelf・addChild・世帯構成連動のケースを含む）。型エラー・lint エラーなし。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/plan/application/period.ts src/features/plan/application/period.test.ts src/features/plan/application/household.ts src/features/plan/application/household.test.ts src/features/plan/application/index.ts src/features/plan/ui/usePlanStore.ts
@@ -610,7 +610,7 @@ EOF
   - `updateLoan(input: PlanInput, id: string, patch: Partial<Loan>): PlanInput`
   - `removeLoan(input: PlanInput, id: string): PlanInput`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/application/lifeEvents.test.ts`:
 
@@ -718,12 +718,12 @@ describe("ローンのユースケース", () => {
 });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/features/plan/application/lifeEvents.test.ts src/features/plan/application/loans.test.ts`
 Expected: FAIL（`./lifeEvents`・`./loans` が見つからない）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `src/features/plan/application/lifeEvents.ts`:
 
@@ -814,12 +814,12 @@ export { addEvent, removeEvent, updateEvent } from "./lifeEvents";
 export { addLoan, removeLoan, updateLoan } from "./loans";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/application/lifeEvents.test.ts src/features/plan/application/loans.test.ts`
 Expected: PASS（3 件 + 6 件）
 
-- [ ] **Step 5: ストアを委譲に書き換える**
+- [x] **Step 5: ストアを委譲に書き換える**
 
 `src/features/plan/ui/usePlanStore.ts` の `@/features/plan/application` の import に `addEvent`, `addLoan`, `removeEvent`, `removeLoan`, `updateEvent`, `updateLoan` を追加する。
 
@@ -847,12 +847,12 @@ Expected: PASS（3 件 + 6 件）
 
 使われなくなった import（`HOME_PROPERTY_LABEL`, `HOUSING_PURCHASE_EVENT_LABEL`, `newLoan`）を削除する。`LifeEvent`・`Loan` 型は `PlanState` の定義で使うので残す。
 
-- [ ] **Step 6: 全テスト・型・lint を確認する**
+- [x] **Step 6: 全テスト・型・lint を確認する**
 
 Run: `npx vitest run 2>&1 | tail -6 && npx tsc --noEmit && npm run lint`
 Expected: すべて PASS（`usePlanStore.test.ts` の「住宅ローンと頭金イベントの連動（#8）」を含む）。型エラー・lint エラーなし。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/plan/application/lifeEvents.ts src/features/plan/application/lifeEvents.test.ts src/features/plan/application/loans.ts src/features/plan/application/loans.test.ts src/features/plan/application/index.ts src/features/plan/ui/usePlanStore.ts
@@ -888,7 +888,7 @@ EOF
   - `updateProperty(input: PlanInput, id: string, patch: Partial<Property>): PlanInput`
   - `removeProperty(input: PlanInput, id: string): PlanInput`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/application/recurringExpenses.test.ts`:
 
@@ -1021,12 +1021,12 @@ describe("不動産のユースケース", () => {
 });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/features/plan/application/recurringExpenses.test.ts src/features/plan/application/incomeAdjustments.test.ts src/features/plan/application/properties.test.ts`
 Expected: FAIL（3 ファイルとも実装が見つからない）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `src/features/plan/application/recurringExpenses.ts`:
 
@@ -1161,12 +1161,12 @@ export {
 } from "./recurringExpenses";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/application/recurringExpenses.test.ts src/features/plan/application/incomeAdjustments.test.ts src/features/plan/application/properties.test.ts`
 Expected: PASS（1 件 + 4 件 + 3 件）
 
-- [ ] **Step 5: ストアを委譲に書き換える**
+- [x] **Step 5: ストアを委譲に書き換える**
 
 `src/features/plan/ui/usePlanStore.ts` の `@/features/plan/application` の import に上記 9 関数を追加する。
 
@@ -1205,12 +1205,12 @@ Expected: PASS（1 件 + 4 件 + 3 件）
 
 使われなくなった import（`DEFAULT_PROPERTY_DEPRECIATION_RATE`, `newRecurringExpense`）を削除する。`IncomeAdjustment`・`Property`・`RecurringExpense` 型は `PlanState` の定義で使うので残す。
 
-- [ ] **Step 6: 全テスト・型・lint を確認する**
+- [x] **Step 6: 全テスト・型・lint を確認する**
 
 Run: `npx vitest run 2>&1 | tail -6 && npx tsc --noEmit && npm run lint`
 Expected: すべて PASS（`usePlanStore.test.ts` の「継続支出のアクション」「収入調整・不動産」を含む）。型エラー・lint エラーなし。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/plan/application/recurringExpenses.ts src/features/plan/application/recurringExpenses.test.ts src/features/plan/application/incomeAdjustments.ts src/features/plan/application/incomeAdjustments.test.ts src/features/plan/application/properties.ts src/features/plan/application/properties.test.ts src/features/plan/application/index.ts src/features/plan/ui/usePlanStore.ts
@@ -1240,7 +1240,7 @@ EOF
   - `resetSingleInput(): PlanInput`（`singleRenterPlanInput` の深いコピー）
   - `startBlank(input: PlanInput): PlanInput`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/application/settings.test.ts`:
 
@@ -1314,12 +1314,12 @@ describe("プリセットのユースケース", () => {
 });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/features/plan/application/settings.test.ts src/features/plan/application/presets.test.ts`
 Expected: FAIL（`./settings`・`./presets` が見つからない）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `src/features/plan/application/settings.ts`:
 
@@ -1386,12 +1386,12 @@ export { resetInput, resetSingleInput, startBlank } from "./presets";
 export { updateAssets, updateExpenses } from "./settings";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/application/settings.test.ts src/features/plan/application/presets.test.ts`
 Expected: PASS（2 件 + 3 件）
 
-- [ ] **Step 5: ストアを委譲に書き換える**
+- [x] **Step 5: ストアを委譲に書き換える**
 
 `src/features/plan/ui/usePlanStore.ts` の `@/features/plan/application` の import に `resetInput`, `resetSingleInput`, `startBlank`, `updateAssets`, `updateExpenses` を追加する。
 
@@ -1426,7 +1426,7 @@ Expected: PASS（2 件 + 3 件）
 
 使われなくなった import（`singleRenterPlanInput`）を削除する。`defaultPlanInput` はストアの初期値と `mergePersistedPlanState` で使うので残す。
 
-- [ ] **Step 6: ストアに編集ロジックが残っていないことを確認する**
+- [x] **Step 6: ストアに編集ロジックが残っていないことを確認する**
 
 Run: `grep -nE "\.map\(|\.filter\(|makeId\(" src/features/plan/ui/usePlanStore.ts`
 Expected: 次の 3 行だけが出る（いずれも PR 6 で scenario へ移すスナップショット関連）。これ以外が出たら委譲し忘れ。
@@ -1435,12 +1435,12 @@ Expected: 次の 3 行だけが出る（いずれも PR 6 で scenario へ移す
 - `removeSnapshot` の `snapshots: s.snapshots.filter(`
 - `loadSnapshot` の `input.events = input.events.map(`
 
-- [ ] **Step 7: 全テスト・型・lint を確認する**
+- [x] **Step 7: 全テスト・型・lint を確認する**
 
 Run: `npx vitest run 2>&1 | tail -6 && npx tsc --noEmit && npm run lint`
 Expected: すべて PASS（`usePlanStore.test.ts` の reset・startBlank のケースを含む）。型エラー・lint エラーなし。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add src/features/plan/application/settings.ts src/features/plan/application/settings.test.ts src/features/plan/application/presets.ts src/features/plan/application/presets.test.ts src/features/plan/application/index.ts src/features/plan/ui/usePlanStore.ts
@@ -1458,17 +1458,17 @@ EOF
 
 **Files:** なし
 
-- [ ] **Step 1: ストアテストが変更されていないことを確認する**
+- [x] **Step 1: ストアテストが変更されていないことを確認する**
 
 Run: `git diff main --stat -- src/features/plan/ui/usePlanStore.test.ts`
 Expected: 出力なし（Global Constraints: 既存のストアテストは変更しない）。
 
-- [ ] **Step 2: テスト・lint・ビルド**
+- [x] **Step 2: テスト・lint・ビルド**
 
 Run: `npm run test 2>&1 | tail -6 && npm run lint && npm run build 2>&1 | tail -25`
 Expected: 全テスト PASS。Test Files は Task 0 の N + 10（`makeId`・`period`・`household`・`lifeEvents`・`loans`・`recurringExpenses`・`incomeAdjustments`・`properties`・`settings`・`presets`）、Tests は M + 37（Task 1〜5 の順に 3 + 12 + 9 + 8 + 5）。lint エラーなし、ビルド成功。
 
-- [ ] **Step 3: 画面で挙動が変わっていないことを確認する**
+- [x] **Step 3: 画面で挙動が変わっていないことを確認する**
 
 Run: `npm run dev` で起動し、`http://localhost:3000/` で次を確認する。
 - 既存の入力（localStorage の `life-plan/v1`）がそのまま表示される（Review Focus 5）
@@ -1481,7 +1481,7 @@ Run: `npm run dev` で起動し、`http://localhost:3000/` で次を確認する
 - スナップショットの保存・比較・読み込みができる
 - `http://localhost:3000/game` が開け、現在のプランからゲームを始められる
 
-- [ ] **Step 4: プッシュと PR 作成**
+- [x] **Step 4: プッシュと PR 作成**
 
 ```bash
 git push -u origin refactor/plan-usecases

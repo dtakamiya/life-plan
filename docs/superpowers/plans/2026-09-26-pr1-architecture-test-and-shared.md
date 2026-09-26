@@ -55,7 +55,7 @@
 
 **Files:** なし
 
-- [ ] **Step 1: ブランチを作成する**
+- [x] **Step 1: ブランチを作成する**
 
 仕様書のブランチ（`refactor/architecture-spec`）が `main` にマージ済みなら `main` から、未マージなら `refactor/architecture-spec` の先端から切る。
 
@@ -64,7 +64,7 @@ git switch main && git pull   # 仕様がマージ済みの場合
 git switch -c refactor/architecture-test
 ```
 
-- [ ] **Step 2: テスト件数のベースラインを記録する**
+- [x] **Step 2: テスト件数のベースラインを記録する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・M を控える（移動後に件数が減っていないことの確認に使う）。
@@ -86,7 +86,7 @@ Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・
   - `SCAN_ROOTS: readonly string[]` = `["features", "shared", "app"]`
   - パスはすべて `src` からの POSIX 相対パス（例: `"features/plan/ui/LoanForm.tsx"`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/architecture/importRules.test.ts`:
 
@@ -231,12 +231,12 @@ describe("checkImport: 違反となるパターン", () => {
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/architecture/importRules.test.ts`
 Expected: FAIL（`Failed to resolve import "./importRules"` 等）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `src/architecture/importRules.ts`:
 
@@ -426,17 +426,17 @@ export function checkImport(fromSrcPath: string, specifier: string): string | nu
 }
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/architecture/importRules.test.ts`
 Expected: PASS（全ケース）
 
-- [ ] **Step 5: 型チェック**
+- [x] **Step 5: 型チェック**
 
 Run: `npx tsc --noEmit -p .`
 Expected: エラーなし
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add src/architecture/importRules.ts src/architecture/importRules.test.ts
@@ -453,7 +453,7 @@ git commit -m "test: アーキテクチャテストの import 判定ロジック
 **Interfaces:**
 - Consumes: `SCAN_ROOTS`, `checkImport`, `extractSpecifiers`（Task 1）
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `src/architecture.test.ts`:
 
@@ -500,12 +500,12 @@ describe("アーキテクチャ（import 境界）", () => {
 });
 ```
 
-- [ ] **Step 2: 現状で通ることを確認する**
+- [x] **Step 2: 現状で通ることを確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: PASS（`src/app` の import は next・react・vitest・`./page`・`./globals.css` と旧ディレクトリのみなので違反なし）
 
-- [ ] **Step 3: 違反を検出できることを確認する（一時ファイル）**
+- [x] **Step 3: 違反を検出できることを確認する（一時ファイル）**
 
 ```bash
 mkdir -p src/shared/lib && printf 'import { useState } from "react";\nexport const probe = useState;\n' > src/shared/lib/probe.ts
@@ -520,12 +520,12 @@ Expected: FAIL。差分に `shared/lib/probe.ts → react: react を import で�
 rm -r src/shared
 ```
 
-- [ ] **Step 4: 型チェック**
+- [x] **Step 4: 型チェック**
 
 Run: `npx tsc --noEmit -p .`
 Expected: エラーなし
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add src/architecture.test.ts
@@ -547,7 +547,7 @@ git commit -m "test: 機能・層の import 境界を検査するアーキテク
 **Interfaces:**
 - Produces: `@/shared/lib` から `formatManYen`, `formatManYenLabel`, `formatPercent`, `formatYen`, `GLOSSARY`, `GlossaryEntry`（型）, `GlossaryTermKey`（型）
 
-- [ ] **Step 1: ファイルを移動する**
+- [x] **Step 1: ファイルを移動する**
 
 ```bash
 mkdir -p src/shared/lib
@@ -556,7 +556,7 @@ git mv src/lib/format.ts src/lib/format.test.ts src/lib/glossary.ts src/lib/glos
 
 テスト内の import（`./format`・`./glossary`）は同一ディレクトリのままなので変更不要。
 
-- [ ] **Step 2: 公開 API を作る**
+- [x] **Step 2: 公開 API を作る**
 
 `src/shared/lib/index.ts`:
 
@@ -566,7 +566,7 @@ export { formatManYen, formatManYenLabel, formatPercent, formatYen } from "./for
 export { GLOSSARY, type GlossaryEntry, type GlossaryTermKey } from "./glossary";
 ```
 
-- [ ] **Step 3: import 先を書き換える**
+- [x] **Step 3: import 先を書き換える**
 
 ```bash
 perl -pi -e 's#"\@/lib/(format|glossary)"#"\@/shared/lib"#g' $(grep -rlE '"@/lib/(format|glossary)"' src)
@@ -575,7 +575,7 @@ perl -pi -e 's#"\./format"#"\@/shared/lib"#g' src/lib/assumptions.test.ts
 
 対象になるファイル（書き換え後に確認する）: `src/app/page.tsx`, `src/components/{DepletionAdvice,SummaryBar,ResultTable,ResultTable.test}.tsx`, `src/components/forms/{LoanForm,fields}.tsx`, `src/components/charts/{ComparisonChart,NetWorthChart,CashFlowChart}.tsx`, `src/components/game/{GameResult,AdventureLog,GameHud,StageCard}.tsx`, `src/components/ui/{TermHelp,TermHelp.test}.tsx`, `src/lib/assumptions.ts`, `src/lib/assumptions.test.ts`, `src/lib/simulation/longevitySummary.ts`, `src/lib/comparisonDiff.ts`, `src/lib/game/assetDiff.ts`
 
-- [ ] **Step 4: 同一モジュールからの重複 import を1行にまとめる**
+- [x] **Step 4: 同一モジュールからの重複 import を1行にまとめる**
 
 `src/components/forms/fields.tsx` の次の2行:
 
@@ -593,17 +593,17 @@ import { formatManYenLabel, type GlossaryTermKey } from "@/shared/lib";
 確認: `grep -rc 'from "@/shared/lib"' src | grep -v ':0$' | grep -v ':1$'`
 Expected: 出力なし
 
-- [ ] **Step 5: 旧パスの参照が残っていないことを確認する**
+- [x] **Step 5: 旧パスの参照が残っていないことを確認する**
 
 Run: `grep -rnE '@/lib/(format|glossary)|"\./(format|glossary)"' src | grep -v '^src/shared/lib/'`
 Expected: 出力なし
 
-- [ ] **Step 6: テスト・型チェック**
+- [x] **Step 6: テスト・型チェック**
 
 Run: `npx tsc --noEmit -p . && npx vitest run`
 Expected: 型エラーなし。全テスト PASS、`Tests` の件数が Task 0 の M + Task 1・2 で追加した件数と一致する。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add -A src
@@ -626,7 +626,7 @@ git commit -m "refactor: format・glossary を shared/lib へ移動"
 - Consumes: `@/shared/lib`（Task 3）
 - Produces: `@/shared/ui` から `Button`, `ConfirmDialog`, `ConfirmDialogHandle`（型）, `Eyebrow`, `Panel`, `TermHelp`, `CheckboxField`, `NumberField`, `PercentField`, `Section`, `SelectField`, `TextField`, `formatGroupedNumber`, `normalizeNumberInput`, `sanitizeNumberDraft`, `NormalizeResult`（型）, `NumberInputOptions`（型）, `axisTick`, `chartColors`, `legendStyle`, `seriesPalette`, `tooltipStyle`
 
-- [ ] **Step 1: ファイルを移動する**
+- [x] **Step 1: ファイルを移動する**
 
 ```bash
 mkdir -p src/shared/ui
@@ -640,7 +640,7 @@ git mv src/lib/theme-contrast.test.ts src/shared/ui/theme-contrast.test.ts
 
 `src/components/forms/number-input.integration.test.ts` は移動しない（「仕様からの補足・判断」5）。
 
-- [ ] **Step 2: 移動したファイル内の import を直す**
+- [x] **Step 2: 移動したファイル内の import を直す**
 
 `src/shared/ui/fields.tsx`（`shared/ui` 内は相対パスで参照する。index を経由すると自己循環になる）:
 
@@ -671,7 +671,7 @@ import { normalizeNumberInput } from "./number-input";
 import { normalizeNumberInput } from "@/shared/ui";
 ```
 
-- [ ] **Step 3: 公開 API を作る**
+- [x] **Step 3: 公開 API を作る**
 
 `src/shared/ui/index.ts`:
 
@@ -693,7 +693,7 @@ export {
 export { axisTick, chartColors, legendStyle, seriesPalette, tooltipStyle } from "./chartTheme";
 ```
 
-- [ ] **Step 4: 利用側の import 先を書き換える**
+- [x] **Step 4: 利用側の import 先を書き換える**
 
 `src/shared` 以外を対象に一括置換する:
 
@@ -704,7 +704,7 @@ perl -pi -e 's#"\./fields"#"\@/shared/ui"#g' $(grep -rl '"./fields"' src/compone
 perl -pi -e 's#"\./chartTheme"#"\@/shared/ui"#g' $(grep -rl '"./chartTheme"' src/components/charts)
 ```
 
-- [ ] **Step 5: 同一モジュールからの重複 import を1行にまとめる**
+- [x] **Step 5: 同一モジュールからの重複 import を1行にまとめる**
 
 次のファイルでは `from "@/shared/ui"` が複数行になる。各ファイルで最初の `@/shared/ui` の import 行を下表の1行に置き換え、残りの `@/shared/ui` の import 行を削除する（他の import 行の順序は変えない）。
 
@@ -727,7 +727,7 @@ perl -pi -e 's#"\./chartTheme"#"\@/shared/ui"#g' $(grep -rl '"./chartTheme"' src
 確認: `grep -rc 'from "@/shared/ui"' src | grep -v ':0$' | grep -v ':1$'`
 Expected: 出力なし
 
-- [ ] **Step 6: 旧パスの参照が残っていないことを確認する**
+- [x] **Step 6: 旧パスの参照が残っていないことを確認する**
 
 Run: `grep -rnE '@/components/ui/|"\./(fields|number-input|chartTheme)"|@/components/(forms/(fields|number-input)|charts/chartTheme)' src | grep -v '^src/shared/ui/'`
 Expected: 出力なし
@@ -735,12 +735,12 @@ Expected: 出力なし
 Run: `ls src/components/ui 2>/dev/null; echo "exit=$?"`
 Expected: `exit=1` 以外なら空ディレクトリを `rmdir src/components/ui` で削除する（git は空ディレクトリを追跡しない）
 
-- [ ] **Step 7: テスト・型チェック**
+- [x] **Step 7: テスト・型チェック**
 
 Run: `npx tsc --noEmit -p . && npx vitest run`
 Expected: 型エラーなし。全テスト PASS（`architecture.test.ts` を含む）。`Tests` の件数が Task 3 Step 6 と同じ。
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add -A src
@@ -753,21 +753,21 @@ git commit -m "refactor: 共通 UI 部品・入力欄・チャートテーマを
 
 **Files:** なし
 
-- [ ] **Step 1: 本番ビルド**
+- [x] **Step 1: 本番ビルド**
 
 Run: `npm run build`
 Expected: 成功。`"use client"` 境界や barrel（`index.ts`）の re-export に関するエラーがないこと。
 
-- [ ] **Step 2: 見た目の確認**
+- [x] **Step 2: 見た目の確認**
 
 Run: `npm run dev` を起動し、`/` と `/game` を開いて、ボタン・パネル・用語ヘルプ（？アイコン）・数値入力・チャートの配色が移動前と変わらないことを目視確認する（Tailwind の `content` は `./src/**/*.{ts,tsx}` なので `src/shared` のクラスも拾われる）。
 
-- [ ] **Step 3: 最終テスト**
+- [x] **Step 3: 最終テスト**
 
 Run: `npm run test`
 Expected: 全 PASS
 
-- [ ] **Step 4: PR を作成する**
+- [x] **Step 4: PR を作成する**
 
 ```bash
 git push -u origin refactor/architecture-test
