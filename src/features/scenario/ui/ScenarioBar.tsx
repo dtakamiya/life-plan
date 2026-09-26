@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { usePlanStore } from "@/features/plan/ui";
-import { useScenarioStore } from "@/features/scenario/ui";
+import { useScenarioStore } from "./useScenarioStore";
 import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import {
   PLAN_FILE_MAX_BYTES,

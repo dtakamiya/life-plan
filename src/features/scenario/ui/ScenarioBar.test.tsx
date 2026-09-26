@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { useScenarioStore } from "@/features/scenario/ui";
+import { useScenarioStore } from "./useScenarioStore";
 import { ScenarioBar } from "./ScenarioBar";
 
 (

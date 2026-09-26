@@ -13,7 +13,7 @@ import {
   RecurringExpenseForm,
   usePlanStore,
 } from "@/features/plan/ui";
-import { useScenarioStore } from "@/features/scenario/ui";
+import { ComparisonChart, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
 import { runValidatedSimulation } from "@/features/simulation/application";
 import { describeAssetLongevity, summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 import { formatYen } from "@/shared/lib";
@@ -26,8 +26,6 @@ import {
   ResultTable,
   SummaryBar,
 } from "@/features/simulation/ui";
-import { ComparisonChart } from "@/components/charts/ComparisonChart";
-import { ScenarioBar } from "@/components/ScenarioBar";
 
 type Tone = "brand" | "ink" | "danger";
 
