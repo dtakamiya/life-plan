@@ -12,7 +12,17 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    ignores: [".next/**", "node_modules/**", "next-env.d.ts"],
+    // .claude/.superpowers はローカルのツール用ディレクトリ（worktree の別チェックアウトを含む）。
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "next-env.d.ts",
+      "out/**",
+      "build/**",
+      "coverage/**",
+      ".claude/**",
+      ".superpowers/**",
+    ],
   },
 ];
 
