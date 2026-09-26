@@ -2,6 +2,7 @@
 export { Button } from "./Button";
 export { ConfirmDialog, type ConfirmDialogHandle } from "./ConfirmDialog";
 export { Eyebrow } from "./Eyebrow";
+export { LoadingPlaceholder } from "./LoadingPlaceholder";
 export { Panel } from "./Panel";
 export { TermHelp } from "./TermHelp";
 export { CheckboxField, NumberField, PercentField, Section, SelectField, TextField } from "./fields";

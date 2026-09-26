@@ -17,7 +17,7 @@ import {
 import { ComparisonChart, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
 import { runValidatedSimulation } from "@/features/simulation/application";
 import type { YearlyResult } from "@/features/simulation/domain";
-import { Button, ConfirmDialog, Eyebrow, Panel, type ConfirmDialogHandle } from "@/shared/ui";
+import { Button, ConfirmDialog, Eyebrow, LoadingPlaceholder, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import {
   AssumptionsPanel,
   CashFlowChart,
@@ -28,18 +28,6 @@ import {
   SummaryBar,
   SummaryCards,
 } from "@/features/simulation/ui";
-
-/** localStorage 復元（ハイドレーション）待ちの共通プレースホルダー。 */
-function LoadingPlaceholder({ className }: { className: string }) {
-  return (
-    <div
-      className={`flex items-center justify-center gap-2 text-sm text-ink-mute ${className}`}
-    >
-      <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
-      読み込み中…
-    </div>
-  );
-}
 
 export default function Home() {
   const input = usePlanStore((s) => s.input);
