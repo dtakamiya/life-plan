@@ -7,7 +7,6 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import {
   correctDateRange,
   defaultPlanInput,
-  singleRenterPlanInput,
   type Child,
   type IncomeAdjustment,
   type LifeEvent,
@@ -31,11 +30,16 @@ import {
   removeLoan,
   removeProperty,
   removeRecurringExpense,
+  resetInput,
+  resetSingleInput,
   setRange,
   snapshotSchema,
+  startBlank,
   toggleSpouse,
+  updateAssets,
   updateChild,
   updateEvent,
+  updateExpenses,
   updateIncomeAdjustment,
   updateLoan,
   updateProperty,
@@ -209,14 +213,9 @@ export const usePlanStore = create<PlanState>()(
         }),
 
       updateExpenses: (patch) =>
-        set((s) => ({
-          input: { ...s.input, expenses: { ...s.input.expenses, ...patch } },
-        })),
+        set((s) => ({ input: updateExpenses(s.input, patch) })),
 
-      updateAssets: (patch) =>
-        set((s) => ({
-          input: { ...s.input, assets: { ...s.input.assets, ...patch } },
-        })),
+      updateAssets: (patch) => set((s) => ({ input: updateAssets(s.input, patch) })),
 
       addChild: () => set((s) => ({ input: addChild(s.input, makeId) })),
 
@@ -311,40 +310,22 @@ export const usePlanStore = create<PlanState>()(
        * 前提: これは入力の全消去であり、テーマ等の UI 設定や
        * localStorage 上の別キーには一切触れない（persist の "life-plan/v1"
        * キー内の input / snapshots のみを初期化する）。
-       * defaultPlanInput は共有参照のため structuredClone して、
-       * 以降の編集が既定値オブジェクトを汚染しないようにする。
        */
       reset: () =>
         set({
-          input: structuredClone(defaultPlanInput),
+          input: resetInput(),
           snapshots: [],
           rangeAutoCorrected: false,
         }),
 
       resetSingle: () =>
         set({
-          input: structuredClone(singleRenterPlanInput),
+          input: resetSingleInput(),
           rangeAutoCorrected: false,
         }),
 
-      /**
-       * lp-030: 「まっさらから入力」。基礎生活費・ローン・イベントを 0/空にする。
-       * self / spouse / children / assets（保有資産・運用条件）には触れない
-       * ——世帯構成や年収・資産条件は決まっているが、支出面はこれから
-       * 自分で組み立てたいユーザー向けの開始地点。
-       * 以後、生活費は 0 のためどの世帯構成の既定値とも一致せず、
-       * applyHouseholdDefaults による自動追従の対象から外れる
-       * （ローン・イベントも空のため同様）。
-       */
-      startBlank: () =>
-        set((s) => ({
-          input: {
-            ...s.input,
-            expenses: { ...s.input.expenses, baseAnnualLivingExpense: 0 },
-            loans: [],
-            events: [],
-          },
-        })),
+      /** lp-030: 「まっさらから入力」（本体は plan/application の startBlank）。 */
+      startBlank: () => set((s) => ({ input: startBlank(s.input) })),
     }),
     {
       name: "life-plan/v1",

@@ -20,6 +20,7 @@ export { newLoan } from "./newLoan";
 export { newRecurringExpense } from "./newRecurringExpense";
 export { nextChildName } from "./nextChildName";
 export { setRange } from "./period";
+export { resetInput, resetSingleInput, startBlank } from "./presets";
 export { addProperty, removeProperty, updateProperty } from "./properties";
 export {
   addRecurringExpense,
@@ -47,3 +48,4 @@ export {
   type PlanInputErrors,
   type PlanInputValidation,
 } from "./schema";
+export { updateAssets, updateExpenses } from "./settings";
