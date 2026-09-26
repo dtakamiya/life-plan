@@ -63,19 +63,19 @@
 
 **Files:** なし
 
-- [ ] **Step 1: ブランチを作成する**
+- [x] **Step 1: ブランチを作成する**
 
 ```bash
 git switch main && git pull
 git switch -c refactor/simulation-feature
 ```
 
-- [ ] **Step 2: テスト件数のベースラインを記録する**
+- [x] **Step 2: テスト件数のベースラインを記録する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・M を控える。
 
-- [ ] **Step 3: ルート別のバンドルサイズを記録する**
+- [x] **Step 3: ルート別のバンドルサイズを記録する**
 
 Run: `npm run build 2>&1 | grep -E "^(┌|├|└)"`
 Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控える（Review Focus 5）。
@@ -99,7 +99,7 @@ Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控え�
 - Consumes: `@/features/plan/ui` の `usePlanStore`、`@/features/plan/application` の `newLoan`, `newRecurringExpense`、`@/features/plan/domain` の `defaultPlanInput`, `PlanInput`, `Person`、旧パスの `runSimulation`（`@/lib/simulation/engine`）と `YearlyResult`（`@/lib/simulation/types`）
 - Produces: なし（テストのみ）
 
-- [ ] **Step 1: ストアの統合テストを作る**
+- [x] **Step 1: ストアの統合テストを作る**
 
 `src/features/simulation/ui/planStore.integration.test.ts`（本文は `usePlanStore.test.ts` の該当ケースそのまま。describe 名は移動元と同じにし、各 describe の `beforeEach` も移動元と同じにする）:
 
@@ -193,7 +193,7 @@ describe("usePlanStore.startBlank — まっさらから入力（lp-030）", () 
 });
 ```
 
-- [ ] **Step 2: 移動元のストアテストから 4 ケースと補助を削る**
+- [x] **Step 2: 移動元のストアテストから 4 ケースと補助を削る**
 
 `src/features/plan/ui/usePlanStore.test.ts` から次を削除する:
 - import 行 `import { runSimulation } from "@/lib/simulation/engine";` と `import type { YearlyResult } from "@/lib/simulation/types";`
@@ -207,7 +207,7 @@ describe("usePlanStore.startBlank — まっさらから入力（lp-030）", () 
 Run: `grep -n "runSimulation\|YearlyResult\|BASELINE_SERIES\|assertFiniteSeries" src/features/plan/ui/usePlanStore.test.ts`
 Expected: 出力なし
 
-- [ ] **Step 3: ローン新規行の統合テストを作る**
+- [x] **Step 3: ローン新規行の統合テストを作る**
 
 `src/features/simulation/application/newLoan.integration.test.ts`（`basePerson`・`makeInput` と 4 ケースは `newLoan.test.ts` からそのまま移す）:
 
@@ -300,7 +300,7 @@ describe("newLoan — ローン新規行ファクトリ（lp-013）", () => {
 });
 ```
 
-- [ ] **Step 4: 移動元の newLoan.test.ts を 1 ケースだけにする**
+- [x] **Step 4: 移動元の newLoan.test.ts を 1 ケースだけにする**
 
 `src/features/plan/application/newLoan.test.ts` の全体を次にする（残るのは runSimulation を使わない最初のケースのみ）:
 
@@ -322,7 +322,7 @@ describe("newLoan — ローン新規行ファクトリ（lp-013）", () => {
 });
 ```
 
-- [ ] **Step 5: 継続支出新規行の統合テストを作る**
+- [x] **Step 5: 継続支出新規行の統合テストを作る**
 
 `src/features/simulation/application/newRecurringExpense.integration.test.ts`:
 
@@ -381,7 +381,7 @@ describe("newRecurringExpense", () => {
 });
 ```
 
-- [ ] **Step 6: 移動元の newRecurringExpense.test.ts を 1 ケースだけにする**
+- [x] **Step 6: 移動元の newRecurringExpense.test.ts を 1 ケースだけにする**
 
 `src/features/plan/application/newRecurringExpense.test.ts` の全体を次にする:
 
@@ -400,7 +400,7 @@ describe("newRecurringExpense", () => {
 });
 ```
 
-- [ ] **Step 7: planFile.test.ts の系列比較を削る**
+- [x] **Step 7: planFile.test.ts の系列比較を削る**
 
 `src/features/plan/infrastructure/planFile.test.ts` から import 行 `import { runSimulation } from "@/lib/simulation/engine";` を削除し、「プランJSON往復」の最初のケースを次にする（補足・判断 4）:
 
@@ -418,17 +418,17 @@ describe("プランJSON往復", () => {
   );
 ```
 
-- [ ] **Step 8: plan から simulation への依存が無くなったことを確認する**
+- [x] **Step 8: plan から simulation への依存が無くなったことを確認する**
 
 Run: `grep -rn "simulation" src/features/plan`
 Expected: 出力なし
 
-- [ ] **Step 9: テストを実行する**
+- [x] **Step 9: テストを実行する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。テストファイル数 N+3、テスト数 M（移動のみなので不変）。
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add src/features/simulation src/features/plan
@@ -451,7 +451,7 @@ git commit -m "test: plan 側の runSimulation を使うケースを simulation 
 - Consumes: `@/features/plan/domain`（既存）、`@/shared/lib`（既存）
 - Produces: `@/features/simulation/domain` から `runSimulation(input: PlanInput): YearlyResult[]`, `summarizeResults(results: YearlyResult[]): ResultSummary | null`, `findDepletion(results: YearlyResult[]): YearlyResult | null`, `describeAssetLongevity(results: YearlyResult[]): string | null`, `findDepletionRemedies(input: PlanInput): DepletionRemedies | null`, `buildAssumptionRows(input: PlanInput): AssumptionRow[]`, 型 `YearlyResult`
 
-- [ ] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
+- [x] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」の末尾に 1 行追加する:
 
@@ -461,12 +461,12 @@ git commit -m "test: plan 側の runSimulation を使うケースを simulation 
   });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/simulation/domain/index.ts` が見つからない）
 
-- [ ] **Step 3: ファイルを移動する**
+- [x] **Step 3: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/simulation/domain
@@ -478,7 +478,7 @@ git mv src/lib/assumptions.ts src/lib/assumptions.test.ts src/features/simulatio
 Run: `ls src/lib/simulation 2>&1; ls src/features/simulation/domain`
 Expected: 1 行目は `No such file or directory`。2 行目に `calc-coverage.test.ts`, `childAllowance(.test).ts`, `depletionRemedies(.test).ts`, `engine(.test).ts`, `housingLoanCredit(.test).ts`, `incomeAdjustment(.test).ts`, `longevitySummary(.test).ts`, `recurringExpense(.test).ts`, `socialInsurance.ts`, `summary(.test).ts`, `tax.ts`, `yearlyResult.ts`, `assumptions(.test).ts` が並ぶ。
 
-- [ ] **Step 4: 移動したファイル内の相対 import を直す**
+- [x] **Step 4: 移動したファイル内の相対 import を直す**
 
 ```bash
 cd src/features/simulation/domain
@@ -491,7 +491,7 @@ cd -
 Run: `grep -rn "types\"\|lib/simulation\|\./simulation/" src/features/simulation/domain`
 Expected: 出力なし
 
-- [ ] **Step 5: 公開 API を作る**
+- [x] **Step 5: 公開 API を作る**
 
 `src/features/simulation/domain/index.ts`:
 
@@ -505,7 +505,7 @@ export { findDepletion, summarizeResults } from "./summary";
 export type { YearlyResult } from "./yearlyResult";
 ```
 
-- [ ] **Step 6: 1 モジュールから 1 行だけ import しているファイルを機械的に書き換える**
+- [x] **Step 6: 1 モジュールから 1 行だけ import しているファイルを機械的に書き換える**
 
 ```bash
 grep -rlE '"@/lib/(simulation/[A-Za-z]+|assumptions)"' src | xargs sed -i '' -E 's#"@/lib/(simulation/[A-Za-z]+|assumptions)"#"@/features/simulation/domain"#'
@@ -520,7 +520,7 @@ sed -i '' 's#"\./simulation/engine"#"@/features/simulation/domain/engine"#g' src
 Run: `grep -rnE "lib/simulation|lib/assumptions|\./simulation/" src --include='*.ts' --include='*.tsx' | grep -v importRules.test.ts`
 Expected: 出力なし
 
-- [ ] **Step 7: 同じ index からの重複 import を 1 行にまとめる**
+- [x] **Step 7: 同じ index からの重複 import を 1 行にまとめる**
 
 Step 6 の結果、次のファイルでは `@/features/simulation/domain` からの import が 2 行以上になっている。それぞれ下の 1 行にまとめる（他の行は変えない）。
 
@@ -551,7 +551,7 @@ import { runSimulation, type YearlyResult } from "@/features/simulation/domain";
 Run: `grep -rc '"@/features/simulation/domain"' src --include='*.ts' --include='*.tsx' | grep -v ":0$" | grep -v ":1$"`
 Expected: 出力なし（どのファイルも 1 行だけ）
 
-- [ ] **Step 8: 統合テストの import を index 経由にしたことを確認する**
+- [x] **Step 8: 統合テストの import を index 経由にしたことを確認する**
 
 Task 1 の 3 ファイルは Step 6 の sed で `@/features/simulation/domain` に書き換わっている。`planStore.integration.test.ts` は `runSimulation` と `YearlyResult` の 2 行になるので 1 行にまとめる:
 
@@ -559,12 +559,12 @@ Task 1 の 3 ファイルは Step 6 の sed で `@/features/simulation/domain` �
 import { runSimulation, type YearlyResult } from "@/features/simulation/domain";
 ```
 
-- [ ] **Step 9: テストと型検査を実行する**
+- [x] **Step 9: テストと型検査を実行する**
 
 Run: `npx vitest run 2>&1 | tail -6 && npx tsc --noEmit`
 Expected: すべて PASS（アーキテクチャテストを含む）。テストファイル数 N+3、テスト数 M。`tsc` はエラーなし。
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add -A src
@@ -587,7 +587,7 @@ git commit -m "refactor: simulation の計算ロジックを simulation/domain �
 - Consumes: `@/features/simulation/domain` の `runSimulation`, `YearlyResult`（Task 2）、`@/features/plan/application` の `validatePlanInput`
 - Produces: `@/features/simulation/application` から `runValidatedSimulation(input: PlanInput): YearlyResult[] | null`
 
-- [ ] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
+- [x] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
 
 `src/architecture.test.ts` に追加する:
 
@@ -597,12 +597,12 @@ git commit -m "refactor: simulation の計算ロジックを simulation/domain �
   });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/simulation/application/index.ts` が見つからない）
 
-- [ ] **Step 3: ファイルを移動する**
+- [x] **Step 3: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/simulation/application/__snapshots__
@@ -612,7 +612,7 @@ git mv src/lib/__snapshots__/input-validation.test.ts.snap src/features/simulati
 
 `src/lib/__snapshots__/` は空になり、git 上から消える。`validatedSimulation.ts` の import（`@/features/simulation/domain`・`@/features/plan/domain`・`@/features/plan/application`）は位置に依存しないので変更不要。
 
-- [ ] **Step 4: テストのモック対象を同一機能の相対パスにする**
+- [x] **Step 4: テストのモック対象を同一機能の相対パスにする**
 
 `src/features/simulation/application/input-validation.test.ts` の `@/features/simulation/domain/engine`（Task 2 で書き換えた 5 か所: `vi.mock`・`importOriginal` の型・`import { runSimulation }`・`vi.importActual` の型と引数）を `../domain/engine` にする:
 
@@ -625,7 +625,7 @@ sed -i '' 's#"@/features/simulation/domain/engine"#"../domain/engine"#g' src/fea
 Run: `grep -n "engine\|validatedSimulation\"" src/features/simulation/application/input-validation.test.ts`
 Expected: `vi.mock("../domain/engine", ...)`、`import("../domain/engine")`（2 か所）、`import { runSimulation } from "../domain/engine";`、`vi.importActual<...>("../domain/engine")`、`import { runValidatedSimulation } from "./validatedSimulation";` が表示される
 
-- [ ] **Step 5: 公開 API を作る**
+- [x] **Step 5: 公開 API を作る**
 
 `src/features/simulation/application/index.ts`:
 
@@ -634,7 +634,7 @@ Expected: `vi.mock("../domain/engine", ...)`、`import("../domain/engine")`（2 
 export { runValidatedSimulation } from "./validatedSimulation";
 ```
 
-- [ ] **Step 6: 利用側の import を書き換える**
+- [x] **Step 6: 利用側の import を書き換える**
 
 ```bash
 sed -i '' 's#"@/lib/validatedSimulation"#"@/features/simulation/application"#' src/app/page.tsx src/components/charts/ComparisonChart.tsx
@@ -643,17 +643,17 @@ sed -i '' 's#"@/lib/validatedSimulation"#"@/features/simulation/application"#' s
 Run: `grep -rn "lib/validatedSimulation\|lib/__snapshots__" src`
 Expected: 出力なし
 
-- [ ] **Step 7: スナップショットを書き出さずに検証する（Review Focus 1・2）**
+- [x] **Step 7: スナップショットを書き出さずに検証する（Review Focus 1・2）**
 
 Run: `CI=true npx vitest run src/features/simulation/application/input-validation.test.ts 2>&1 | tail -8 && git status --short -- '*.snap'`
 Expected: すべて PASS。`Snapshots  1 passed`（`written` や `obsolete` が出ないこと）。`git status` には移動した `.snap` の rename 以外の行（`??` の新規ファイル）が出ない。`toHaveBeenCalledTimes(1)` のケースが PASS していること（モックが効いている）。
 
-- [ ] **Step 8: 全テストを実行する**
+- [x] **Step 8: 全テストを実行する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。テストファイル数 N+3、テスト数 M。
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add -A src
@@ -675,7 +675,7 @@ git commit -m "refactor: 入力検証つきシミュレーションを simulatio
 - Consumes: `@/features/simulation/domain`（Task 2）、`@/features/plan/domain`、`@/shared/lib`、`@/shared/ui`
 - Produces: `@/features/simulation/ui` から `SummaryBar`, `DepletionAdvice`, `ResultTable`, `AssumptionsPanel`, `NetWorthChart`, `CashFlowChart`（props は現状のまま）
 
-- [ ] **Step 1: ComparisonChart のテキスト代替テストを分ける**
+- [x] **Step 1: ComparisonChart のテキスト代替テストを分ける**
 
 `src/components/charts/comparison-chart-aria.test.tsx`（ハーネスと `results` は `chart-aria.test.tsx` と同じ内容。ケース本文は移動元から変えない）:
 
@@ -771,7 +771,7 @@ describe("チャートのテキスト代替（FR6.1）", () => {
 Run: `grep -n "ComparisonChart" src/components/charts/chart-aria.test.tsx; npx vitest run src/components/charts 2>&1 | tail -6`
 Expected: grep は出力なし。テストはすべて PASS。
 
-- [ ] **Step 2: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
+- [x] **Step 2: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
 
 `src/architecture.test.ts` に追加する:
 
@@ -781,12 +781,12 @@ Expected: grep は出力なし。テストはすべて PASS。
   });
 ```
 
-- [ ] **Step 3: 失敗を確認する**
+- [x] **Step 3: 失敗を確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/simulation/ui/index.ts` が見つからない）
 
-- [ ] **Step 4: ファイルを移動する**
+- [x] **Step 4: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/simulation/ui
@@ -808,7 +808,7 @@ git mv src/components/SummaryBar.tsx src/components/SummaryBar.test.tsx \
 Run: `ls src/components src/components/charts`
 Expected: `src/components` に `ScenarioBar.tsx`, `ScenarioBar.test.tsx`, `charts`, `game` のみ。`src/components/charts` に `ComparisonChart.tsx`, `ComparisonDiffTable.tsx`, `comparison-chart-aria.test.tsx` のみ。
 
-- [ ] **Step 5: 公開 API を作る**
+- [x] **Step 5: 公開 API を作る**
 
 `src/features/simulation/ui/index.ts`（`"use client"` は付けない。各コンポーネントファイルの `"use client"` はそのまま残す）:
 
@@ -822,7 +822,7 @@ export { ResultTable } from "./ResultTable";
 export { SummaryBar } from "./SummaryBar";
 ```
 
-- [ ] **Step 6: app/page.tsx の import を書き換える**
+- [x] **Step 6: app/page.tsx の import を書き換える**
 
 `src/app/page.tsx` の次の 6 行を削除する:
 
@@ -851,12 +851,12 @@ import {
 Run: `grep -rnE "components/(SummaryBar|DepletionAdvice|ResultTable|AssumptionsPanel|result-table-cards|charts/(NetWorthChart|CashFlowChart|netWorthChartData)|forms/)" src`
 Expected: 出力なし
 
-- [ ] **Step 7: テストと型検査を実行する**
+- [x] **Step 7: テストと型検査を実行する**
 
 Run: `npx vitest run 2>&1 | tail -6 && npx tsc --noEmit`
 Expected: すべて PASS（アーキテクチャテストを含む）。テストファイル数 N+4（Step 1 の分割で +1）、テスト数 M。`tsc` はエラーなし。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add -A src
@@ -870,17 +870,17 @@ git commit -m "refactor: 結果表示 UI を simulation/ui へ移動"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-26-pr4-simulation-feature.md`（申し送りの実績があれば追記）
 
-- [ ] **Step 1: テスト・lint・ビルドを実行する**
+- [x] **Step 1: テスト・lint・ビルドを実行する**
 
 Run: `npm run test 2>&1 | tail -6 && npm run lint && npm run build 2>&1 | grep -E "^(┌|├|└)"`
 Expected: テストはすべて PASS（ファイル数 N+4、テスト数 M）。lint はエラーなし。ビルド成功。`/` と `/game` の First Load JS を Task 0 の値と比べる（Review Focus 5）。
 
-- [ ] **Step 2: 旧パスの残りが無いことを確認する**
+- [x] **Step 2: 旧パスの残りが無いことを確認する**
 
 Run: `grep -rnE "@/lib/(simulation|assumptions|validatedSimulation)|@/components/(SummaryBar|DepletionAdvice|ResultTable|AssumptionsPanel)" src docs/superpowers/specs; ls src/lib`
 Expected: grep は出力なし。`src/lib` には `comparisonDiff.ts`, `comparisonDiff.test.ts`, `game` のみ。
 
-- [ ] **Step 3: 画面で確認する（Review Focus 4）**
+- [x] **Step 3: 画面で確認する（Review Focus 4）**
 
 `npm run dev` で起動し、ブラウザで次を確認する（既存の localStorage `life-plan/v1` がある状態で開く）:
 - `/`: 保存済みの入力が復元される。サマリー・純資産チャート・キャッシュフローチャート・結果表（カード表示と表の切り替えを含む）・計算の前提パネルが表示される。
@@ -889,7 +889,7 @@ Expected: grep は出力なし。`src/lib` には `comparisonDiff.ts`, `comparis
 - スナップショットを 1 件保存し、比較チャートと差分表が表示される。
 - `/game`: ゲームを開始し、数ステージ進めて結果画面まで到達できる。
 
-- [ ] **Step 4: プッシュして PR を作る**
+- [x] **Step 4: プッシュして PR を作る**
 
 ```bash
 git push -u origin refactor/simulation-feature

@@ -68,7 +68,7 @@
 
 **Files:** なし
 
-- [ ] **Step 1: 移行確認用の旧形式データをブラウザに作る（`main` のまま行う）**
+- [x] **Step 1: 移行確認用の旧形式データをブラウザに作る（`main` のまま行う）**
 
 ```bash
 git switch main && git pull
@@ -82,18 +82,18 @@ npm run dev
 
 dev サーバーを止める。
 
-- [ ] **Step 2: ブランチを作成する**
+- [x] **Step 2: ブランチを作成する**
 
 ```bash
 git switch -c refactor/scenario-feature
 ```
 
-- [ ] **Step 3: テスト件数のベースラインを記録する**
+- [x] **Step 3: テスト件数のベースラインを記録する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。計画作成時点では `Test Files  87 passed`・`Tests  752 passed`。実際の N・M を控える。
 
-- [ ] **Step 4: ルート別のバンドルサイズを記録する**
+- [x] **Step 4: ルート別のバンドルサイズを記録する**
 
 Run: `npm run build 2>&1 | grep -E "^(┌|├|└)"`
 Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控える。
@@ -114,7 +114,7 @@ Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控え�
 - Consumes: `@/features/plan/domain` の型 `PlanInput`
 - Produces: `@/features/scenario/domain` から型 `Snapshot = { id: string; name: string; input: PlanInput; origin: SnapshotOrigin }`、型 `SnapshotOrigin = "manual" | "game"`、`buildComparisonDiff(inputs: ComparisonInput[]): ComparisonDiffRow[]`、型 `ComparisonInput`・`DiffDirection`（シグネチャは移動前と同じ）
 
-- [ ] **Step 1: アーキテクチャテストの走査確認に scenario/domain を足す**
+- [x] **Step 1: アーキテクチャテストの走査確認に scenario/domain を足す**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」で、`features/game/ui/index.ts` の行の後に 1 行足す:
 
@@ -122,12 +122,12 @@ Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控え�
     expect(files).toContain("features/scenario/domain/index.ts");
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL。「検査対象のファイルを走査できている」が `features/scenario/domain/index.ts` を含まないため失敗する。
 
-- [ ] **Step 3: ファイルを移動する**
+- [x] **Step 3: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/scenario/domain
@@ -137,7 +137,7 @@ git mv src/lib/comparisonDiff.test.ts src/features/scenario/domain/comparisonDif
 
 `comparisonDiff.ts` の import（`@/shared/lib`・`@/features/simulation/domain`）と `comparisonDiff.test.ts` の import（`@/features/simulation/domain`・`./comparisonDiff`）はそのままでよい（scenario → shared・simulation は許可）。
 
-- [ ] **Step 4: スナップショットの型を作る**
+- [x] **Step 4: スナップショットの型を作る**
 
 `src/features/scenario/domain/snapshot.ts`（中身は `src/features/plan/ui/usePlanStore.ts` の同名の型と同じ。plan 側の型は Task 5 で消す）:
 
@@ -156,7 +156,7 @@ export type Snapshot = {
 };
 ```
 
-- [ ] **Step 5: domain の index を作る**
+- [x] **Step 5: domain の index を作る**
 
 `src/features/scenario/domain/index.ts`:
 
@@ -166,7 +166,7 @@ export { buildComparisonDiff, type ComparisonInput, type DiffDirection } from ".
 export type { Snapshot, SnapshotOrigin } from "./snapshot";
 ```
 
-- [ ] **Step 6: `ComparisonDiffTable.tsx` の import を書き換える**
+- [x] **Step 6: `ComparisonDiffTable.tsx` の import を書き換える**
 
 `src/components/charts/ComparisonDiffTable.tsx` の 1 行目:
 
@@ -174,7 +174,7 @@ export type { Snapshot, SnapshotOrigin } from "./snapshot";
 import { buildComparisonDiff, type ComparisonInput, type DiffDirection } from "@/features/scenario/domain";
 ```
 
-- [ ] **Step 7: テストを実行する**
+- [x] **Step 7: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/scenario src/components src/app`
 Expected: すべて PASS（`comparisonDiff.test.ts` のケース数は移動前と同じ）。
@@ -182,7 +182,7 @@ Expected: すべて PASS（`comparisonDiff.test.ts` のケース数は移動前�
 Run: `grep -rn "lib/comparisonDiff" src`
 Expected: 出力なし。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add -A src
@@ -212,7 +212,7 @@ git commit -m "refactor: 比較差分とスナップショットの型を featur
 
 `src/features/plan/application/schema.ts` の `snapshotSchema`・`snapshotOriginSchema` は plan ストアがまだ使っているため、このタスクでは残す（Task 5 で消す）。
 
-- [ ] **Step 1: 走査確認に scenario/application を足す**
+- [x] **Step 1: 走査確認に scenario/application を足す**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」で、Task 1 で足した行の後に 1 行足す:
 
@@ -220,7 +220,7 @@ git commit -m "refactor: 比較差分とスナップショットの型を featur
     expect(files).toContain("features/scenario/application/index.ts");
 ```
 
-- [ ] **Step 2: スキーマのテストを移す**
+- [x] **Step 2: スキーマのテストを移す**
 
 `src/features/plan/application/schema.test.ts` から `describe("snapshotSchema", …)` のブロック全体（5〜55 行目）を切り取り、2 行目の import を次のようにする（3 行目の `defaultPlanInput` の import は残りのテストでも使っているので残す）:
 
@@ -290,7 +290,7 @@ describe("snapshotSchema", () => {
 
 （移す前の内容と差があれば、移す前の内容を正とする。テストの中身は変えない。）
 
-- [ ] **Step 3: ユースケースの失敗するテストを書く**
+- [x] **Step 3: ユースケースの失敗するテストを書く**
 
 `src/features/scenario/application/snapshots.test.ts`:
 
@@ -380,12 +380,12 @@ describe("loadSnapshot", () => {
 });
 ```
 
-- [ ] **Step 4: テストが失敗することを確認する**
+- [x] **Step 4: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/scenario/application`
 Expected: FAIL。`./snapshotSchema` と `./snapshots` が解決できない。
 
-- [ ] **Step 5: スキーマを作る**
+- [x] **Step 5: スキーマを作る**
 
 `src/features/scenario/application/snapshotSchema.ts`（定義は `src/features/plan/application/schema.ts` の同名のものと同じ）:
 
@@ -408,7 +408,7 @@ export const snapshotSchema = z.object({
 });
 ```
 
-- [ ] **Step 6: ユースケースを作る**
+- [x] **Step 6: ユースケースを作る**
 
 `src/features/scenario/application/snapshots.ts`（本体は `src/features/plan/ui/usePlanStore.ts` の `saveSnapshot`・`removeSnapshot`・`loadSnapshot` アクションから取り出したもの）:
 
@@ -467,7 +467,7 @@ export function loadSnapshot(snapshots: Snapshot[], id: string): PlanInput | nul
 }
 ```
 
-- [ ] **Step 7: application の index を作る**
+- [x] **Step 7: application の index を作る**
 
 `src/features/scenario/application/index.ts`:
 
@@ -477,12 +477,12 @@ export { snapshotSchema } from "./snapshotSchema";
 export { loadSnapshot, removeSnapshot, saveSnapshot } from "./snapshots";
 ```
 
-- [ ] **Step 8: テストを実行する**
+- [x] **Step 8: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/scenario src/features/plan/application`
 Expected: すべて PASS。`snapshots.test.ts` の 7 ケースと `snapshotSchema.test.ts` の 5 ケースが PASS し、`plan/application/schema.test.ts` から `snapshotSchema` の describe が無くなっている。
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add -A src
@@ -503,7 +503,7 @@ git commit -m "refactor: スナップショットのスキーマとユースケ�
 - Consumes: `@/features/scenario/application` の `snapshotSchema`、`@/features/scenario/domain` の型 `Snapshot`
 - Produces: `@/features/scenario/infrastructure` から `mergePersistedScenarioState<T extends { snapshots: Snapshot[] }>(persisted: unknown, current: T): T`
 
-- [ ] **Step 1: 走査確認に scenario/infrastructure を足す**
+- [x] **Step 1: 走査確認に scenario/infrastructure を足す**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」で、Task 2 で足した行の後に 1 行足す:
 
@@ -511,7 +511,7 @@ git commit -m "refactor: スナップショットのスキーマとユースケ�
     expect(files).toContain("features/scenario/infrastructure/index.ts");
 ```
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 `src/features/scenario/infrastructure/mergePersistedScenarioState.test.ts`:
 
@@ -563,12 +563,12 @@ describe("mergePersistedScenarioState", () => {
 });
 ```
 
-- [ ] **Step 3: テストが失敗することを確認する**
+- [x] **Step 3: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/scenario/infrastructure`
 Expected: FAIL。`./mergePersistedScenarioState` が解決できない。
 
-- [ ] **Step 4: 実装する**
+- [x] **Step 4: 実装する**
 
 `src/features/scenario/infrastructure/mergePersistedScenarioState.ts`:
 
@@ -603,7 +603,7 @@ export function mergePersistedScenarioState<T extends { snapshots: Snapshot[] }>
 }
 ```
 
-- [ ] **Step 5: infrastructure の index を作る**
+- [x] **Step 5: infrastructure の index を作る**
 
 `src/features/scenario/infrastructure/index.ts`:
 
@@ -612,12 +612,12 @@ export function mergePersistedScenarioState<T extends { snapshots: Snapshot[] }>
 export { mergePersistedScenarioState } from "./mergePersistedScenarioState";
 ```
 
-- [ ] **Step 6: テストを実行する**
+- [x] **Step 6: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/scenario`
 Expected: すべて PASS（`mergePersistedScenarioState.test.ts` の 4 ケースを含む）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add -A src
@@ -640,7 +640,7 @@ git commit -m "refactor: scenario ストアの persist merge を features/scenar
   - `SCENARIOS_STORAGE_VERSION = 1`
   - `migratePersistedPlanState(persisted: unknown, storage: Pick<Storage, "getItem" | "setItem">): unknown`（`snapshots` を取り除いた状態を返す。移行先へ書く値は `JSON.stringify({ state: { snapshots }, version: SCENARIOS_STORAGE_VERSION })`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/infrastructure/migratePersistedPlanState.test.ts`:
 
@@ -733,12 +733,12 @@ describe("migratePersistedPlanState（life-plan/v1 の version 1 → 2）", () =
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/plan/infrastructure/migratePersistedPlanState.test.ts`
 Expected: FAIL。`./migratePersistedPlanState` が解決できない。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `src/features/plan/infrastructure/migratePersistedPlanState.ts`:
 
@@ -778,7 +778,7 @@ export function migratePersistedPlanState(persisted: unknown, storage: KeyValueS
 }
 ```
 
-- [ ] **Step 4: index に追加する**
+- [x] **Step 4: index に追加する**
 
 `src/features/plan/infrastructure/index.ts` の末尾（`makeId` の行の後）に足す:
 
@@ -790,12 +790,12 @@ export {
 } from "./migratePersistedPlanState";
 ```
 
-- [ ] **Step 5: テストを実行する**
+- [x] **Step 5: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/plan/infrastructure`
 Expected: すべて PASS（`migratePersistedPlanState.test.ts` の 6 ケースを含む）。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add -A src
@@ -837,7 +837,7 @@ plan ストアの縮小・`mergePersistedPlanState` の移動・scenario スト�
   - `@/features/plan/ui` の `usePlanStore`（`snapshots`・`saveSnapshot`・`removeSnapshot`・`loadSnapshot` が無くなる。`reset` は入力のみを既定値へ戻す。persist は `life-plan/v1` の version 2）。型 `Snapshot` の再エクスポートは無くなる
   - `@/features/scenario/ui` から `useScenarioStore`。状態は `snapshots: Snapshot[]`、アクションは `saveSnapshot(name: string, input?: PlanInput, origin?: SnapshotOrigin): void`（`input` 省略時は plan の現在の入力、`origin` 省略時は `"manual"`）、`removeSnapshot(id: string): void`、`loadSnapshot(id: string): void`（plan の `replaceInput` を呼ぶ）、`reset(): void`（plan の `reset` を呼び、スナップショットも空にする）
 
-- [ ] **Step 1: 走査確認に scenario/ui を足す**
+- [x] **Step 1: 走査確認に scenario/ui を足す**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」で、Task 3 で足した行の後に 1 行足す:
 
@@ -845,7 +845,7 @@ plan ストアの縮小・`mergePersistedPlanState` の移動・scenario スト�
     expect(files).toContain("features/scenario/ui/index.ts");
 ```
 
-- [ ] **Step 2: `mergePersistedPlanState` のテストを plan/infrastructure へ移す**
+- [x] **Step 2: `mergePersistedPlanState` のテストを plan/infrastructure へ移す**
 
 `src/features/plan/ui/usePlanStore.test.ts` から `/** lp-019 / QA#1: 永続化復元時（persist の merge）…*/` のコメントと `describe("usePlanStore — 永続化復元時の期間自動補正", …)` のブロック（120〜171 行目付近）を切り取る。2 行目の import を次にする:
 
@@ -889,7 +889,7 @@ describe("usePlanStore — 永続化復元時の期間自動補正", () => {
 
 （`PlanInput` の import が切り取った 3 ケースで不要なら、足したケースで使うので残す。）
 
-- [ ] **Step 3: scenario ストアの失敗するテストを書く**
+- [x] **Step 3: scenario ストアの失敗するテストを書く**
 
 plan のストアテストから、スナップショットにかかわる検証を scenario ストアのテストへ移す。`src/features/plan/ui/usePlanStore.test.ts` を次のように直す:
 - `describe("usePlanStore.reset", …)` の「30歳ペルソナ（配偶者・子・ローン・イベント・保存プラン）を全消去する」: タイトルを「30歳ペルソナ（配偶者・子・ローン・イベント）の入力を全消去する」にし、`store.saveSnapshot("プランA");`・`store.saveSnapshot("プランB");`・`expect(dirty.snapshots.length).toBe(2);`・`// 保存済み比較プラン（シナリオ）も全消去` とその次の `expect(after.snapshots).toEqual([]);` を消す。
@@ -1022,7 +1022,7 @@ describe("plan の入力だけを置き換える操作はスナップショッ�
 
 （「成功時は replaceInput で置換され…」は plan のテストの `rich()` の代わりに開始年を変えた既定入力を使う。`serializePlan` → `parsePlanFile` の往復で値が変わらないことは `planFile.test.ts` が別に検証している。）
 
-- [ ] **Step 4: 旧形式データからの移行の失敗する結合テストを書く**
+- [x] **Step 4: 旧形式データからの移行の失敗する結合テストを書く**
 
 `src/features/scenario/ui/persistMigration.integration.test.ts`:
 
@@ -1131,12 +1131,12 @@ describe("旧形式の保存データからの移行（life-plan/v1 → life-pla
 });
 ```
 
-- [ ] **Step 5: テストが失敗することを確認する**
+- [x] **Step 5: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/scenario/ui src/features/plan/infrastructure/mergePersistedPlanState.test.ts`
 Expected: FAIL。`./useScenarioStore` と `./mergePersistedPlanState` が解決できない。
 
-- [ ] **Step 6: `mergePersistedPlanState` を plan/infrastructure へ移す**
+- [x] **Step 6: `mergePersistedPlanState` を plan/infrastructure へ移す**
 
 `src/features/plan/infrastructure/mergePersistedPlanState.ts`（`usePlanStore.ts` の同名関数から snapshots の扱いを除いたもの）:
 
@@ -1198,7 +1198,7 @@ export function mergePersistedPlanState<T extends RestoredPersistFragment>(
 export { mergePersistedPlanState } from "./mergePersistedPlanState";
 ```
 
-- [ ] **Step 7: plan ストアからスナップショットを外す**
+- [x] **Step 7: plan ストアからスナップショットを外す**
 
 `src/features/plan/ui/usePlanStore.ts` を次のように直す。
 
@@ -1264,11 +1264,11 @@ persist のオプションを次にする:
 export { usePlanStore } from "./usePlanStore";
 ```
 
-- [ ] **Step 8: plan/application からスナップショットのスキーマを消す**
+- [x] **Step 8: plan/application からスナップショットのスキーマを消す**
 
 `src/features/plan/application/schema.ts` の `snapshotOriginSchema`・`snapshotSchema` の定義（ドキュメントコメントを含む、128〜140 行目付近）を消す。`src/features/plan/application/index.ts` の `./schema` の export から `snapshotOriginSchema,` と `snapshotSchema,` を消す。
 
-- [ ] **Step 9: scenario ストアを作る**
+- [x] **Step 9: scenario ストアを作る**
 
 `src/features/scenario/ui/useScenarioStore.ts`:
 
@@ -1364,7 +1364,7 @@ export const useScenarioStore = create<ScenarioState>()(
 export { useScenarioStore } from "./useScenarioStore";
 ```
 
-- [ ] **Step 10: 呼び出し側を scenario ストアへ切り替える**
+- [x] **Step 10: 呼び出し側を scenario ストアへ切り替える**
 
 `src/components/ScenarioBar.tsx`: import に `import { useScenarioStore } from "@/features/scenario/ui";` を足し（`@/features/plan/ui` の import の次の行）、18〜22 行目を次にする:
 
@@ -1410,7 +1410,7 @@ import type { Snapshot } from "@/features/scenario/domain";
 
 `src/features/simulation/ui/planStore.integration.test.ts` の 45 行目 `store.saveSnapshot("noise");` を消す（「仕様からの補足・判断」8）。
 
-- [ ] **Step 11: 残った参照が無いことを確認する**
+- [x] **Step 11: 残った参照が無いことを確認する**
 
 Run: `grep -rnE "usePlanStore\(\(s\) => s\.(snapshots|saveSnapshot|removeSnapshot|loadSnapshot)|usePlanStore\.getState\(\)\.(snapshots|saveSnapshot|removeSnapshot|loadSnapshot)|\.snapshots\b" src/features/plan src/features/simulation src/features/game`
 Expected: 出力なし。
@@ -1418,7 +1418,7 @@ Expected: 出力なし。
 Run: `grep -rn "snapshotSchema\|SnapshotOrigin\|type Snapshot" src/features/plan`
 Expected: 出力なし。
 
-- [ ] **Step 12: テストを実行する**
+- [x] **Step 12: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features src/components src/app`
 Expected: すべて PASS。とくに次を名前で確認する:
@@ -1430,7 +1430,7 @@ Expected: すべて PASS。とくに次を名前で確認する:
 Run: `npx tsc --noEmit -p .`
 Expected: エラーなし。
 
-- [ ] **Step 13: コミットする**
+- [x] **Step 13: コミットする**
 
 ```bash
 git add -A src
@@ -1454,7 +1454,7 @@ git commit -m "refactor: スナップショットを scenario の別ストアへ
 - Consumes: Task 5 の `useScenarioStore`
 - Produces: `@/features/scenario/ui` から `ScenarioBar`・`ComparisonChart`（props は移動前と同じ）
 
-- [ ] **Step 1: ファイルを移動する**
+- [x] **Step 1: ファイルを移動する**
 
 ```bash
 git mv src/components/ScenarioBar.tsx src/features/scenario/ui/ScenarioBar.tsx
@@ -1464,12 +1464,12 @@ git mv src/components/charts/ComparisonDiffTable.tsx src/features/scenario/ui/Co
 git mv src/components/charts/comparison-chart-aria.test.tsx src/features/scenario/ui/comparison-chart-aria.test.tsx
 ```
 
-- [ ] **Step 2: アーキテクチャテストが失敗することを確認する**
+- [x] **Step 2: アーキテクチャテストが失敗することを確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL。「features・shared・app に import ルール違反がない」で `features/scenario/ui/ScenarioBar.tsx → @/features/scenario/ui` と `features/scenario/ui/ScenarioBar.test.tsx → @/features/scenario/ui` が「自層の index」違反として報告される（`src/app/page.tsx` の `@/components/...` は旧ディレクトリの import なので検査対象外のまま、ビルドで失敗する）。
 
-- [ ] **Step 3: 自層の index の import を相対パスにする**
+- [x] **Step 3: 自層の index の import を相対パスにする**
 
 `src/features/scenario/ui/ScenarioBar.tsx` と `src/features/scenario/ui/ScenarioBar.test.tsx` の
 
@@ -1485,7 +1485,7 @@ import { useScenarioStore } from "./useScenarioStore";
 
 `ComparisonChart.tsx` の `./ComparisonDiffTable`（相対）、`@/features/scenario/domain`・`@/features/simulation/*`・`@/shared/*` の import はそのままでよい。
 
-- [ ] **Step 4: ui の index に足す**
+- [x] **Step 4: ui の index に足す**
 
 `src/features/scenario/ui/index.ts`:
 
@@ -1496,7 +1496,7 @@ export { ScenarioBar } from "./ScenarioBar";
 export { useScenarioStore } from "./useScenarioStore";
 ```
 
-- [ ] **Step 5: `src/app/page.tsx` の import を書き換える**
+- [x] **Step 5: `src/app/page.tsx` の import を書き換える**
 
 28〜29 行目（`@/components/charts/ComparisonChart` と `@/components/ScenarioBar` の import）を消し、Task 5 で足した `useScenarioStore` の import を次にする:
 
@@ -1504,7 +1504,7 @@ export { useScenarioStore } from "./useScenarioStore";
 import { ComparisonChart, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
 ```
 
-- [ ] **Step 6: テストを実行する**
+- [x] **Step 6: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/scenario src/app`
 Expected: すべて PASS。
@@ -1512,7 +1512,7 @@ Expected: すべて PASS。
 Run: `grep -rnE "@/components/|@/lib/" src; ls src/lib src/components 2>&1`
 Expected: grep は出力なし。`ls` は両方とも `No such file or directory`（git が空ディレクトリを追跡しないため、作業ツリーに空ディレクトリが残っていれば `rmdir src/components/charts src/components src/lib` で消す）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add -A src
@@ -1525,7 +1525,7 @@ git commit -m "refactor: 比較 UI を features/scenario/ui へ移動（PR 6）"
 
 **Files:** なし（確認で問題が見つかった場合のみ修正）
 
-- [ ] **Step 1: 全テスト・lint・ビルドを通す**
+- [x] **Step 1: 全テスト・lint・ビルドを通す**
 
 Run: `CI=true npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。Task 0 の N・M に対して `Test Files` は N + 7、`Tests` は M + 30（計画作成時点の値では 94・782）。内訳:
@@ -1542,7 +1542,7 @@ Expected: エラー・警告なし。
 Run: `npm run build 2>&1 | grep -E "^(┌|├|└)"`
 Expected: ビルド成功。`/` と `/game` の First Load JS を Task 0 と比べる（`/game` は scenario ストアを読み込むようになるので増えうる。増えていれば PR 本文に数値を書く）。
 
-- [ ] **Step 2: 既存データの移行を画面で確認する（Review Focus 1・2・4・5）**
+- [x] **Step 2: 既存データの移行を画面で確認する（Review Focus 1・2・4・5）**
 
 `npm run dev` で起動し、Task 0 で旧形式データを作ったのと同じオリジン（`http://localhost:3000`）で開く。
 - `/`: 「移行確認A」「移行確認B」「移行確認G（ゲームの標識付き）」の 3 件が比較バーに並び、比較グラフと差分表に 3 系列（＋現在）が出る。入力フォームの内容が Task 0 の時点と同じ。
@@ -1555,7 +1555,7 @@ Expected: ビルド成功。`/` と `/game` の First Load JS を Task 0 と比�
 - `/game`: ゲームを最後まで進めて保存し、`/` に戻ると「ゲーム」の標識付きで比較バーに現れる。
 - DevTools の Local Storage を全部消して再読み込み: 既定値で始まり、エラーにならない（新規利用者）。
 
-- [ ] **Step 3: プッシュして PR を作る**
+- [x] **Step 3: プッシュして PR を作る**
 
 ```bash
 git push -u origin refactor/scenario-feature

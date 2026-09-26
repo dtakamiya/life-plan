@@ -197,12 +197,12 @@ plan ストアは引き続き persist キー `life-plan/v1` に `input` を保�
 | # | ブランチ | 内容 |
 |---|------|------|
 | 1 | `refactor/architecture-test` | 済（#53）。`src/architecture.test.ts` の追加（移行期間中は未移行の `src/lib`・`src/components` を検査・判定から除外）と `shared` の抽出 |
-| 2a | `refactor/plan-domain` | `types.ts` の入力側の分割と、plan の domain・application・infrastructure へのファイル移動。ストア・フォームは旧位置のまま import だけ更新 |
-| 2b | `refactor/plan-ui` | ストアとフォーム（`usePlanErrors.ts` を含む）を `plan/ui` へ移動。ストアは形を変えず移動のみ |
-| 3 | `refactor/plan-usecases` | `usePlanStore` のアクション本体を `plan/application` の純粋関数へ抽出、`IdGenerator` 注入 |
-| 4 | `refactor/simulation-feature` | simulation 一式の移動 |
-| 5 | `refactor/game-feature` | game 一式の移動。`assetDiff` を `shared/lib` へ移動 |
-| 6 | `refactor/scenario-feature` | scenario ストアの分離、plan ストアの `migrate` による persist キー移行、比較関連の移動 |
+| 2a | `refactor/plan-domain` | 済（79e9292）。`types.ts` の入力側の分割と、plan の domain・application・infrastructure へのファイル移動。ストア・フォームは旧位置のまま import だけ更新 |
+| 2b | `refactor/plan-ui` | 済（#55）。ストアとフォーム（`usePlanErrors.ts` を含む）を `plan/ui` へ移動。ストアは形を変えず移動のみ |
+| 3 | `refactor/plan-usecases` | 済（#56）。`usePlanStore` のアクション本体を `plan/application` の純粋関数へ抽出、`IdGenerator` 注入 |
+| 4 | `refactor/simulation-feature` | 済（#57）。simulation 一式の移動 |
+| 5 | `refactor/game-feature` | 済（#58）。game 一式の移動。`assetDiff` を `shared/lib` へ移動 |
+| 6 | `refactor/scenario-feature` | 済（#59）。scenario ストアの分離、plan ストアの `migrate` による persist キー移行、比較関連の移動 |
 | 7 | `refactor/cleanup` | 済（#60）。空になった `src/lib`・`src/components` を削除（PR 6 までに消滅済み）、アーキテクチャテストの対象を `src` 全体へ拡大、CLAUDE.md の「構成」節を新構成に更新 |
 
 リスクの高い scenario（永続化データの移行を伴う）は、単純な移動で済む game の後に回す。
@@ -223,5 +223,5 @@ CLAUDE.md の方針どおり例外は投げず、`try`/`catch` も使わない�
 - 計算ロジックの挙動変更、UI の見た目の変更
 - ドメイン用語・識別子の改名（必要なら別 PR で行う）
 - Repository インターフェース（ポート）の導入
-- CI への lint ステップ追加
+- CI への lint ステップ追加（リファクタリング後の改善計画 `docs/superpowers/plans/2026-09-26-post-refactor-improvements.md` の PR 1 で対応済み: #61）
 - 値オブジェクト（ブランド型）の導入

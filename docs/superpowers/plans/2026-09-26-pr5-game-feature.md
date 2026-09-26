@@ -67,19 +67,19 @@
 
 **Files:** なし
 
-- [ ] **Step 1: ブランチを作成する**
+- [x] **Step 1: ブランチを作成する**
 
 ```bash
 git switch main && git pull
 git switch -c refactor/game-feature
 ```
 
-- [ ] **Step 2: テスト件数のベースラインを記録する**
+- [x] **Step 2: テスト件数のベースラインを記録する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・M を控える。
 
-- [ ] **Step 3: ルート別のバンドルサイズを記録する**
+- [x] **Step 3: ルート別のバンドルサイズを記録する**
 
 Run: `npm run build 2>&1 | grep -E "^(┌|├|└)"`
 Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控える（Review Focus 5）。
@@ -99,19 +99,19 @@ Expected: ビルド成功。`/` と `/game` の Size・First Load JS を控え�
 - Consumes: `src/shared/lib/format.ts` の `formatYen`
 - Produces: `@/shared/lib` から `formatAssetDiff`（シグネチャは移動前と同じ）
 
-- [ ] **Step 1: ファイルを移動する**
+- [x] **Step 1: ファイルを移動する**
 
 ```bash
 git mv src/lib/game/assetDiff.ts src/shared/lib/assetDiff.ts
 git mv src/lib/game/assetDiff.test.ts src/shared/lib/assetDiff.test.ts
 ```
 
-- [ ] **Step 2: アーキテクチャテストが失敗することを確認する**
+- [x] **Step 2: アーキテクチャテストが失敗することを確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL。「features・shared・app に import ルール違反がない」で `shared/lib/assetDiff.ts → @/shared/lib: ... 自層の index ...` が報告される。
 
-- [ ] **Step 3: `assetDiff.ts` の import を相対パスにする**
+- [x] **Step 3: `assetDiff.ts` の import を相対パスにする**
 
 `src/shared/lib/assetDiff.ts` の 1 行目:
 
@@ -119,7 +119,7 @@ Expected: FAIL。「features・shared・app に import ルール違反がない�
 import { formatYen } from "./format";
 ```
 
-- [ ] **Step 4: `shared/lib` の index に追加する**
+- [x] **Step 4: `shared/lib` の index に追加する**
 
 `src/shared/lib/index.ts` を次の内容にする（既存 2 行の前に 1 行足す。並びはファイル名順）:
 
@@ -130,7 +130,7 @@ export { formatManYen, formatManYenLabel, formatPercent, formatYen } from "./for
 export { GLOSSARY, type GlossaryEntry, type GlossaryTermKey } from "./glossary";
 ```
 
-- [ ] **Step 5: 利用側の import を書き換える**
+- [x] **Step 5: 利用側の import を書き換える**
 
 `src/lib/comparisonDiff.ts` の 9〜10 行目を次の 1 行にまとめる:
 
@@ -144,7 +144,7 @@ import { formatAssetDiff, formatYen } from "@/shared/lib";
 import { formatAssetDiff, formatYen } from "@/shared/lib";
 ```
 
-- [ ] **Step 6: テストを実行する**
+- [x] **Step 6: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/shared/lib src/lib/comparisonDiff.test.ts src/components/game`
 Expected: すべて PASS。
@@ -152,7 +152,7 @@ Expected: すべて PASS。
 Run: `grep -rn "game/assetDiff" src`
 Expected: 出力なし。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add -A src
@@ -179,7 +179,7 @@ git commit -m "refactor: assetDiff を shared/lib へ移動（PR 5）"
 - Consumes: `@/features/plan/domain`（`PlanInput`, `LifeEvent`, `defaultPlanInput`）、`@/features/simulation/domain`（`runSimulation`, `findDepletion`, `YearlyResult`）。domain 内のファイルはすでにこれらを index 経由で import しているので変更不要。
 - Produces: `@/features/game/domain` の index（「仕様からの補足・判断」1 の一覧）
 
-- [ ] **Step 1: アーキテクチャテストに走査確認を足す**
+- [x] **Step 1: アーキテクチャテストに走査確認を足す**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」の末尾（`features/simulation/ui/index.ts` の行の後）に足す:
 
@@ -190,7 +190,7 @@ git commit -m "refactor: assetDiff を shared/lib へ移動（PR 5）"
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/game/domain/index.ts` が見つからない）。
 
-- [ ] **Step 2: ファイルを移動する**
+- [x] **Step 2: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/game/domain
@@ -205,7 +205,7 @@ ls src/lib/game
 
 Expected: `src/lib/game` には `flow.ts` と `flow.test.ts` だけが残る。domain 内のファイル同士は相対 import（`./types` 等）なので、移動したファイルの中身は変えない。
 
-- [ ] **Step 3: domain の index を作る**
+- [x] **Step 3: domain の index を作る**
 
 `src/features/game/domain/index.ts`:
 
@@ -227,7 +227,7 @@ export { computeStats, type GameStats } from "./stats";
 export type { GameState, LogEntry, Stage } from "./types";
 ```
 
-- [ ] **Step 4: 旧位置の `flow.ts` の import を書き換える**
+- [x] **Step 4: 旧位置の `flow.ts` の import を書き換える**
 
 `src/lib/game/flow.ts` の 15〜22 行目を次にする:
 
@@ -242,7 +242,7 @@ import {
 } from "@/features/game/domain";
 ```
 
-- [ ] **Step 5: 旧位置の `flow.test.ts` の import を書き換える**
+- [x] **Step 5: 旧位置の `flow.test.ts` の import を書き換える**
 
 `src/lib/game/flow.test.ts` の 2〜7 行目を次にする（`./flow` の行は同じディレクトリなので残す）:
 
@@ -266,7 +266,7 @@ import { defaultPlanInput } from "@/features/plan/domain";
     const { chooseStageOption, resolveEventChoice } = await import("@/features/game/domain");
 ```
 
-- [ ] **Step 6: `components/game/*` の import を書き換える**
+- [x] **Step 6: `components/game/*` の import を書き換える**
 
 `src/components/game/AdventureLog.tsx` の 3 行目:
 
@@ -312,7 +312,7 @@ import type { GameStats, SatisfactionSummary } from "@/features/game/domain";
 import type { GameState, GameStats, SatisfactionSummary } from "@/features/game/domain";
 ```
 
-- [ ] **Step 7: `src/app/game/page.tsx` の domain の import を書き換える**
+- [x] **Step 7: `src/app/game/page.tsx` の domain の import を書き換える**
 
 12 行目と 14〜18 行目（`@/lib/game/{advance,stages,project,stats,satisfaction,types}`）を削除し、`@/lib/game/flow` の import の直前に次を置く（`@/lib/game/flow` と `@/components/game/*` の import は Task 3・4 で書き換えるので残す）:
 
@@ -330,7 +330,7 @@ import {
 } from "@/features/game/domain";
 ```
 
-- [ ] **Step 8: テストと型を確認する**
+- [x] **Step 8: テストと型を確認する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/game src/lib/game src/components/game src/app`
 Expected: すべて PASS。
@@ -341,7 +341,7 @@ Expected: エラーなし。
 Run: `grep -rnE "@/lib/game/(types|rng|events|stages|satisfaction|stats|householdAge|depletionText|advance|project)\b|\./advance\"\)" src`
 Expected: 出力なし。
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add -A src
@@ -363,7 +363,7 @@ git commit -m "refactor: game の domain を features/game/domain へ移動（PR
 - Consumes: `@/features/game/domain`（Task 2 の index）
 - Produces: `@/features/game/application` から `createFlow(game: GameState): GameFlow`, `gameFlowReducer(flow: GameFlow, action: GameFlowAction): GameFlow`, 型 `GameFlow`
 
-- [ ] **Step 1: アーキテクチャテストに走査確認を足す**
+- [x] **Step 1: アーキテクチャテストに走査確認を足す**
 
 `src/architecture.test.ts` の Task 2 で足した行の後に足す:
 
@@ -374,7 +374,7 @@ git commit -m "refactor: game の domain を features/game/domain へ移動（PR
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/game/application/index.ts` が見つからない）。
 
-- [ ] **Step 2: ファイルを移動する**
+- [x] **Step 2: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/game/application
@@ -385,7 +385,7 @@ ls src/lib
 
 Expected: `src/lib` には `comparisonDiff.ts`, `comparisonDiff.test.ts` のみ（`game` ディレクトリは消えている。残っていれば中身を確認し、未追跡のゴミでなければ作業を止めて報告する）。`flow.ts`・`flow.test.ts` の import は Task 2 で index 経由にしてあるので中身は変えない。
 
-- [ ] **Step 3: application の index を作る**
+- [x] **Step 3: application の index を作る**
 
 `src/features/game/application/index.ts`:
 
@@ -394,7 +394,7 @@ Expected: `src/lib` には `comparisonDiff.ts`, `comparisonDiff.test.ts` のみ�
 export { createFlow, gameFlowReducer, type GameFlow } from "./flow";
 ```
 
-- [ ] **Step 4: `src/app/game/page.tsx` を書き換える**
+- [x] **Step 4: `src/app/game/page.tsx` を書き換える**
 
 `@/lib/game/flow` の import を次にする:
 
@@ -408,7 +408,7 @@ import { createFlow, gameFlowReducer, type GameFlow } from "@/features/game/appl
   // 選択（プレビュー）と確定の状態機械は features/game/application/flow.ts。
 ```
 
-- [ ] **Step 5: テストを実行する**
+- [x] **Step 5: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/game/application --reporter=verbose 2>&1 | grep -E "AC11|✓|×|FAIL|passed|failed" | tail -30`
 Expected: すべて PASS。「確定結果は従来と同一（AC11）」の「選択列 0/1/2 を 2 段階操作で確定しても、旧 API 直呼びと完全一致」3 ケースが PASS として表示される（Review Focus 2）。
@@ -416,7 +416,7 @@ Expected: すべて PASS。「確定結果は従来と同一（AC11）」の「�
 Run: `grep -rn "lib/game" src`
 Expected: 出力なし。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add -A src
@@ -437,7 +437,7 @@ git commit -m "refactor: game の flow を features/game/application へ移動�
 - Consumes: `@/features/game/domain`、`@/shared/ui`、`@/shared/lib`
 - Produces: `@/features/game/ui` から `AdventureLog`, `GameHud`, `GameResult`, `StageCard`, 型 `CardChoice`
 
-- [ ] **Step 1: アーキテクチャテストに走査確認を足す**
+- [x] **Step 1: アーキテクチャテストに走査確認を足す**
 
 `src/architecture.test.ts` の Task 3 で足した行の後に足す:
 
@@ -448,7 +448,7 @@ git commit -m "refactor: game の flow を features/game/application へ移動�
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/game/ui/index.ts` が見つからない）。
 
-- [ ] **Step 2: ファイルを移動する**
+- [x] **Step 2: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/game/ui
@@ -460,7 +460,7 @@ ls src/components
 
 Expected: `src/components` には `ScenarioBar.tsx`, `ScenarioBar.test.tsx`, `charts` のみ。ui 内のファイル同士は相対 import（`./GameHud` 等）で、他の import は Task 1・2 で index 経由にしてあるので中身は変えない。
 
-- [ ] **Step 3: ui の index を作る**
+- [x] **Step 3: ui の index を作る**
 
 `src/features/game/ui/index.ts`:
 
@@ -472,7 +472,7 @@ export { GameResult } from "./GameResult";
 export { StageCard, type CardChoice } from "./StageCard";
 ```
 
-- [ ] **Step 4: `src/app/game/page.tsx` を書き換える**
+- [x] **Step 4: `src/app/game/page.tsx` を書き換える**
 
 8〜11 行目（`@/components/game/*` の 4 つの import）を次の 1 つにする:
 
@@ -480,7 +480,7 @@ export { StageCard, type CardChoice } from "./StageCard";
 import { AdventureLog, GameHud, GameResult, StageCard, type CardChoice } from "@/features/game/ui";
 ```
 
-- [ ] **Step 5: テストを実行する**
+- [x] **Step 5: テストを実行する**
 
 Run: `npx vitest run src/architecture.test.ts src/features/game src/app`
 Expected: すべて PASS。
@@ -488,7 +488,7 @@ Expected: すべて PASS。
 Run: `grep -rn "components/game" src`
 Expected: 出力なし。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add -A src
@@ -501,7 +501,7 @@ git commit -m "refactor: game の UI を features/game/ui へ移動（PR 5）"
 
 **Files:** なし（確認で問題が見つかった場合のみ修正）
 
-- [ ] **Step 1: 全テスト・lint・ビルドを通す**
+- [x] **Step 1: 全テスト・lint・ビルドを通す**
 
 Run: `CI=true npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。`Test Files` は Task 0 の N と同じ、`Tests` は Task 0 の M と同じ（Review Focus 3。アーキテクチャテストは `expect` 行が増えただけでケース数は変わらない）。
@@ -515,19 +515,19 @@ Expected: エラー・警告なし。
 Run: `npm run build 2>&1 | grep -E "^(┌|├|└)"`
 Expected: ビルド成功。`/` と `/game` の First Load JS を Task 0 と比べる（Review Focus 5）。
 
-- [ ] **Step 2: 旧パスが残っていないことを確認する**
+- [x] **Step 2: 旧パスが残っていないことを確認する**
 
 Run: `grep -rnE "@/lib/game|@/components/game|lib/game/|components/game/" src; ls src/lib src/components`
 Expected: grep は出力なし。`src/lib` は `comparisonDiff.ts`, `comparisonDiff.test.ts`、`src/components` は `ScenarioBar.tsx`, `ScenarioBar.test.tsx`, `charts` のみ。
 
-- [ ] **Step 3: 画面で確認する（Review Focus 4）**
+- [x] **Step 3: 画面で確認する（Review Focus 4）**
 
 `npm run dev` で起動し、ブラウザで次を確認する（既存の localStorage `life-plan/v1` がある状態で開く）:
 - `/game`: ゲームを開始し、HUD（年齢・資産・満足度）が表示される。方針カードの選択（プレビュー）と確定ができ、イベントが出たら選択肢を確定できる。冒険ログが増える。最後まで進めて結果画面に到達し、「基本計画との違い」の差額（`+¥…` / `¥-…` の表記）と枯渇の説明が表示される。
 - `/game` で同じ seed のままやり直す操作（結果画面の確認ダイアログを含む）が移動前と同じように動く。
 - `/`: スナップショットを 1 件保存し、比較の差分表の資産差が `+¥…（…）` の形で表示される（`formatAssetDiff` の移動の確認）。
 
-- [ ] **Step 4: プッシュして PR を作る**
+- [x] **Step 4: プッシュして PR を作る**
 
 ```bash
 git push -u origin refactor/game-feature

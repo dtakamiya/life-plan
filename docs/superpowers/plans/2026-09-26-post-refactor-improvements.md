@@ -69,18 +69,18 @@
 - Consumes: なし
 - Produces: `npm run lint`（`eslint .`、違反があれば終了コード 1）。PR 2 以降の各タスクの確認で使う。
 
-- [ ] **Step 1: ブランチを作る**
+- [x] **Step 1: ブランチを作る**
 
 ```bash
 git switch main && git pull && git switch -c chore/ci-lint
 ```
 
-- [ ] **Step 2: `eslint .` の現状を確認する**
+- [x] **Step 2: `eslint .` の現状を確認する**
 
 Run: `npx eslint . ; echo "exit=$?"`
 Expected: `.claude/worktrees` の別チェックアウトがある環境では、`.claude/worktrees/...` 配下のファイルについて数千件の problem が出て `exit=1`。ない環境では `exit=0`。どちらでも `src/` 配下の違反は出ないこと。
 
-- [ ] **Step 3: `eslint.config.mjs` の `ignores` にツール用ディレクトリとビルド成果物を加える**
+- [x] **Step 3: `eslint.config.mjs` の `ignores` にツール用ディレクトリとビルド成果物を加える**
 
 `eslint.config.mjs` の次の部分を置き換える。
 
@@ -108,7 +108,7 @@ Expected: `.claude/worktrees` の別チェックアウトがある環境では�
   },
 ```
 
-- [ ] **Step 4: `package.json` の `lint` スクリプトを ESLint CLI にする**
+- [x] **Step 4: `package.json` の `lint` スクリプトを ESLint CLI にする**
 
 `package.json` の次の行を置き換える。
 
@@ -122,12 +122,12 @@ Expected: `.claude/worktrees` の別チェックアウトがある環境では�
     "lint": "eslint .",
 ```
 
-- [ ] **Step 5: lint が通ることを確認する**
+- [x] **Step 5: lint が通ることを確認する**
 
 Run: `npm run lint ; echo "exit=$?"`
 Expected: 違反の出力なし、`exit=0`。`next lint` の非推奨警告も出ない。
 
-- [ ] **Step 6: lint が違反を検出することを確認する（一時ファイルで確認し、コミットしない）**
+- [x] **Step 6: lint が違反を検出することを確認する（一時ファイルで確認し、コミットしない）**
 
 ```bash
 printf 'export const lintProbe = (x: any) => x;\n' > src/shared/lib/lintProbe.ts
@@ -137,7 +137,7 @@ rm src/shared/lib/lintProbe.ts
 
 Expected: `src/shared/lib/lintProbe.ts` について `@typescript-eslint/no-explicit-any` のエラーが出て `exit=1`。削除後に `git status --short src` が空であること。
 
-- [ ] **Step 7: CI に Lint ステップを加える**
+- [x] **Step 7: CI に Lint ステップを加える**
 
 `.github/workflows/ci.yml` の次の部分を置き換える。
 
@@ -162,7 +162,7 @@ Expected: `src/shared/lib/lintProbe.ts` について `@typescript-eslint/no-expl
         run: npm run test
 ```
 
-- [ ] **Step 8: CLAUDE.md の「CI」節を更新する**
+- [x] **Step 8: CLAUDE.md の「CI」節を更新する**
 
 `.claude/CLAUDE.md` の次の部分を置き換える。
 
@@ -178,12 +178,12 @@ Expected: `src/shared/lib/lintProbe.ts` について `@typescript-eslint/no-expl
   `npm run test`（vitest run）、`npm run build` を実行する。
 ```
 
-- [ ] **Step 9: テストとビルドを確認する**
+- [x] **Step 9: テストとビルドを確認する**
 
 Run: `npm run test && npm run build`
 Expected: テストがすべて PASS、ビルドが成功する。
 
-- [ ] **Step 10: コミットして PR を作る**
+- [x] **Step 10: コミットして PR を作る**
 
 ```bash
 git add eslint.config.mjs package.json .github/workflows/ci.yml .claude/CLAUDE.md
@@ -218,7 +218,7 @@ CI が通ったらスカッシュマージする。
 
 ## PR 2: `src/app/page.tsx` の薄型化（ブランチ `refactor/page-composition`）
 
-- [ ] **ブランチを作る**
+- [x] **ブランチを作る**
 
 ```bash
 git switch main && git pull && git switch -c refactor/page-composition
@@ -236,7 +236,7 @@ git switch main && git pull && git switch -c refactor/page-composition
 - Consumes: `usePlanStore.persist.hasHydrated(): boolean`, `usePlanStore.persist.onFinishHydration(cb): () => void`（zustand persist）
 - Produces: `usePlanHydrated(): boolean`（`@/features/plan/ui` から公開）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/ui/usePlanHydrated.test.tsx`:
 
@@ -309,12 +309,12 @@ describe("usePlanHydrated", () => {
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/plan/ui/usePlanHydrated.test.tsx`
 Expected: FAIL（`Failed to resolve import "./usePlanHydrated"`）
 
-- [ ] **Step 3: フックを実装する**
+- [x] **Step 3: フックを実装する**
 
 `src/features/plan/ui/usePlanHydrated.ts`:
 
@@ -346,12 +346,12 @@ export function usePlanHydrated(): boolean {
 export { usePlanHydrated } from "./usePlanHydrated";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/ui/usePlanHydrated.test.tsx`
 Expected: PASS（3 件）
 
-- [ ] **Step 5: page.tsx をフックに置き換える**
+- [x] **Step 5: page.tsx をフックに置き換える**
 
 `src/app/page.tsx` の react の import を置き換える。
 
@@ -395,12 +395,12 @@ plan/ui の import に `usePlanHydrated` を加える。
   const hydrated = usePlanHydrated();
 ```
 
-- [ ] **Step 6: 全体を確認する**
+- [x] **Step 6: 全体を確認する**
 
 Run: `npm run lint && npx vitest run src/app src/features/plan/ui src/architecture.test.ts`
 Expected: lint の違反なし。テストはすべて PASS（`page.test.tsx` の「ハイドレーション前は入力列を描画しない」を含む）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/plan/ui/usePlanHydrated.ts src/features/plan/ui/usePlanHydrated.test.tsx src/features/plan/ui/index.ts src/app/page.tsx
@@ -426,7 +426,7 @@ EOF
 - Consumes: `summarizeResults(results: YearlyResult[]): ResultSummary | null`, `describeAssetLongevity(results: YearlyResult[]): string | null`, `type YearlyResult`（`@/features/simulation/domain`）, `formatYen(value: number): string`（`@/shared/lib`、例: `¥5,000,000`）, `Eyebrow`（`@/shared/ui`）
 - Produces: `SummaryCards({ results }: { results: YearlyResult[] }): JSX.Element | null`、`EmptyResultsNotice(): JSX.Element`（どちらも `@/features/simulation/ui` から公開）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/simulation/ui/SummaryCards.test.tsx`:
 
@@ -564,12 +564,12 @@ describe("EmptyResultsNotice", () => {
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/simulation/ui/SummaryCards.test.tsx src/features/simulation/ui/EmptyResultsNotice.test.tsx`
 Expected: FAIL（`Failed to resolve import "./SummaryCards"`、`"./EmptyResultsNotice"`）
 
-- [ ] **Step 3: 部品を作る（page.tsx の中身をそのまま移し、`Summary` を `SummaryCards` にする）**
+- [x] **Step 3: 部品を作る（page.tsx の中身をそのまま移し、`Summary` を `SummaryCards` にする）**
 
 `src/features/simulation/ui/SummaryCards.tsx`:
 
@@ -702,12 +702,12 @@ export { SummaryBar } from "./SummaryBar";
 export { SummaryCards } from "./SummaryCards";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/simulation/ui/SummaryCards.test.tsx src/features/simulation/ui/EmptyResultsNotice.test.tsx`
 Expected: PASS（5 件）
 
-- [ ] **Step 5: page.tsx から移した部分を消し、公開部品を使う**
+- [x] **Step 5: page.tsx から移した部分を消し、公開部品を使う**
 
 `src/app/page.tsx` から次を削除する。
 - `type Tone`・`toneAccent`・`toneText` の定義（`type Tone = "brand" | "ink" | "danger";` から `toneText` の閉じ `};` まで）
@@ -756,12 +756,12 @@ JSX の呼び出しを置き換える。
 
 `Eyebrow` は page のヘッダー（`<Eyebrow>Life Plan Simulator</Eyebrow>`）でまだ使うので、`@/shared/ui` の import に残す。
 
-- [ ] **Step 6: 全体を確認する**
+- [x] **Step 6: 全体を確認する**
 
 Run: `npm run lint && npx vitest run src/app src/features/simulation/ui src/architecture.test.ts`
 Expected: lint の違反なし（未使用 import が残っていないこと）。テストはすべて PASS（`page.test.tsx` の「枯渇なしでも純資産がマイナスの期間があるときの補足」「結果が空のときの共通メッセージ」を含む）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/simulation/ui/SummaryCards.tsx src/features/simulation/ui/SummaryCards.test.tsx src/features/simulation/ui/EmptyResultsNotice.tsx src/features/simulation/ui/EmptyResultsNotice.test.tsx src/features/simulation/ui/index.ts src/app/page.tsx
@@ -785,7 +785,7 @@ EOF
 - Consumes: なし
 - Produces: `LoadingPlaceholder({ className }: { className: string }): JSX.Element`（`@/shared/ui` から公開）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/shared/ui/LoadingPlaceholder.test.tsx`:
 
@@ -823,12 +823,12 @@ describe("LoadingPlaceholder", () => {
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/shared/ui/LoadingPlaceholder.test.tsx`
 Expected: FAIL（`Failed to resolve import "./LoadingPlaceholder"`）
 
-- [ ] **Step 3: 部品を作る（page.tsx の中身をそのまま移す）**
+- [x] **Step 3: 部品を作る（page.tsx の中身をそのまま移す）**
 
 `src/shared/ui/LoadingPlaceholder.tsx`:
 
@@ -852,12 +852,12 @@ export function LoadingPlaceholder({ className }: { className: string }) {
 export { LoadingPlaceholder } from "./LoadingPlaceholder";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/shared/ui/LoadingPlaceholder.test.tsx`
 Expected: PASS（1 件）
 
-- [ ] **Step 5: page.tsx の定義を消して shared/ui から使う**
+- [x] **Step 5: page.tsx の定義を消して shared/ui から使う**
 
 `src/app/page.tsx` から `LoadingPlaceholder` 関数とその直前の JSDoc `/** localStorage 復元（ハイドレーション）待ちの共通プレースホルダー。 */` を削除する。`@/shared/ui` の import を置き換える。
 
@@ -865,12 +865,12 @@ Expected: PASS（1 件）
 import { Button, ConfirmDialog, Eyebrow, LoadingPlaceholder, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 ```
 
-- [ ] **Step 6: 全体を確認する**
+- [x] **Step 6: 全体を確認する**
 
 Run: `npm run lint && npx vitest run src/app src/shared/ui src/architecture.test.ts`
 Expected: lint の違反なし。テストはすべて PASS。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/shared/ui/LoadingPlaceholder.tsx src/shared/ui/LoadingPlaceholder.test.tsx src/shared/ui/index.ts src/app/page.tsx
@@ -898,7 +898,7 @@ EOF
 - Consumes: `usePlanStore` の `startBlank(): void`・`resetSingle(): void`、`useScenarioStore` の `reset(): void`・`saveSnapshot(name: string, input: PlanInput, origin?): void`、`Button`・`ConfirmDialog`・`type ConfirmDialogHandle`（`@/shared/ui`）
 - Produces: `PlanPresetActions(): JSX.Element`（`@/features/plan/ui` から公開。「まっさらから入力」「単身・賃貸で始める」ボタンとそれぞれの確認ダイアログ）、`ResetAllAction(): JSX.Element`（`@/features/scenario/ui` から公開。「初期値に戻す」ボタンと確認ダイアログ）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/plan/ui/PlanPresetActions.test.tsx`:
 
@@ -1065,12 +1065,12 @@ describe("Home ページ — ヘッダーの操作ボタンの並び", () => {
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/plan/ui/PlanPresetActions.test.tsx src/features/scenario/ui/ResetAllAction.test.tsx src/app/page.test.tsx`
 Expected: 部品の2ファイルは FAIL（`Failed to resolve import "./PlanPresetActions"`、`"./ResetAllAction"`）。`page.test.tsx` の追加分はこの時点では PASS（今の page でも順序は同じ。部品化の後も同じ順序であることを保証するための回帰テスト）。
 
-- [ ] **Step 3: 部品を作る（page.tsx の文言・ボタンの props をそのまま移す）**
+- [x] **Step 3: 部品を作る（page.tsx の文言・ボタンの props をそのまま移す）**
 
 `src/features/plan/ui/PlanPresetActions.tsx`:
 
@@ -1189,12 +1189,12 @@ export { ScenarioBar } from "./ScenarioBar";
 export { useScenarioStore } from "./useScenarioStore";
 ```
 
-- [ ] **Step 4: 部品のテストが通ることを確認する**
+- [x] **Step 4: 部品のテストが通ることを確認する**
 
 Run: `npx vitest run src/features/plan/ui/PlanPresetActions.test.tsx src/features/scenario/ui/ResetAllAction.test.tsx`
 Expected: PASS（4 件）
 
-- [ ] **Step 5: page.tsx を部品に置き換える**
+- [x] **Step 5: page.tsx を部品に置き換える**
 
 `src/app/page.tsx` の `Home` 内から次を削除する。
 - `const reset = useScenarioStore((s) => s.reset);` とその直前のコメント行
@@ -1261,12 +1261,12 @@ import { Eyebrow, LoadingPlaceholder, Panel } from "@/shared/ui";
 
 （`useScenarioStore` は `snapshots` の購読でまだ使う。`Button`・`ConfirmDialog`・`ConfirmDialogHandle`・`useRef` は page から使わなくなる。）
 
-- [ ] **Step 6: 全体を確認する**
+- [x] **Step 6: 全体を確認する**
 
 Run: `npm run lint && npx vitest run src/app src/features/plan/ui src/features/scenario/ui src/architecture.test.ts`
 Expected: lint の違反なし。テストはすべて PASS（page の「初期値に戻す」「単身・賃貸で始める」と、追加したボタンの並び順を含む）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add src/features/plan/ui/PlanPresetActions.tsx src/features/plan/ui/PlanPresetActions.test.tsx src/features/plan/ui/index.ts src/features/scenario/ui/ResetAllAction.tsx src/features/scenario/ui/ResetAllAction.test.tsx src/features/scenario/ui/index.ts src/app/page.tsx src/app/page.test.tsx
@@ -1290,7 +1290,7 @@ EOF
 - Consumes: `Panel`（`@/shared/ui`）、`Link`（`next/link`）
 - Produces: `GameModeIntro(): JSX.Element`（`@/features/game/ui` から公開）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/game/ui/GameModeIntro.test.tsx`:
 
@@ -1329,12 +1329,12 @@ describe("GameModeIntro", () => {
 });
 ```
 
-- [ ] **Step 2: テストが失敗することを確認する**
+- [x] **Step 2: テストが失敗することを確認する**
 
 Run: `npx vitest run src/features/game/ui/GameModeIntro.test.tsx`
 Expected: FAIL（`Failed to resolve import "./GameModeIntro"`）
 
-- [ ] **Step 3: 部品を作る（page.tsx の Panel をそのまま移す）**
+- [x] **Step 3: 部品を作る（page.tsx の Panel をそのまま移す）**
 
 `src/features/game/ui/GameModeIntro.tsx`:
 
@@ -1373,12 +1373,12 @@ export function GameModeIntro() {
 export { GameModeIntro } from "./GameModeIntro";
 ```
 
-- [ ] **Step 4: テストが通ることを確認する**
+- [x] **Step 4: テストが通ることを確認する**
 
 Run: `npx vitest run src/features/game/ui/GameModeIntro.test.tsx`
 Expected: PASS（1 件）
 
-- [ ] **Step 5: page.tsx を部品に置き換える**
+- [x] **Step 5: page.tsx を部品に置き換える**
 
 `src/app/page.tsx` の次の部分を置き換える。
 
@@ -1401,17 +1401,17 @@ import を更新する。`import Link from "next/link";` を削除し、次を�
 import { GameModeIntro } from "@/features/game/ui";
 ```
 
-- [ ] **Step 6: page の規模と PR 全体を確認する**
+- [x] **Step 6: page の規模と PR 全体を確認する**
 
 Run: `wc -l src/app/page.tsx && npm run lint && npm run test && npm run build`
 Expected: `page.tsx` が 230 行以下（399 行から、移した部品の分だけ減る）。lint の違反なし。テストはすべて PASS（`src/architecture.test.ts` を含む）。ビルドが成功する。
 
-- [ ] **Step 7: ブラウザで目視確認する**
+- [x] **Step 7: ブラウザで目視確認する**
 
 Run: `npm run dev` で http://localhost:3000 を開く
 Expected: ヘッダーの3ボタンの並び・余白、要約カード、ゲームモードの案内が変更前と同じ見た目で表示される。各ボタンで確認ダイアログが開き、「閉じる」で何も変わらない。
 
-- [ ] **Step 8: コミットして PR を作る**
+- [x] **Step 8: コミットして PR を作る**
 
 ```bash
 git add src/features/game/ui/GameModeIntro.tsx src/features/game/ui/GameModeIntro.test.tsx src/features/game/ui/index.ts src/app/page.tsx
@@ -1461,7 +1461,7 @@ CI が通ったらスカッシュマージする。
 
 このタスクはファイル分割だけで、振る舞いは既存の DOM テストが押さえている。新しいテストは書かず、分割の前後で既存テストがすべて通ることを確認する。
 
-- [ ] **Step 1: ブランチを作り、分割前のテストが通ることを確認する**
+- [x] **Step 1: ブランチを作り、分割前のテストが通ることを確認する**
 
 ```bash
 git switch main && git pull && git switch -c refactor/household-form-split
@@ -1470,7 +1470,7 @@ npx vitest run src/features/plan/ui
 
 Expected: すべて PASS。件数を控えておく。
 
-- [ ] **Step 2: `PersonFields.tsx` を作る**
+- [x] **Step 2: `PersonFields.tsx` を作る**
 
 `src/features/plan/ui/PersonFields.tsx` の先頭を次のようにする。
 
@@ -1493,7 +1493,7 @@ const PILL_CLASS =
 
 続けて、`HouseholdForm.tsx` の 37〜140 行（`/** 本人・配偶者で共通の個人入力欄。 */` から `PersonFields` の閉じ `}` まで）を一字一句そのまま移し、`function PersonFields(` を `export function PersonFields(` にする。
 
-- [ ] **Step 3: `ChildCard.tsx` を作る**
+- [x] **Step 3: `ChildCard.tsx` を作る**
 
 `src/features/plan/ui/ChildCard.tsx` の先頭を次のようにする。
 
@@ -1520,7 +1520,7 @@ const UNIVERSITY_OPTIONS: readonly UniversityType[] = [
 
 続けて、`HouseholdForm.tsx` の 143〜151 行（`educationSummary` とその JSDoc）をそのまま移す。その次に、142 行の JSDoc `/** 子1人分の入力（基本情報＋進路プラン）。 */` を `ChildCard` の直前に置き直し、153〜278 行（`ChildCard` 本体）をそのまま移す。移した後、`function ChildCard(` を `export function ChildCard(` にする。
 
-- [ ] **Step 4: `HouseholdForm.tsx` から移した部分を消し、import を整理する**
+- [x] **Step 4: `HouseholdForm.tsx` から移した部分を消し、import を整理する**
 
 `HouseholdForm.tsx` から 23〜140 行（`SCHOOL_OPTIONS` から `PersonFields` の閉じ `}` まで）と 142〜278 行（`ChildCard` まで）を削除する。`const endAgeValidationSchema = ageField("終了年齢");` は残す。import 部分を次に置き換える。
 
@@ -1543,17 +1543,17 @@ import { ChildCard } from "./ChildCard";
 const endAgeValidationSchema = ageField("終了年齢");
 ```
 
-- [ ] **Step 5: lint と既存テストで確認する**
+- [x] **Step 5: lint と既存テストで確認する**
 
 Run: `npm run lint && npx vitest run src/features/plan/ui src/architecture.test.ts && wc -l src/features/plan/ui/HouseholdForm.tsx src/features/plan/ui/PersonFields.tsx src/features/plan/ui/ChildCard.tsx`
 Expected: lint の違反なし（未使用 import・定数の残りがないこと）。テストはすべて PASS し、件数は Step 1 と同じ（architecture テストの分だけ多い）。`HouseholdForm.tsx` は 170 行前後。
 
-- [ ] **Step 6: 全体を確認する**
+- [x] **Step 6: 全体を確認する**
 
 Run: `npm run test && npm run build`
 Expected: テストがすべて PASS、ビルドが成功する。
 
-- [ ] **Step 7: コミットして PR を作る**
+- [x] **Step 7: コミットして PR を作る**
 
 ```bash
 git add src/features/plan/ui/HouseholdForm.tsx src/features/plan/ui/PersonFields.tsx src/features/plan/ui/ChildCard.tsx
@@ -1597,7 +1597,7 @@ CI が通ったらスカッシュマージする。
 
 このタスクもファイル分割だけで、公開 API は index で変えない。移行や検証の振る舞いは既存テスト（Review Focus 5）が押さえている。
 
-- [ ] **Step 1: ブランチを作り、分割前のテストを確認する**
+- [x] **Step 1: ブランチを作り、分割前のテストを確認する**
 
 ```bash
 git switch main && git pull && git switch -c refactor/plan-schema-split
@@ -1606,7 +1606,7 @@ npx vitest run src/features/plan src/features/simulation/application src/feature
 
 Expected: すべて PASS。件数を控えておく。
 
-- [ ] **Step 2: ファイルを改名し、入力バリデーション部分を新しいファイルに切り出す**
+- [x] **Step 2: ファイルを改名し、入力バリデーション部分を新しいファイルに切り出す**
 
 ```bash
 git mv src/features/plan/application/schema.ts src/features/plan/application/persistedPlanSchema.ts
@@ -1634,7 +1634,7 @@ import { educationSchema } from "./persistedPlanSchema";
 
 `persistedPlanSchema.ts` からは 127 行目以降（区切りコメント以降のすべて）を削除し、`planInputSchema` の閉じ `});` でファイルが終わるようにする。
 
-- [ ] **Step 3: テストの import と index を更新する**
+- [x] **Step 3: テストの import と index を更新する**
 
 `src/features/plan/application/persistedPlanSchema.test.ts` の2行目を置き換える。
 
@@ -1674,27 +1674,27 @@ export {
 } from "./planInputValidation";
 ```
 
-- [ ] **Step 4: 旧ファイル名への参照が残っていないことを確認する**
+- [x] **Step 4: 旧ファイル名への参照が残っていないことを確認する**
 
 Run: `grep -rn "application/schema\|\"./schema\"" src docs/superpowers/specs`
 Expected: 出力なし（設計書 4 章のファイル対応表に `schema.ts` の記述が出た場合は、Step 6 で表記を更新する）。
 
-- [ ] **Step 5: lint と既存テストで確認する**
+- [x] **Step 5: lint と既存テストで確認する**
 
 Run: `npm run lint && npx vitest run src/features/plan src/features/simulation/application src/features/scenario src/architecture.test.ts`
 Expected: lint の違反なし。テストはすべて PASS し、件数は Step 1 と同じ（architecture テストの分だけ多い）。v1 データの移行ケース（`persistedPlanSchema.test.ts`、`input-validation.test.ts` の `planInputSchema.safeParse(v1Base)`）を含む。
 
-- [ ] **Step 6: 設計書の対応表に schema.ts の記述があれば更新する**
+- [x] **Step 6: 設計書の対応表に schema.ts の記述があれば更新する**
 
 Run: `grep -n "schema" docs/superpowers/specs/2026-09-26-feature-based-clean-architecture-design.md`
 Expected: `plan/application/schema.ts` を指す行があれば、`plan/application/persistedPlanSchema.ts`（永続化）・`plan/application/planInputValidation.ts`（入力検証）に書き換える。該当行がなければ何もしない。
 
-- [ ] **Step 7: 全体を確認する**
+- [x] **Step 7: 全体を確認する**
 
 Run: `npm run test && npm run build`
 Expected: テストがすべて PASS、ビルドが成功する。
 
-- [ ] **Step 8: コミットして PR を作る**
+- [x] **Step 8: コミットして PR を作る**
 
 ```bash
 git add -A src/features/plan/application docs/superpowers/specs
@@ -1737,7 +1737,7 @@ CI が通ったらスカッシュマージする。
 - Consumes: PR 1〜4 のマージ済み PR 番号
 - Produces: なし
 
-- [ ] **Step 1: ブランチを作り、PR 番号を確認する**
+- [x] **Step 1: ブランチを作り、PR 番号を確認する**
 
 ```bash
 git switch main && git pull && git switch -c docs/refactor-status
@@ -1746,7 +1746,7 @@ git log --oneline -15
 
 Expected: PR 2a（`79e9292`、PR 番号なし）、2b（#55）、3（#56）、4（#57）、5（#58）、6（#59）、7（#60）と、本計画の PR 1〜4 のマージコミットが見える。
 
-- [ ] **Step 2: 設計書 5 章の表に「済」を付ける**
+- [x] **Step 2: 設計書 5 章の表に「済」を付ける**
 
 `docs/superpowers/specs/2026-09-26-feature-based-clean-architecture-design.md` の 5 章の表で、2a〜6 の行の「内容」列の先頭に、PR 1・7 と同じ書式で追記する。
 
@@ -1765,7 +1765,7 @@ Expected: PR 2a（`79e9292`、PR 番号なし）、2b（#55）、3（#56）、4�
 | 2b | `refactor/plan-ui` | 済（#55）。ストアとフォーム（`usePlanErrors.ts` を含む）を `plan/ui` へ移動。ストアは形を変えず移動のみ |
 ```
 
-- [ ] **Step 3: 設計書 8 章の「CI への lint ステップ追加」に回収済みと書く**
+- [x] **Step 3: 設計書 8 章の「CI への lint ステップ追加」に回収済みと書く**
 
 8 章の次の行を置き換える。
 
@@ -1779,7 +1779,7 @@ Expected: PR 2a（`79e9292`、PR 番号なし）、2b（#55）、3（#56）、4�
 - CI への lint ステップ追加（リファクタリング後の改善として別途対応済み: #NN）
 ```
 
-- [ ] **Step 4: 完了した計画書のチェックボックスを完了にする**
+- [x] **Step 4: 完了した計画書のチェックボックスを完了にする**
 
 ```bash
 sed -i '' 's/^\([[:space:]]*\)- \[ \]/\1- [x]/' docs/superpowers/plans/2026-09-26-pr*.md docs/superpowers/plans/2026-09-26-post-refactor-improvements.md
@@ -1788,12 +1788,12 @@ grep -c -- "- \[ \]" docs/superpowers/plans/2026-09-26-pr*.md docs/superpowers/p
 
 Expected: すべてのファイルで `0`。（macOS の `sed -i ''`。GNU sed では `sed -i`。）
 
-- [ ] **Step 5: 差分がドキュメントだけであることを確認する**
+- [x] **Step 5: 差分がドキュメントだけであることを確認する**
 
 Run: `git diff --stat`
 Expected: 変更は `docs/superpowers/` 配下だけ。
 
-- [ ] **Step 6: コミットして PR を作る**
+- [x] **Step 6: コミットして PR を作る**
 
 ```bash
 git add docs/superpowers

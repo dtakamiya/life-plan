@@ -68,7 +68,7 @@
 
 **Files:** なし
 
-- [ ] **Step 1: ブランチを作成する**
+- [x] **Step 1: ブランチを作成する**
 
 設計改訂のブランチ（`refactor/spec-revision`）が `main` にマージ済みなら `main` から、未マージなら `refactor/spec-revision` の先端から切る。
 
@@ -77,7 +77,7 @@ git switch main && git pull   # 設計改訂がマージ済みの場合
 git switch -c refactor/plan-domain
 ```
 
-- [ ] **Step 2: テスト件数のベースラインを記録する**
+- [x] **Step 2: テスト件数のベースラインを記録する**
 
 Run: `npx vitest run 2>&1 | tail -6`
 Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・M を控える。本 PR はファイル移動のみで、テストの追加は Task 1・3・4 のアーキテクチャテストの `expect` 追加（件数は増えない）だけなので、各 Task 後も N・M は変わらない。
@@ -98,7 +98,7 @@ Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・
 **Interfaces:**
 - Produces: `@/features/plan/domain` から `correctDateRange`, `DateRangeCorrection`（型）, `defaultPlanInput`, `singleRenterPlanInput`, `BASE_CHILD_ANNUAL_COST`, `CHILD_DEPENDENT_MAX_AGE`, `DEFAULT_EDUCATION`, `EDUCATION_PRESETS`, `childAnnualCost`, `educationCostAtAge`, `DEFAULT_END_AGE`, `endAgeToEndYear`, `endYearToEndAge`, `HOME_PROPERTY_LABEL`, `HOUSEHOLD_DEFAULT_CONSTANTS`, `HOUSING_PURCHASE_EVENT_LABEL`, `computeHouseholdDefaults`, `HouseholdComposition`・`HouseholdDefaultEvent`・`HouseholdDefaultLoan`・`HouseholdDefaultProperty`・`HouseholdDefaults`（型）, `annualLoanPayment`, `loanBalanceForYear`, `loanPaymentForYear`, `BASIC_PENSION_ANNUAL`, `EARNINGS_RELATED_CAP`, `EARNINGS_RELATED_FACTOR`, `estimateAnnualPension`, `DEFAULT_PROPERTY_DEPRECIATION_RATE`, `PROPERTY_VALUE_FLOOR_RATIO`, `propertyValueForYear`
 
-- [ ] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
+- [x] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」に1行追加する:
 
@@ -112,12 +112,12 @@ Expected: すべて PASS。`Test Files  N passed` と `Tests  M passed` の N・
   });
 ```
 
-- [ ] **Step 2: 失敗を確認する**
+- [x] **Step 2: 失敗を確認する**
 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/plan/domain/index.ts` が見つからない）
 
-- [ ] **Step 3: ファイルを移動する**
+- [x] **Step 3: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/plan/domain
@@ -131,7 +131,7 @@ git mv src/lib/simulation/{loan,property,dateRange,endAge,householdDefaults}.tes
 perl -pi -e 's#"\./types"#"\@/lib/simulation/types"#g' src/features/plan/domain/*.ts
 ```
 
-- [ ] **Step 4: 公開 API を作る**
+- [x] **Step 4: 公開 API を作る**
 
 `src/features/plan/domain/index.ts`:
 
@@ -173,7 +173,7 @@ export {
 } from "./property";
 ```
 
-- [ ] **Step 5: import 先を書き換える**
+- [x] **Step 5: import 先を書き換える**
 
 ```bash
 MODS='pension|loan|property|education|defaults|householdDefaults|dateRange|endAge'
@@ -194,7 +194,7 @@ perl -pi -e "s#\"\./simulation/($MODS)\"#\"\@/features/plan/domain\"#g" $(grep -
 
 注意: `src/lib/simulation/` に残る `recurringExpense.ts`・`incomeAdjustment.ts` 等は対象外（`MODS` に含めない）。`src/features/plan/domain/` 内のファイルは書き換えない（自層の index を import すると違反になる）。
 
-- [ ] **Step 6: 同一モジュールからの重複 import を1文にまとめる**
+- [x] **Step 6: 同一モジュールからの重複 import を1文にまとめる**
 
 1ファイルに `from "@/features/plan/domain"` が複数ある場合は1文にまとめる。値と型が混ざる場合は `import { a, type B } from "..."` の形にする。例（`src/components/forms/HouseholdForm.tsx`）:
 
@@ -220,17 +220,17 @@ import {
 確認: `grep -rc 'from "@/features/plan/domain"' src | grep -vE ':(0|1)$'`
 Expected: 出力なし
 
-- [ ] **Step 7: 旧パスの参照が残っていないことを確認する**
+- [x] **Step 7: 旧パスの参照が残っていないことを確認する**
 
 Run: `grep -rnE "(@/lib/simulation/|\"\./|\"\./simulation/)(pension|loan|property|education|defaults|householdDefaults|dateRange|endAge)\"" src | grep -v '^src/features/plan/domain/'`
 Expected: 出力なし
 
-- [ ] **Step 8: テスト・型チェック**
+- [x] **Step 8: テスト・型チェック**
 
 Run: `npx tsc --noEmit -p . && npx vitest run 2>&1 | tail -6`
 Expected: 型エラーなし。全テスト PASS。`Test Files` と `Tests` の件数が Task 0 の N・M と一致する。
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
 
 ```bash
 git add -A src
@@ -253,7 +253,7 @@ git commit -m "refactor: plan のドメインロジックを features/plan/domai
 
 型の定義本体（JSDoc コメントを含む）は `src/lib/simulation/types.ts` の該当部分を**一字一句そのまま**移す。以下のコード例ではコメントも含めて全文を示す（`person.ts` の型コメント末尾の「公的年金見込み額の推計は `pension.ts`。」と `settings.ts` の2つの型コメントだけは新規に加える）。
 
-- [ ] **Step 1: 振る舞いを持たないエンティティの型ファイルを作る**
+- [x] **Step 1: 振る舞いを持たないエンティティの型ファイルを作る**
 
 `src/features/plan/domain/person.ts`:
 
@@ -364,7 +364,7 @@ export type AssetSettings = {
 };
 ```
 
-- [ ] **Step 2: 振る舞いを持つエンティティのファイルに型を移す**
+- [x] **Step 2: 振る舞いを持つエンティティのファイルに型を移す**
 
 `src/features/plan/domain/loan.ts`: `import type { Loan } from "@/lib/simulation/types";` の行を削除し、その位置に `Loan` 型を置く:
 
@@ -448,7 +448,7 @@ export type Child = {
 };
 ```
 
-- [ ] **Step 3: 集約ルートの型ファイルを作る**
+- [x] **Step 3: 集約ルートの型ファイルを作る**
 
 `src/features/plan/domain/planInput.ts`:
 
@@ -485,7 +485,7 @@ export type PlanInput = {
 };
 ```
 
-- [ ] **Step 4: plan/domain 内の旧 types 参照を書き換え、index に型を追加する**
+- [x] **Step 4: plan/domain 内の旧 types 参照を書き換え、index に型を追加する**
 
 - `defaults.ts`: `import type { PlanInput } from "@/lib/simulation/types";` → `import type { PlanInput } from "./planInput";`
 - `householdDefaults.ts`: `import type { LifeEvent, Loan, Property } from "@/lib/simulation/types";` を次の3行に置き換える:
@@ -516,7 +516,7 @@ export type { AssetSettings, ExpenseSettings } from "./settings";
 確認: `grep -rn "lib/simulation/types" src/features`
 Expected: 出力なし
 
-- [ ] **Step 5: `lib/simulation/types.ts` を `YearlyResult` のみにする**
+- [x] **Step 5: `lib/simulation/types.ts` を `YearlyResult` のみにする**
 
 `Person` から `PlanInput` までの型定義（ファイル先頭のコメントの直後から `/** 1年分のシミュレーション結果。 */` の直前まで）を削除し、ファイル先頭のコメントを次に置き換える。`YearlyResult` の定義は変更しない。
 
@@ -527,7 +527,7 @@ Expected: 出力なし
  */
 ```
 
-- [ ] **Step 6: 入力側の型の import 元を一括で書き換える**
+- [x] **Step 6: 入力側の型の import 元を一括で書き換える**
 
 `src/features` の外で `lib/simulation/types` から入力側の型だけを import している文の指定子を `@/features/plan/domain` に置き換える。`YearlyResult` だけの文は変更せず、両方を含む文は一覧に出す。
 
@@ -567,7 +567,7 @@ Expected: 次の2行が出力される。
 手動で分割: src/lib/validatedSimulation.ts
 ```
 
-- [ ] **Step 7: 型が混在する2ファイルを手で分割する**
+- [x] **Step 7: 型が混在する2ファイルを手で分割する**
 
 `src/lib/simulation/engine.ts`:
 
@@ -595,7 +595,7 @@ import type { PlanInput } from "@/features/plan/domain";
 import type { YearlyResult } from "@/lib/simulation/types";
 ```
 
-- [ ] **Step 8: 重複 import をまとめ、旧参照が残っていないことを確認する**
+- [x] **Step 8: 重複 import をまとめ、旧参照が残っていないことを確認する**
 
 Task 1 Step 6 と同じ要領で、1ファイルに `from "@/features/plan/domain"` が複数あれば1文にまとめる（`import type { A }` と `import { b }` は `import { b, type A }` にする）。
 
@@ -605,12 +605,12 @@ Expected: 出力なし
 Run: `grep -rnE "import type \{[^}]*\b(Person|Child|Education|SchoolType|UniversityType|LifeEvent|RecurringExpense|Loan|IncomeAdjustment|Property|ExpenseSettings|AssetSettings|PlanInput)\b" src | grep -E "simulation/types|\"\./types\"" | grep -v '^src/lib/game/'`
 Expected: 出力なし（`src/lib/game/` の `./types` は game 独自の型ファイルなので除外している）
 
-- [ ] **Step 9: テスト・型チェック**
+- [x] **Step 9: テスト・型チェック**
 
 Run: `npx tsc --noEmit -p . && npx vitest run 2>&1 | tail -6`
 Expected: 型エラーなし。全テスト PASS。件数は Task 0 の N・M と一致する。
 
-- [ ] **Step 10: コミット**
+- [x] **Step 10: コミット**
 
 ```bash
 git add -A src
@@ -632,7 +632,7 @@ git commit -m "refactor: 入力側の型をエンティティ単位に分割し 
 - Consumes: `@/features/plan/domain`（Task 1・2）
 - Produces: `@/features/plan/application` から `applyHouseholdDefaults`, `newLoan`, `newRecurringExpense`, `nextChildName`, `INPUT_LIMITS`, `ageField`, `assetSchema`, `childSchema`, `educationSchema`, `expenseSchema`, `incomeAdjustmentSchema`, `lifeEventSchema`, `loanSchema`, `personSchema`, `planInputSchema`, `planInputValidationSchema`, `propertySchema`, `recurringExpenseSchema`, `snapshotOriginSchema`, `snapshotSchema`, `validatePlanInput`, `PlanInputErrors`・`PlanInputValidation`（型）
 
-- [ ] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
+- [x] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」に追加する:
 
@@ -643,7 +643,7 @@ git commit -m "refactor: 入力側の型をエンティティ単位に分割し 
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/plan/application/index.ts` が見つからない）
 
-- [ ] **Step 2: ファイルを移動する**
+- [x] **Step 2: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/plan/application
@@ -654,7 +654,7 @@ git mv src/lib/schema.ts src/lib/schema.test.ts src/features/plan/application/
 
 移動したファイルの import は `./<同名>`・`@/features/plan/domain`・`@/lib/simulation/engine`（テストのみ。判断 6）・`zod`・`vitest` だけなので変更不要。
 
-- [ ] **Step 3: 公開 API を作る**
+- [x] **Step 3: 公開 API を作る**
 
 `src/features/plan/application/index.ts`:
 
@@ -687,7 +687,7 @@ export {
 } from "./schema";
 ```
 
-- [ ] **Step 4: import 先を書き換える**
+- [x] **Step 4: import 先を書き換える**
 
 ```bash
 perl -pi -e 's#"\@/lib/schema"#"\@/features/plan/application"#g' $(grep -rl '"@/lib/schema"' src)
@@ -710,7 +710,7 @@ import {
 } from "@/features/plan/application";
 ```
 
-- [ ] **Step 5: 重複 import と旧パスの参照がないことを確認する**
+- [x] **Step 5: 重複 import と旧パスの参照がないことを確認する**
 
 Run: `grep -rc 'from "@/features/plan/application"' src | grep -vE ':(0|1)$'`
 Expected: 出力なし
@@ -718,12 +718,12 @@ Expected: 出力なし
 Run: `grep -rnE '"@/lib/schema"|"\./schema"|"\./(newLoan|newRecurringExpense|nextChildName|householdDefaultsSync)"' src | grep -v '^src/features/plan/application/'`
 Expected: 出力なし
 
-- [ ] **Step 6: テスト・型チェック**
+- [x] **Step 6: テスト・型チェック**
 
 Run: `npx tsc --noEmit -p . && npx vitest run 2>&1 | tail -6`
 Expected: 型エラーなし。全テスト PASS。件数は Task 0 の N・M と一致する。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add -A src
@@ -744,7 +744,7 @@ git commit -m "refactor: 新規行ファクトリ・世帯既定値の追従・z
 - Consumes: `@/features/plan/domain`（`PlanInput`）, `@/features/plan/application`（`planInputSchema`, `validatePlanInput`）
 - Produces: `@/features/plan/infrastructure` から `PLAN_FILE_FORMAT`, `PLAN_FILE_MAX_BYTES`, `PLAN_FILE_VERSION`, `parsePlanFile`, `planFileName`, `serializePlan`, `PlanFile`・`ParsePlanFileResult`（型）
 
-- [ ] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
+- [x] **Step 1: アーキテクチャテストに走査対象の確認を追加する（失敗するテスト）**
 
 `src/architecture.test.ts` の「検査対象のファイルを走査できている」に追加する:
 
@@ -755,7 +755,7 @@ git commit -m "refactor: 新規行ファクトリ・世帯既定値の追従・z
 Run: `npx vitest run src/architecture.test.ts`
 Expected: FAIL（`features/plan/infrastructure/index.ts` が見つからない）
 
-- [ ] **Step 2: ファイルを移動する**
+- [x] **Step 2: ファイルを移動する**
 
 ```bash
 mkdir -p src/features/plan/infrastructure
@@ -764,7 +764,7 @@ git mv src/lib/planFile.ts src/lib/planFile.test.ts src/features/plan/infrastruc
 
 `planFile.ts` の import は `@/features/plan/application`・`@/features/plan/domain`、`planFile.test.ts` は `./planFile`・`@/features/plan/domain`・`@/lib/simulation/engine`・`@/lib/store/usePlanStore`（判断 6）なので変更不要。
 
-- [ ] **Step 3: 公開 API を作る**
+- [x] **Step 3: 公開 API を作る**
 
 `src/features/plan/infrastructure/index.ts`:
 
@@ -782,7 +782,7 @@ export {
 } from "./planFile";
 ```
 
-- [ ] **Step 4: import 先を書き換える**
+- [x] **Step 4: import 先を書き換える**
 
 ```bash
 perl -pi -e 's#"\@/lib/planFile"#"\@/features/plan/infrastructure"#g' src/components/ScenarioBar.tsx
@@ -791,12 +791,12 @@ perl -pi -e 's#"\@/lib/planFile"#"\@/features/plan/infrastructure"#g' src/compon
 Run: `grep -rn 'lib/planFile' src`
 Expected: 出力なし
 
-- [ ] **Step 5: テスト・型チェック**
+- [x] **Step 5: テスト・型チェック**
 
 Run: `npx tsc --noEmit -p . && npx vitest run 2>&1 | tail -6`
 Expected: 型エラーなし。全テスト PASS。件数は Task 0 の N・M と一致する。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add -A src
@@ -809,7 +809,7 @@ git commit -m "refactor: プランファイル入出力を plan/infrastructure �
 
 **Files:** なし
 
-- [ ] **Step 1: plan の構成を確認する**
+- [x] **Step 1: plan の構成を確認する**
 
 Run: `find src/features -type f | sort`
 Expected: 次の34ファイルだけが並ぶ（application 11・domain 20・infrastructure 3。`ui` フォルダは無い）。
@@ -851,12 +851,12 @@ src/features/plan/infrastructure/planFile.test.ts
 src/features/plan/infrastructure/planFile.ts
 ```
 
-- [ ] **Step 2: テスト・lint・ビルド**
+- [x] **Step 2: テスト・lint・ビルド**
 
 Run: `npm run test 2>&1 | tail -6 && npm run lint && npm run build`
 Expected: 全テスト PASS（件数は Task 0 の N・M と一致）、lint エラーなし、ビルド成功。
 
-- [ ] **Step 3: 画面で挙動が変わっていないことを確認する**
+- [x] **Step 3: 画面で挙動が変わっていないことを確認する**
 
 Run: `npm run dev` で起動し、`http://localhost:3000/` で次を確認する。
 - 既存の入力（localStorage の `life-plan/v1`）がそのまま表示される
@@ -864,7 +864,7 @@ Run: `npm run dev` で起動し、`http://localhost:3000/` で次を確認する
 - 「プランを書き出す」→「読み込む」でプランが元に戻る
 - `http://localhost:3000/game` が開ける
 
-- [ ] **Step 4: プッシュと PR 作成**
+- [x] **Step 4: プッシュと PR 作成**
 
 ```bash
 git push -u origin refactor/plan-domain
