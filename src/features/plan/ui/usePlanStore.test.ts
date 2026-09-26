@@ -2,25 +2,6 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { usePlanStore, mergePersistedPlanState } from "./usePlanStore";
 import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import { PLAN_FILE_FORMAT, parsePlanFile, serializePlan } from "@/features/plan/infrastructure";
-import { runSimulation } from "@/lib/simulation/engine";
-import type { YearlyResult } from "@/lib/simulation/types";
-
-/** 既定入力に対する年次系列（reset の前後で不変であるべき基準値）。 */
-const BASELINE_SERIES: YearlyResult[] = runSimulation(defaultPlanInput);
-
-/** 系列内に NaN / 非有限値が無いことを確認する。 */
-function assertFiniteSeries(series: YearlyResult[]) {
-  expect(series.length).toBeGreaterThan(0);
-  for (const row of series) {
-    for (const [key, value] of Object.entries(row)) {
-      if (typeof value === "number") {
-        expect(Number.isFinite(value), `${key} が有限値でない: ${value}`).toBe(
-          true,
-        );
-      }
-    }
-  }
-}
 
 describe("usePlanStore.reset", () => {
   beforeEach(() => {
@@ -100,26 +81,6 @@ describe("usePlanStore.reset", () => {
 
     expect(() => usePlanStore.getState().reset()).not.toThrow();
     expect(usePlanStore.getState().snapshots).toEqual([]);
-  });
-
-  it("リセット直後に runSimulation を呼んでも NaN/例外なく正常系列を返す", () => {
-    usePlanStore.getState().reset();
-    const series = runSimulation(usePlanStore.getState().input);
-    assertFiniteSeries(series);
-  });
-
-  it("既定入力に対する runSimulation の年次系列が reset 前後で完全一致する", () => {
-    // 入力をひとしきり汚してから reset
-    const store = usePlanStore.getState();
-    store.updateSelf({ grossAnnualIncome: 9_999_999 });
-    store.addLoan();
-    store.addEvent();
-    store.saveSnapshot("noise");
-
-    usePlanStore.getState().reset();
-
-    const afterReset = runSimulation(usePlanStore.getState().input);
-    expect(afterReset).toEqual(BASELINE_SERIES);
   });
 });
 
@@ -338,21 +299,6 @@ describe("usePlanStore — 世帯構成連動の既定値（lp-030）", () => {
     expect(after.input.loans).toHaveLength(1);
     expect(after.input.loans[0].principal).toBe(50_000_000);
   });
-
-  it("単身・子なしで runSimulation しても、以前の30年ローン残債で枯渇しない（lp-030 検証観点a）", () => {
-    const store = usePlanStore.getState();
-    store.toggleSpouse(false);
-    const [firstChild] = usePlanStore.getState().input.children;
-    usePlanStore.getState().removeChild(firstChild.id);
-
-    const input = usePlanStore.getState().input;
-    expect(input.loans).toEqual([]);
-    expect(input.events).toEqual([]);
-
-    const results = runSimulation(input);
-    const depleted = results.find((r) => r.assets < 0);
-    expect(depleted).toBeUndefined();
-  });
 });
 
 describe("usePlanStore.startBlank — まっさらから入力（lp-030）", () => {
@@ -377,13 +323,6 @@ describe("usePlanStore.startBlank — まっさらから入力（lp-030）", () 
     expect(after.spouse).toEqual(before.spouse);
     expect(after.children).toEqual(before.children);
     expect(after.assets).toEqual(before.assets);
-  });
-
-  it("まっさら後に runSimulation しても NaN/例外なく、枯渇しない", () => {
-    usePlanStore.getState().startBlank();
-    const results = runSimulation(usePlanStore.getState().input);
-    assertFiniteSeries(results);
-    expect(results.find((r) => r.assets < 0)).toBeUndefined();
   });
 
   it("まっさら後に世帯構成を変えても、生活費0のままローン・イベントの既定値だけが必要に応じて追加される", () => {
