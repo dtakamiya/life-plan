@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { NetWorthChart } from "./NetWorthChart";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import { singleRenterPlanInput } from "@/features/plan/domain";
 
 (

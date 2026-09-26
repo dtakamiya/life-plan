@@ -13,8 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { YearlyResult } from "@/lib/simulation/types";
-import { findDepletion } from "@/lib/simulation/summary";
+import { findDepletion, type YearlyResult } from "@/features/simulation/domain";
 import { formatManYen, formatYen } from "@/shared/lib";
 import { netWorthChartData } from "./netWorthChartData";
 import { axisTick, chartColors, legendStyle, tooltipStyle } from "@/shared/ui";

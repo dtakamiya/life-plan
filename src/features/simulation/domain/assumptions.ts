@@ -12,22 +12,22 @@ import {
   INCOME_TAX_BRACKETS,
   RESIDENCE_TAX_RATE,
   BASIC_DEDUCTION,
-} from "@/lib/simulation/tax";
+} from "./tax";
 import {
   SOCIAL_INSURANCE_RATE,
   SOCIAL_INSURANCE_INCOME_CAP,
-} from "@/lib/simulation/socialInsurance";
+} from "./socialInsurance";
 import {
   ALLOWANCE_3_TO_HIGH_SCHOOL,
   ALLOWANCE_THIRD_CHILD,
   ALLOWANCE_UNDER_3,
-} from "@/lib/simulation/childAllowance";
+} from "./childAllowance";
 import {
   HOUSING_LOAN_CREDIT_BALANCE_CAP,
   HOUSING_LOAN_CREDIT_RATE,
   HOUSING_LOAN_CREDIT_YEARS,
   RESIDENCE_TAX_CREDIT_CAP,
-} from "@/lib/simulation/housingLoanCredit";
+} from "./housingLoanCredit";
 import {
   BASIC_PENSION_ANNUAL,
   DEFAULT_END_AGE,

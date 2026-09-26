@@ -1,5 +1,4 @@
-import type { YearlyResult } from "@/lib/simulation/types";
-import { findDepletion } from "@/lib/simulation/summary";
+import { findDepletion, type YearlyResult } from "@/features/simulation/domain";
 
 /** 資産推移グラフの1年分の描画用データ。 */
 export type NetWorthChartDatum = YearlyResult & {

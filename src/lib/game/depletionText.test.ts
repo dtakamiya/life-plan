@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { YearlyResult } from "@/lib/simulation/types";
+import type { YearlyResult } from "@/features/simulation/domain";
 import { computeStats } from "./stats";
 import {
   describeDepletion,

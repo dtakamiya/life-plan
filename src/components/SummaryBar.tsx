@@ -1,6 +1,5 @@
 import { formatManYen } from "@/shared/lib";
-import { summarizeResults } from "@/lib/simulation/summary";
-import type { YearlyResult } from "@/lib/simulation/types";
+import { summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 
 /**
  * 画面上部に固定表示する試算結果の要約バー（issue #17）。

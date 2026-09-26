@@ -6,7 +6,7 @@
  * 選択型イベントが出たときだけ phase が awaiting-event-choice で止まる。
  */
 
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import type { PlanInput } from "@/features/plan/domain";
 import type {
   AppliedEffect,

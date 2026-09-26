@@ -1,17 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { buildAssumptionRows } from "./assumptions";
-import { runSimulation } from "./simulation/engine";
+import { runSimulation } from "./engine";
 import { formatYen } from "@/shared/lib";
 import {
   CAPITAL_GAINS_RATE,
   INCOME_TAX_BRACKETS,
   RESIDENCE_TAX_RATE,
   BASIC_DEDUCTION,
-} from "./simulation/tax";
+} from "./tax";
 import {
   SOCIAL_INSURANCE_RATE,
   SOCIAL_INSURANCE_INCOME_CAP,
-} from "./simulation/socialInsurance";
+} from "./socialInsurance";
 import {
   BASIC_PENSION_ANNUAL,
   EARNINGS_RELATED_FACTOR,

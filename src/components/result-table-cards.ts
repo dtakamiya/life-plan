@@ -1,4 +1,4 @@
-import type { YearlyResult } from "@/lib/simulation/types";
+import type { YearlyResult } from "@/features/simulation/domain";
 
 /**
  * lp-025: 年次明細のモバイルカード表示に使う純関数群。

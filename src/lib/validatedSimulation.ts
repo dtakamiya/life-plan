@@ -3,9 +3,8 @@
  * 不正入力（負値・NaN・Infinity・範囲外・開始年>終了年）はエンジンへ到達させず null を返す。
  */
 
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation, type YearlyResult } from "@/features/simulation/domain";
 import type { PlanInput } from "@/features/plan/domain";
-import type { YearlyResult } from "@/lib/simulation/types";
 import { validatePlanInput } from "@/features/plan/application";
 
 export function runValidatedSimulation(input: PlanInput): YearlyResult[] | null {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { projectInput, projectInputFromApplied, toLifeEvents } from "./project";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import { defaultPlanInput, type PlanInput } from "@/features/plan/domain";
 import type { GameState, AppliedEffect } from "./types";
 

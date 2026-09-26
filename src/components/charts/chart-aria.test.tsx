@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { YearlyResult } from "@/lib/simulation/types";
+import type { YearlyResult } from "@/features/simulation/domain";
 import { CashFlowChart } from "./CashFlowChart";
 import { NetWorthChart } from "./NetWorthChart";
 import { ComparisonChart } from "./ComparisonChart";

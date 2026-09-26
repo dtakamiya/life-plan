@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { YearlyResult } from "@/lib/simulation/types";
+import type { YearlyResult } from "@/features/simulation/domain";
 import { netWorthChartData } from "./netWorthChartData";
 
 /**

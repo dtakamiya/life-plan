@@ -7,8 +7,7 @@
  * 実際に動く指標は「これまでの最小純資産」と「資産寿命」の 2 つ。
  */
 
-import type { YearlyResult } from "@/lib/simulation/types";
-import { findDepletion } from "@/lib/simulation/summary";
+import { findDepletion, type YearlyResult } from "@/features/simulation/domain";
 
 export type GameStats = {
   /** 集計対象の最終年の純資産（円） */

@@ -6,7 +6,7 @@
  * （金融資産＋不動産の評価額−ローン残高）を計算する。
  */
 
-import type { YearlyResult } from "./types";
+import type { YearlyResult } from "./yearlyResult";
 import {
   estimateIncomeTax,
   estimateResidenceTax,

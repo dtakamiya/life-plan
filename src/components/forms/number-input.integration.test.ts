@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import type { PlanInput } from "@/features/plan/domain";
 import { normalizeNumberInput } from "@/shared/ui";
 

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
 import Link from "next/link";
 import { usePlanStore } from "@/features/plan/ui";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import { Button, Eyebrow, Panel } from "@/shared/ui";
 import { GameHud } from "@/components/game/GameHud";
 import { StageCard, type CardChoice } from "@/components/game/StageCard";

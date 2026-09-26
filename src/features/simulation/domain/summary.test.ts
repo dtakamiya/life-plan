@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { YearlyResult } from "./types";
+import type { YearlyResult } from "./yearlyResult";
 import { findDepletion, summarizeResults } from "./summary";
 import { runSimulation } from "./engine";
 import { defaultPlanInput } from "@/features/plan/domain";

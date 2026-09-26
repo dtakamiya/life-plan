@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { newLoan } from "@/features/plan/application";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import type { PlanInput, Person } from "@/features/plan/domain";
 
 /**

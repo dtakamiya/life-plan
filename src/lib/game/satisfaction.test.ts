@@ -16,7 +16,7 @@ import {
 } from "./advance";
 import { projectInput } from "./project";
 import { computeStats } from "./stats";
-import { runSimulation } from "@/lib/simulation/engine";
+import { runSimulation } from "@/features/simulation/domain";
 import { defaultPlanInput } from "@/features/plan/domain";
 import type { GameState, LogEntry } from "./types";
 

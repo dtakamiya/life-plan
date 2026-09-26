@@ -1,4 +1,4 @@
-import type { YearlyResult } from "./types";
+import type { YearlyResult } from "./yearlyResult";
 
 /** サマリー表示に使う代表的な年次結果（issue #17）。 */
 export type ResultSummary = {

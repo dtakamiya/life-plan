@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { usePlanStore } from "@/features/plan/ui";
 import { defaultPlanInput } from "@/features/plan/domain";
-import { runSimulation } from "@/lib/simulation/engine";
-import type { YearlyResult } from "@/lib/simulation/types";
+import { runSimulation, type YearlyResult } from "@/features/simulation/domain";
 
 /**
  * plan ストアの操作結果をシミュレーションに通したときの回帰テスト。
