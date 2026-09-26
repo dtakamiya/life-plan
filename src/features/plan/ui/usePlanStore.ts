@@ -30,6 +30,7 @@ import {
   planInputSchema,
   snapshotSchema,
 } from "@/features/plan/application";
+import { makeId } from "@/features/plan/infrastructure";
 
 /** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
 export type SnapshotOrigin = "manual" | "game";
@@ -163,15 +164,6 @@ export function mergePersistedPlanState<T extends RestoredPersistFragment>(
     snapshots,
     rangeAutoCorrected: rangeCorrection.corrected,
   };
-}
-
-/** ランダムな id を生成する（crypto があれば利用）。 */
-function makeId(prefix: string): string {
-  const rand =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2);
-  return `${prefix}-${rand}`;
 }
 
 export const usePlanStore = create<PlanState>()(
