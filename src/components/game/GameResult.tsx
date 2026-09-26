@@ -4,8 +4,7 @@ import { useRef, useState } from "react";
 import type { GameState } from "@/lib/game/types";
 import type { GameStats } from "@/lib/game/stats";
 import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
-import { formatYen } from "@/shared/lib";
-import { formatAssetDiff } from "@/lib/game/assetDiff";
+import { formatAssetDiff, formatYen } from "@/shared/lib";
 import {
   DEPLETION_DEFINITION,
   describeDepletion,
