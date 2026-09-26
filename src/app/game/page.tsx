@@ -5,17 +5,19 @@ import Link from "next/link";
 import { usePlanStore } from "@/features/plan/ui";
 import { runSimulation } from "@/features/simulation/domain";
 import { Button, Eyebrow, Panel } from "@/shared/ui";
-import { GameHud } from "@/components/game/GameHud";
-import { StageCard, type CardChoice } from "@/components/game/StageCard";
-import { AdventureLog } from "@/components/game/AdventureLog";
-import { GameResult } from "@/components/game/GameResult";
-import { createGame, currentStage, pendingGameEvent } from "@/lib/game/advance";
-import { createFlow, gameFlowReducer, type GameFlow } from "@/lib/game/flow";
-import { stageOptionCashLabel, stageOptionsFor } from "@/lib/game/stages";
-import { projectInput } from "@/lib/game/project";
-import { computeStats } from "@/lib/game/stats";
-import { summarizeSatisfaction } from "@/lib/game/satisfaction";
-import type { GameState } from "@/lib/game/types";
+import { AdventureLog, GameHud, GameResult, StageCard, type CardChoice } from "@/features/game/ui";
+import {
+  computeStats,
+  createGame,
+  currentStage,
+  pendingGameEvent,
+  projectInput,
+  stageOptionCashLabel,
+  stageOptionsFor,
+  summarizeSatisfaction,
+  type GameState,
+} from "@/features/game/domain";
+import { createFlow, gameFlowReducer, type GameFlow } from "@/features/game/application";
 
 /** seed を作る。SSR とクライアントで食い違わないよう、レンダー本体では呼ばない。 */
 function makeSeed(): number {
@@ -26,7 +28,7 @@ export default function GamePage() {
   const input = usePlanStore((s) => s.input);
   const saveSnapshot = usePlanStore((s) => s.saveSnapshot);
   const [hydrated, setHydrated] = useState(false);
-  // 選択（プレビュー）と確定の状態機械は lib/game/flow.ts。
+  // 選択（プレビュー）と確定の状態機械は features/game/application/flow.ts。
   const [flow, dispatch] = useReducer(
     (f: GameFlow | null, a: Parameters<typeof gameFlowReducer>[1] | { type: "start"; game: GameState }) =>
       a.type === "start" ? createFlow(a.game) : f ? gameFlowReducer(f, a) : f,

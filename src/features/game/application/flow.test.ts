@@ -1,8 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { createGame, currentStage, pendingGameEvent } from "./advance";
+import {
+  STAGE_OPTION_TABLE,
+  createGame,
+  currentStage,
+  pendingGameEvent,
+  projectInput,
+  stageOptionCashLabel,
+} from "@/features/game/domain";
 import { createFlow, gameFlowReducer, selectableIds, type GameFlow } from "./flow";
-import { STAGE_OPTION_TABLE, stageOptionCashLabel } from "./stages";
-import { projectInput } from "./project";
 import { runSimulation } from "@/features/simulation/domain";
 import { defaultPlanInput } from "@/features/plan/domain";
 
@@ -142,7 +147,7 @@ describe("境界値（AC7）", () => {
 
 describe("確定結果は従来と同一（AC11）", () => {
   it.each([0, 1, 2])("選択列 %i を 2 段階操作で確定しても、旧 API 直呼びと完全一致", async (idx) => {
-    const { chooseStageOption, resolveEventChoice } = await import("./advance");
+    const { chooseStageOption, resolveEventChoice } = await import("@/features/game/domain");
     // 旧挙動: 選択と同時に確定
     let legacy = createGame(defaultPlanInput, 42);
     while (legacy.phase !== "finished") {

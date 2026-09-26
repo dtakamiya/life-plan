@@ -17,9 +17,9 @@ import {
   currentStage,
   pendingGameEvent,
   resolveEventChoice,
-} from "./advance";
-import { stageOptionsFor } from "./stages";
-import type { GameState } from "./types";
+  stageOptionsFor,
+  type GameState,
+} from "@/features/game/domain";
 
 export type GameFlow = {
   game: GameState;

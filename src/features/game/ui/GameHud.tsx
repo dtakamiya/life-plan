@@ -1,15 +1,15 @@
 "use client";
 
 import type { PlanInput } from "@/features/plan/domain";
-import type { Stage } from "@/lib/game/types";
-import type { GameStats } from "@/lib/game/stats";
 import {
+  formatMemberAge,
   satisfactionMark,
+  type GameStats,
   type SatisfactionSummary,
-} from "@/lib/game/satisfaction";
+  type Stage,
+} from "@/features/game/domain";
 import { Panel } from "@/shared/ui";
 import { formatYen } from "@/shared/lib";
-import { formatMemberAge } from "@/lib/game/householdAge";
 
 /** ランダムイベントは演出であり確率の予測ではない旨の常設表示。 */
 export const EVENT_DISCLAIMER =

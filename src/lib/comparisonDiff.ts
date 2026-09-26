@@ -6,8 +6,7 @@
  * 差はすべて「比較対象 − 基準」。プラスは基準より良い（資産が多い／枯渇が遅い）。
  */
 
-import { formatAssetDiff } from "@/lib/game/assetDiff";
-import { formatYen } from "@/shared/lib";
+import { formatAssetDiff, formatYen } from "@/shared/lib";
 import { summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 
 export type ComparisonInput = {
