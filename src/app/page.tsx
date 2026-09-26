@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import {
   AssetForm,
@@ -11,6 +11,7 @@ import {
   LoanForm,
   PropertyForm,
   RecurringExpenseForm,
+  usePlanHydrated,
   usePlanStore,
 } from "@/features/plan/ui";
 import { ComparisonChart, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
@@ -159,12 +160,7 @@ export default function Home() {
 
   // localStorage からの復元（ハイドレーション）後にのみ結果を描画し、
   // サーバー描画とのミスマッチを避ける。
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(usePlanStore.persist.hasHydrated());
-    const unsub = usePlanStore.persist.onFinishHydration(() => setHydrated(true));
-    return unsub;
-  }, []);
+  const hydrated = usePlanHydrated();
 
   // lp-005: バリデーション通過時のみ runSimulation を呼ぶ。エラー中は結果を
   // 空にして共通メッセージ（EmptyResultsNotice）へフォールバックする。

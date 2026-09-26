@@ -8,3 +8,4 @@ export { LoanForm } from "./LoanForm";
 export { PropertyForm } from "./PropertyForm";
 export { RecurringExpenseForm } from "./RecurringExpenseForm";
 export { usePlanStore } from "./usePlanStore";
+export { usePlanHydrated } from "./usePlanHydrated";
