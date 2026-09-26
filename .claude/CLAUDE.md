@@ -4,10 +4,14 @@
 
 ## 構成
 
-- `components/`（UI）→ `store`（Zustand によるグローバル状態）→
-  `lib/simulation` / `lib/game`（ドメインロジック）→ `lib/schema`（永続化検証）の
-  単方向依存を維持する。逆方向の依存（`lib` から `components` を import する等）
-  は行わない。
+- `src/features/<feature>/{domain,application,infrastructure,ui}` と
+  `src/shared/{lib,ui}` による機能別レイヤー構成へ移行中。import の許可ルールは
+  `docs/superpowers/specs/2026-09-26-feature-based-clean-architecture-design.md`
+  の 2.2 節にあり、`src/architecture.test.ts` が検証する。
+- 移行前の `src/components/`（UI）→ `src/lib/store`（Zustand）→
+  `src/lib/simulation` / `src/lib/game`（ドメインロジック）は旧構成として残り、
+  アーキテクチャテストの対象外。ここでも逆方向の依存（`lib` から `components`
+  を import する等）は行わない。
 
 ## コーディング規約
 
