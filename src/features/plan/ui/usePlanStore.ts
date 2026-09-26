@@ -5,7 +5,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
-  correctDateRange,
   defaultPlanInput,
   type Child,
   type IncomeAdjustment,
@@ -23,7 +22,6 @@ import {
   addLoan,
   addProperty,
   addRecurringExpense,
-  planInputSchema,
   removeChild,
   removeEvent,
   removeIncomeAdjustment,
@@ -33,7 +31,6 @@ import {
   resetInput,
   resetSingleInput,
   setRange,
-  snapshotSchema,
   startBlank,
   toggleSpouse,
   updateAssets,
@@ -47,23 +44,14 @@ import {
   updateSelf,
   updateSpouse,
 } from "@/features/plan/application";
-import { makeId } from "@/features/plan/infrastructure";
-
-/** スナップショットの由来（"game" はゲームモードの進行から保存されたもの）。 */
-export type SnapshotOrigin = "manual" | "game";
-
-/** 名前付きで保存した計画のスナップショット（比較用）。 */
-export type Snapshot = {
-  id: string;
-  name: string;
-  input: PlanInput;
-  origin: SnapshotOrigin;
-};
+import {
+  makeId,
+  mergePersistedPlanState,
+  migratePersistedPlanState,
+} from "@/features/plan/infrastructure";
 
 type PlanState = {
   input: PlanInput;
-  /** 比較用に保存した計画のスナップショット一覧。 */
-  snapshots: Snapshot[];
   /**
    * lp-019 / QA#1: `setRange` または永続化復元で開始年・終了年の組が
    * 無効（開始年>終了年、または期間1年未満）だったため自動補正した直後は
@@ -100,22 +88,8 @@ type PlanState = {
   updateProperty: (id: string, patch: Partial<Property>) => void;
   removeProperty: (id: string) => void;
   /**
-   * 計画を名前付きスナップショットとして保存する。
-   * input を省略すると現在の入力を複製する。ゲームモードは
-   * 射影済みの PlanInput と origin: "game" を渡す。
-   */
-  saveSnapshot: (
-    name: string,
-    input?: PlanInput,
-    origin?: SnapshotOrigin,
-  ) => void;
-  /** スナップショットを削除する。 */
-  removeSnapshot: (id: string) => void;
-  /** スナップショットの内容を現在の入力に読み込む。 */
-  loadSnapshot: (id: string) => void;
-  /**
-   * lp-033: 検証済みの PlanInput（ファイル読み込み）で現在の入力を置き換える。
-   * snapshots には触れない。
+   * lp-033: 検証済みの PlanInput（ファイル読み込み・スナップショットの読込）で
+   * 現在の入力を置き換える。
    */
   replaceInput: (input: PlanInput) => void;
   reset: () => void;
@@ -128,66 +102,10 @@ type PlanState = {
   startBlank: () => void;
 };
 
-/**
- * 永続化復元（persist の merge）で使う、復元後の input / snapshots / の
- * 断片型。`rangeAutoCorrected` を含む点が PlanState 全体と異なる。
- */
-type RestoredPersistFragment = {
-  input: PlanInput;
-  snapshots: Snapshot[];
-  rangeAutoCorrected: boolean;
-};
-
-/**
- * lp-019 / QA#1: persist の `merge` オプション本体。
- * zustand の persist ミドルウェアは、実行環境に `localStorage` が
- * 無い場合（本プロジェクトのテストの既定 `environment: "node"` を含む）は
- * `merge` を一切呼び出さない実装のため、単体テストで直接呼び出せるよう
- * 純粋関数として切り出す（例外は投げない）。
- *
- * 永続化された入力・スナップショットを zod で検証し、壊れた部分は
- * 既定値（入力）／除外（スナップショット）でフォールバックする。
- * さらに、復元した期間（startYear/endYear）が無効
- * （開始年>終了年、または期間1年未満）なら `correctDateRange` で
- * setRange と同じ補正を行い、`rangeAutoCorrected` に反映する。
- */
-export function mergePersistedPlanState<T extends RestoredPersistFragment>(
-  persisted: unknown,
-  current: T,
-): T {
-  const p = persisted as { input?: unknown; snapshots?: unknown } | undefined;
-
-  const parsedInput = planInputSchema.safeParse(p?.input);
-  const restoredInput = parsedInput.success ? parsedInput.data : defaultPlanInput;
-
-  const rangeCorrection = correctDateRange(
-    restoredInput.startYear,
-    restoredInput.endYear,
-  );
-  const input = rangeCorrection.corrected
-    ? { ...restoredInput, endYear: rangeCorrection.endYear }
-    : restoredInput;
-
-  const snapshots: Snapshot[] = Array.isArray(p?.snapshots)
-    ? p.snapshots.flatMap((raw) => {
-        const parsed = snapshotSchema.safeParse(raw);
-        return parsed.success ? [parsed.data] : [];
-      })
-    : [];
-
-  return {
-    ...current,
-    input,
-    snapshots,
-    rangeAutoCorrected: rangeCorrection.corrected,
-  };
-}
-
 export const usePlanStore = create<PlanState>()(
   persist(
     (set) => ({
       input: defaultPlanInput,
-      snapshots: [],
       rangeAutoCorrected: false,
 
       /**
@@ -263,58 +181,21 @@ export const usePlanStore = create<PlanState>()(
 
       removeProperty: (id) => set((s) => ({ input: removeProperty(s.input, id) })),
 
-      saveSnapshot: (name, input, origin = "manual") =>
-        set((s) => {
-          const snapshot: Snapshot = {
-            id: makeId("snap"),
-            name,
-            input: structuredClone(input ?? s.input),
-            origin,
-          };
-          return { snapshots: [...s.snapshots, snapshot] };
-        }),
-
-      removeSnapshot: (id) =>
-        set((s) => ({
-          snapshots: s.snapshots.filter((snap) => snap.id !== id),
-        })),
-
-      loadSnapshot: (id) =>
-        set((s) => {
-          const snapshot = s.snapshots.find((snap) => snap.id === id);
-          if (!snapshot) return s;
-          const input = structuredClone(snapshot.input);
-          // ゲーム由来の乱数イベントが本体入力に無標識で混ざるのを防ぐ
-          // （免責節の要件）。game- で始まる id のイベント label に「（ゲーム）」
-          // を前置する。既に前置済みなら二重付与しない（冪等）。
-          if (snapshot.origin === "game") {
-            const PREFIX = "（ゲーム）";
-            input.events = input.events.map((e) =>
-              e.id.startsWith("game-") && !e.label.startsWith(PREFIX)
-                ? { ...e, label: `${PREFIX}${e.label}` }
-                : e,
-            );
-          }
-          return { input };
-        }),
-
       replaceInput: (input) =>
         set({ input: structuredClone(input), rangeAutoCorrected: false }),
 
       /**
-       * 全入力ステートを既定値へ戻す。
+       * 入力を既定値へ戻す。
        * 対象は「入力」のみ: self / spouse / children / loans / events /
-       * recurringExpenses / assets（taxable・taxFree）に加え、保存済み比較プラン（snapshots）も
-       * 空に戻す。これにより前ペルソナのローン・イベント・保存プランが
-       * 次のペルソナ入力へ混入しない。
-       * 前提: これは入力の全消去であり、テーマ等の UI 設定や
-       * localStorage 上の別キーには一切触れない（persist の "life-plan/v1"
-       * キー内の input / snapshots のみを初期化する）。
+       * recurringExpenses / assets（taxable・taxFree）。これにより前ペルソナの
+       * ローン・イベントが次のペルソナ入力へ混入しない。
+       * 保存済み比較プラン（snapshots）は scenario ストアの reset が、この reset と
+       * 合わせて空にする（全消去）。テーマ等の UI 設定や localStorage 上の
+       * 別キーには触れない。
        */
       reset: () =>
         set({
           input: resetInput(),
-          snapshots: [],
           rangeAutoCorrected: false,
         }),
 
@@ -329,8 +210,10 @@ export const usePlanStore = create<PlanState>()(
     }),
     {
       name: "life-plan/v1",
-      version: 1,
+      // version 2: 比較用スナップショットを scenario ストア（life-plan/scenarios/v1）へ分離した。
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persisted) => migratePersistedPlanState(persisted, localStorage),
       merge: mergePersistedPlanState,
     },
   ),

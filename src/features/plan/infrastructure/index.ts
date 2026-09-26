@@ -10,3 +10,9 @@ export {
   type PlanFile,
 } from "./planFile";
 export { makeId } from "./makeId";
+export {
+  SCENARIOS_STORAGE_KEY,
+  SCENARIOS_STORAGE_VERSION,
+  migratePersistedPlanState,
+} from "./migratePersistedPlanState";
+export { mergePersistedPlanState } from "./mergePersistedPlanState";

@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, beforeAll, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { usePlanStore } from "@/features/plan/ui";
+import { useScenarioStore } from "@/features/scenario/ui";
 import Home from "./page";
 
 (
@@ -44,7 +45,7 @@ let root: Root;
 afterEach(() => {
   act(() => root.unmount());
   container.remove();
-  usePlanStore.getState().reset();
+  useScenarioStore.getState().reset();
 });
 
 function mount(ui: React.ReactElement) {
@@ -221,7 +222,7 @@ describe("Home ページ — 比較の差分数値表（lp-035）", () => {
     await waitForHydration();
 
     act(() => {
-      usePlanStore.getState().saveSnapshot("同じ案");
+      useScenarioStore.getState().saveSnapshot("同じ案");
     });
 
     const table = diffTable(el);

@@ -13,6 +13,7 @@ import {
   RecurringExpenseForm,
   usePlanStore,
 } from "@/features/plan/ui";
+import { ComparisonChart, ScenarioBar, useScenarioStore } from "@/features/scenario/ui";
 import { runValidatedSimulation } from "@/features/simulation/application";
 import { describeAssetLongevity, summarizeResults, type YearlyResult } from "@/features/simulation/domain";
 import { formatYen } from "@/shared/lib";
@@ -25,8 +26,6 @@ import {
   ResultTable,
   SummaryBar,
 } from "@/features/simulation/ui";
-import { ComparisonChart } from "@/components/charts/ComparisonChart";
-import { ScenarioBar } from "@/components/ScenarioBar";
 
 type Tone = "brand" | "ink" | "danger";
 
@@ -144,8 +143,9 @@ function Summary({ results }: { results: YearlyResult[] }) {
 
 export default function Home() {
   const input = usePlanStore((s) => s.input);
-  const snapshots = usePlanStore((s) => s.snapshots);
-  const reset = usePlanStore((s) => s.reset);
+  const snapshots = useScenarioStore((s) => s.snapshots);
+  // 「初期値に戻す」は全消去（入力と保存済み比較プラン。scenario ストアの reset）
+  const reset = useScenarioStore((s) => s.reset);
   const startBlank = usePlanStore((s) => s.startBlank);
   const resetSingle = usePlanStore((s) => s.resetSingle);
 

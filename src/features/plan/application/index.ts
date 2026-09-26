@@ -42,8 +42,6 @@ export {
   planInputValidationSchema,
   propertySchema,
   recurringExpenseSchema,
-  snapshotOriginSchema,
-  snapshotSchema,
   validatePlanInput,
   type PlanInputErrors,
   type PlanInputValidation,

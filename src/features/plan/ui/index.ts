@@ -7,4 +7,4 @@ export { IncomeAdjustmentForm } from "./IncomeAdjustmentForm";
 export { LoanForm } from "./LoanForm";
 export { PropertyForm } from "./PropertyForm";
 export { RecurringExpenseForm } from "./RecurringExpenseForm";
-export { usePlanStore, type Snapshot } from "./usePlanStore";
+export { usePlanStore } from "./usePlanStore";

@@ -42,7 +42,6 @@ describe("usePlanStore.reset", () => {
     store.updateSelf({ grossAnnualIncome: 9_999_999 });
     store.addLoan();
     store.addEvent();
-    store.saveSnapshot("noise");
 
     usePlanStore.getState().reset();
 
