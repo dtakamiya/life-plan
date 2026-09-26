@@ -9,13 +9,18 @@ import { GameHud } from "@/components/game/GameHud";
 import { StageCard, type CardChoice } from "@/components/game/StageCard";
 import { AdventureLog } from "@/components/game/AdventureLog";
 import { GameResult } from "@/components/game/GameResult";
-import { createGame, currentStage, pendingGameEvent } from "@/lib/game/advance";
+import {
+  computeStats,
+  createGame,
+  currentStage,
+  pendingGameEvent,
+  projectInput,
+  stageOptionCashLabel,
+  stageOptionsFor,
+  summarizeSatisfaction,
+  type GameState,
+} from "@/features/game/domain";
 import { createFlow, gameFlowReducer, type GameFlow } from "@/lib/game/flow";
-import { stageOptionCashLabel, stageOptionsFor } from "@/lib/game/stages";
-import { projectInput } from "@/lib/game/project";
-import { computeStats } from "@/lib/game/stats";
-import { summarizeSatisfaction } from "@/lib/game/satisfaction";
-import type { GameState } from "@/lib/game/types";
 
 /** seed を作る。SSR とクライアントで食い違わないよう、レンダー本体では呼ばない。 */
 function makeSeed(): number {

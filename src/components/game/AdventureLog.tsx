@@ -1,6 +1,6 @@
 "use client";
 
-import type { LogEntry, Stage } from "@/lib/game/types";
+import type { LogEntry, Stage } from "@/features/game/domain";
 import { Panel } from "@/shared/ui";
 import { formatYen } from "@/shared/lib";
 

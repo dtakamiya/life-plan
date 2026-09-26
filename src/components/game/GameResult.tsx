@@ -1,22 +1,22 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { GameState } from "@/lib/game/types";
-import type { GameStats } from "@/lib/game/stats";
-import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
-import { formatAssetDiff, formatYen } from "@/shared/lib";
 import {
   DEPLETION_DEFINITION,
+  STAGE_OPTION_TABLE,
   describeDepletion,
   describeDepletionDiff,
-} from "@/lib/game/depletionText";
+  type GameState,
+  type GameStats,
+  type SatisfactionSummary,
+} from "@/features/game/domain";
+import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
+import { formatAssetDiff, formatYen } from "@/shared/lib";
 import {
   EVENT_DISCLAIMER,
   SATISFACTION_DEFINITION,
   SATISFACTION_DISCLAIMER,
 } from "./GameHud";
-import type { SatisfactionSummary } from "@/lib/game/satisfaction";
-import { STAGE_OPTION_TABLE } from "@/lib/game/stages";
 
 /** 方針カードのログを 1 行に要約する。 */
 function summarizeChoices(state: GameState): string {
