@@ -2,13 +2,20 @@
 
 import {
   BASIC_PENSION_ANNUAL,
+  DEFAULT_RETIREMENT_BENEFIT,
   estimateAnnualPension,
   type Person,
 } from "@/features/plan/domain";
 import { NumberField, PercentField, TextField } from "@/shared/ui";
+import { formatYen } from "@/shared/lib";
 
 /** これを超える年収は桁の入力ミスの可能性として注意を出す（円）。 */
 const INCOME_DIGIT_WARNING = 100_000_000;
+
+/** lp-042: 本人の退職一時金の既定値の根拠。既定値定数から生成し、二重管理を避ける。 */
+const RETIREMENT_BENEFIT_SELF_HINT = `退職年齢で受取。初期値は${formatYen(
+  DEFAULT_RETIREMENT_BENEFIT,
+)}（目安）。勤続年数・勤務先で大きく変わるため、実際の見込み額に置き換えてください。`;
 
 const PILL_CLASS =
   "rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink-soft transition-colors hover:border-brand hover:bg-brand-50 hover:text-brand-700";
@@ -105,7 +112,11 @@ export function PersonFields({
       </div>
       <NumberField
         label="退職一時金"
-        hint="退職年齢で受取"
+        hint={
+          prefix === "self"
+            ? RETIREMENT_BENEFIT_SELF_HINT
+            : "退職年齢で受取"
+        }
         help="retirementIncomeTax"
         suffix="円"
         grouped

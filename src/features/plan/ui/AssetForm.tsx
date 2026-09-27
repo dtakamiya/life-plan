@@ -3,6 +3,19 @@
 import { usePlanStore } from "./usePlanStore";
 import { NumberField, PercentField, Section } from "@/shared/ui";
 import { usePlanErrors } from "./usePlanErrors";
+import {
+  DEFAULT_ANNUAL_RETURN_RATE,
+  DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
+} from "@/features/plan/domain";
+import { formatPercent, formatYen } from "@/shared/lib";
+
+/** lp-042: 既定値の根拠を伝えるヘルプ文言。既定値定数から生成し、二重管理を避ける。 */
+const ANNUAL_RETURN_RATE_HINT = `既定値は${formatPercent(
+  DEFAULT_ANNUAL_RETURN_RATE,
+)}（預金と投資信託などを組み合わせた場合の目安）。実際の運用方針に合わせて変更してください。`;
+const TAX_FREE_CONTRIBUTION_HINT = `既定値は${formatYen(
+  DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
+)}（NISAつみたて投資枠の年間上限が目安）。課税口座から移すため総資産は増えません。`;
 
 export function AssetForm() {
   const assets = usePlanStore((s) => s.input.assets);
@@ -36,6 +49,7 @@ export function AssetForm() {
         <PercentField
           label="運用利回り"
           help="annualReturnRate"
+          hint={ANNUAL_RETURN_RATE_HINT}
           signed
           error={errors["assets.annualReturnRate"]}
           value={assets.annualReturnRate}
@@ -51,7 +65,7 @@ export function AssetForm() {
         />
         <NumberField
           label="非課税口座へ年間積立"
-          hint="課税口座から移す"
+          hint={TAX_FREE_CONTRIBUTION_HINT}
           help="taxFreeContribution"
           suffix="円"
           grouped
