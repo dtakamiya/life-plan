@@ -30,7 +30,10 @@ import {
 } from "./housingLoanCredit";
 import {
   BASIC_PENSION_ANNUAL,
+  DEFAULT_ANNUAL_RETURN_RATE,
+  DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
   DEFAULT_END_AGE,
+  DEFAULT_RETIREMENT_BENEFIT,
   EARNINGS_RELATED_CAP,
   EARNINGS_RELATED_FACTOR,
   HOUSEHOLD_DEFAULT_CONSTANTS,
@@ -93,7 +96,9 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
     {
       label: "資産運用の年間リターン",
       value: formatPercent(assets.annualReturnRate),
-      note: "入力値。課税口座・非課税口座の両方に同率で適用。課税口座は預金を含む全額に掛かるため、運用せず預金で持つ分が多い場合は利回りを低め（預金なら0〜0.3%程度）にすると実態に近づく。資金不足（残高マイナス）の年は利回りを掛けない。",
+      note: `入力値（既定値は${formatPercent(
+        DEFAULT_ANNUAL_RETURN_RATE,
+      )}）。課税口座・非課税口座の両方に同率で適用。課税口座は預金を含む全額に掛かるため、運用せず預金で持つ分が多い場合は利回りを低め（預金なら0〜0.3%程度）にすると実態に近づく。資金不足（残高マイナス）の年は利回りを掛けない。`,
     },
     {
       label: "配当・分配金の利回り",
@@ -101,38 +106,58 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       note: "入力値。両口座に同率で適用し毎年現金で受取。課税口座分は運用益と同率で課税。",
     },
     {
+      label: "非課税口座へ年間積立",
+      value: formatYen(assets.annualTaxFreeContribution),
+      note: `入力値（既定値は${formatYen(
+        DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
+      )}、NISAつみたて投資枠の年間上限が目安）。課税口座から移すだけなので総資産は増えないが、運用益にかかる税金が減る。`,
+    },
+    {
+      label: "退職一時金（本人）",
+      value: formatYen(input.self.retirementBenefit),
+      note: `入力値（本人の初期値は${formatYen(
+        DEFAULT_RETIREMENT_BENEFIT,
+      )}、目安）。勤続年数・勤務先で大きく変わるため、実際の見込み額に置き換えることを推奨。`,
+    },
+    {
+      // 実装: tax.ts の INCOME_TAX_BRACKETS
       label: "所得税の税率区分",
       value: summarizeBrackets(),
-      note: "概算。課税所得へ簡易累進ブラケットを適用（tax.ts の INCOME_TAX_BRACKETS）。各種控除・復興特別所得税は簡略化。",
+      note: "概算。課税所得へ簡易累進ブラケットを適用。各種控除・復興特別所得税は簡略化。",
     },
     {
+      // 実装: tax.ts の RESIDENCE_TAX_RATE, RESIDENCE_TAX_EXEMPT_INCOME
       label: "住民税率",
       value: formatPercent(RESIDENCE_TAX_RATE),
-      note: "概算。課税所得に一律で適用（tax.ts の RESIDENCE_TAX_RATE）。給与所得が45万円（単身の非課税の目安、tax.ts の RESIDENCE_TAX_EXEMPT_INCOME）以下なら非課税。均等割・扶養による非課税ラインの違いは未反映。",
+      note: "概算。課税所得に一律で適用。給与所得が45万円（単身の非課税の目安）以下なら非課税。均等割・扶養による非課税ラインの違いは未反映。",
     },
     {
+      // 実装: tax.ts の INCOME_TAX_BASIC_DEDUCTION_TIERS
       label: "基礎控除",
       value: formatYen(BASIC_DEDUCTION),
-      note: "概算。表示の額は住民税の基礎控除。所得税は2025年改正後の段階式（給与所得132万円以下は95万円〜655万円超は58万円、tax.ts の INCOME_TAX_BASIC_DEDUCTION_TIERS）を使う。給与所得控除は『年収×20%＋44万円、下限65万円・上限195万円』で近似。",
+      note: "概算。表示の額は住民税の基礎控除。所得税は2025年改正後の段階式（給与所得132万円以下は95万円〜655万円超は58万円）を使う。給与所得控除は『年収×20%＋44万円、下限65万円・上限195万円』で近似。",
     },
     {
+      // 実装: tax.ts の CAPITAL_GAINS_RATE
       label: "運用益への課税率",
       value: formatPercent(CAPITAL_GAINS_RATE),
-      note: "概算。課税口座の運用益のみに課税（所得税15.315%＋住民税5%、tax.ts の CAPITAL_GAINS_RATE）。非課税口座（NISA/iDeCo 等）には課さない。",
+      note: "概算。課税口座の運用益のみに課税（所得税15.315%＋住民税5%）。非課税口座（NISA/iDeCo 等）には課さない。",
     },
     {
+      // 実装: socialInsurance.ts の SOCIAL_INSURANCE_RATE, estimatePensionSocialInsurance
       label: "社会保険料率",
       value: formatPercent(SOCIAL_INSURANCE_RATE),
       note: `概算。給与の税込年収に適用（対象年収の上限 ${formatYen(
         SOCIAL_INSURANCE_INCOME_CAP,
-      )}、socialInsurance.ts の SOCIAL_INSURANCE_RATE）。年金収入には別途、国民健康保険料＋介護保険料として（年金 − 公的年金等控除110万円）× 15%、最低3万円を概算する（estimatePensionSocialInsurance）。`,
+      )}）。年金収入には別途、国民健康保険料＋介護保険料として（年金 − 公的年金等控除110万円）× 15%、最低3万円を概算する。`,
     },
     {
+      // 実装: pension.ts の estimateAnnualPension
       label: "年金の概算方式",
       value: `基礎年金 ${formatYen(BASIC_PENSION_ANNUAL)}（定額）＋ 現役年収 × ${formatPercent(
         EARNINGS_RELATED_FACTOR,
       )}（上限 ${formatYen(EARNINGS_RELATED_CAP)}）`,
-      note: "概算（pension.ts の estimateAnnualPension）。フォーム初期値の算定に使用。入力欄で年額を上書きした場合はその値が優先される。国民年金のみ（自営・未加入の非正規等）の場合は基礎年金の定額のみが目安。",
+      note: "概算。フォーム初期値の算定に使用。入力欄で年額を上書きした場合はその値が優先される。国民年金のみ（自営・未加入の非正規等）の場合は基礎年金の定額のみが目安。",
     },
     {
       label: "年金受給開始年齢",
@@ -140,11 +165,12 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       note: "入力値（60〜75歳）。年額（annualPension）は開始年齢によらず一定で、繰上げ/繰下げ受給による減額・増額は未反映（lp-008 で対応予定）。開始年齢は年金が発生し始める年のみを動かす。年金額は物価上昇に連動させず、受給開始後も同額のまま（生活費は物価上昇率で増える）ため、長期では収支がやや厳しめに出る。",
     },
     {
+      // 実装: householdDefaults.ts
       label: "世帯構成連動の既定値（生活費・住宅ローン）",
       value: `単身 ${formatYen(HOUSEHOLD_DEFAULT_CONSTANTS.singleBaseLivingExpense)}／夫婦 ${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.coupleBaseLivingExpense,
       )}（子の養育費は下記の子ども費用として別途計上）`,
-      note: `lp-030: 配偶者の有無（householdDefaults.ts）から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
+      note: `lp-030: 配偶者の有無から基礎生活費を機械的に決定し、編集していない項目のみ世帯構成の変更に追従させる。子が1人以上いる世帯には住宅ローン（借入${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanPrincipal,
       )}・金利${formatPercent(HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanAnnualRate)}・${HOUSEHOLD_DEFAULT_CONSTANTS.housingLoanTermYears}年）と住宅購入イベント（頭金${formatYen(
         HOUSEHOLD_DEFAULT_CONSTANTS.housingDownPayment,

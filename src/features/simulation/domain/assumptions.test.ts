@@ -14,6 +14,9 @@ import {
 } from "./socialInsurance";
 import {
   BASIC_PENSION_ANNUAL,
+  DEFAULT_ANNUAL_RETURN_RATE,
+  DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
+  DEFAULT_RETIREMENT_BENEFIT,
   EARNINGS_RELATED_FACTOR,
   EARNINGS_RELATED_CAP,
   type PlanInput,
@@ -53,7 +56,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(17);
+    expect(rows).toHaveLength(19);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -68,6 +71,8 @@ describe("buildAssumptionRows", () => {
       "年収上昇率",
       "資産運用の年間リターン",
       "配当・分配金の利回り",
+      "非課税口座へ年間積立",
+      "退職一時金（本人）",
       "所得税の税率区分",
       "住民税率",
       "基礎控除",
@@ -123,6 +128,29 @@ describe("buildAssumptionRows", () => {
     expect(row.value).toBe("7.0%");
   });
 
+  it("既定の運用利回りを既定値定数から表示する（lp-042: 二重管理しない）", () => {
+    const row = buildAssumptionRows(makeInput()).find(
+      (r) => r.label === "資産運用の年間リターン",
+    )!;
+    expect(row.note).toContain(`${(DEFAULT_ANNUAL_RETURN_RATE * 100).toFixed(1)}%`);
+  });
+
+  it("非課税口座への年間積立の既定値を既定値定数から表示する（lp-042: 二重管理しない）", () => {
+    const row = buildAssumptionRows(makeInput()).find(
+      (r) => r.label === "非課税口座へ年間積立",
+    )!;
+    expect(row.value).toBe(formatYen(0));
+    expect(row.note).toContain(formatYen(DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION));
+  });
+
+  it("本人の退職一時金の既定値を既定値定数から表示する（lp-042: 二重管理しない）", () => {
+    const row = buildAssumptionRows(makeInput()).find(
+      (r) => r.label === "退職一時金（本人）",
+    )!;
+    expect(row.value).toBe(formatYen(0));
+    expect(row.note).toContain(formatYen(DEFAULT_RETIREMENT_BENEFIT));
+  });
+
   it("reflects the input dividend yield as a percent string", () => {
     const rows = buildAssumptionRows(
       makeInput({
@@ -150,7 +178,7 @@ describe("buildAssumptionRows", () => {
       `${first}〜${last}（${INCOME_TAX_BRACKETS.length}区分の簡易累進）`,
     );
     expect(row.value).toBe("5.0%〜45.0%（7区分の簡易累進）");
-    expect(row.note).toContain("INCOME_TAX_BRACKETS");
+    expect(row.note).toContain("簡易累進ブラケット");
   });
 
   it("shows the residence tax rate from the actual constant", () => {
@@ -180,7 +208,7 @@ describe("buildAssumptionRows", () => {
     expect(SOCIAL_INSURANCE_INCOME_CAP).toBe(12_000_000);
   });
 
-  it("describes the pension formula from the actual constants and notes it is a pension.ts estimate", () => {
+  it("describes the pension formula from the actual constants and notes it is an estimate", () => {
     const row = buildAssumptionRows(makeInput()).find((r) => r.label === "年金の概算方式")!;
     expect(row.value).toBe(
       `基礎年金 ${formatYen(BASIC_PENSION_ANNUAL)}（定額）＋ 現役年収 × ${(
@@ -190,7 +218,7 @@ describe("buildAssumptionRows", () => {
     expect(row.value).toContain(`基礎年金 ${formatYen(780_000)}（定額）`);
     expect(row.value).toContain("× 12.0%");
     expect(row.value).toContain(`上限 ${formatYen(1_500_000)}`);
-    expect(row.note).toContain("pension.ts");
+    expect(row.note).toContain("概算");
     expect(BASIC_PENSION_ANNUAL).toBe(780_000);
     expect(EARNINGS_RELATED_CAP).toBe(1_500_000);
   });
