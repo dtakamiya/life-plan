@@ -8,6 +8,7 @@ import { runSimulation } from "@/features/simulation/domain";
 import { Button, Eyebrow, Panel } from "@/shared/ui";
 import { AdventureLog, GameHud, GameResult, StageCard, type CardChoice } from "@/features/game/ui";
 import {
+  applyGameToInput,
   computeStats,
   createGame,
   currentStage,
@@ -16,6 +17,7 @@ import {
   stageOptionCashLabel,
   stageOptionsFor,
   summarizeSatisfaction,
+  undoGameFromInput,
   type GameState,
 } from "@/features/game/domain";
 import { createFlow, gameFlowReducer, type GameFlow } from "@/features/game/application";
@@ -27,6 +29,7 @@ function makeSeed(): number {
 
 export default function GamePage() {
   const input = usePlanStore((s) => s.input);
+  const replaceInput = usePlanStore((s) => s.replaceInput);
   const saveSnapshot = useScenarioStore((s) => s.saveSnapshot);
   const [hydrated, setHydrated] = useState(false);
   // 選択（プレビュー）と確定の状態機械は features/game/application/flow.ts。
@@ -167,10 +170,13 @@ export default function GamePage() {
                 stats={stats}
                 baseStats={baseStats}
                 satisfaction={satisfaction}
+                planInput={input}
                 onSave={(name) =>
                   saveSnapshot(name, projectInput(game.baseInput, game), "game")
                 }
                 onRestart={() => setGame(createGame(input, makeSeed()))}
+                onApplyToPlan={() => replaceInput(applyGameToInput(input, game))}
+                onUndoApply={() => replaceInput(undoGameFromInput(input, game))}
               />
             )}
 

@@ -9,7 +9,15 @@ export {
 export { DEPLETION_DEFINITION, describeDepletion, describeDepletionDiff } from "./depletionText";
 export { formatMemberAge } from "./householdAge";
 export { projectInput } from "./project";
+export {
+  applyGameToInput,
+  isReflected,
+  pendingReflectDiff,
+  reflectableEvents,
+  undoGameFromInput,
+  unreflectedEffects,
+} from "./reflect";
 export { satisfactionMark, summarizeSatisfaction, type SatisfactionSummary } from "./satisfaction";
 export { STAGE_OPTION_TABLE, stageOptionCashLabel, stageOptionsFor } from "./stages";
 export { computeStats, type GameStats } from "./stats";
-export type { GameState, LogEntry, Stage } from "./types";
+export type { AppliedEffect, GameState, LogEntry, Stage } from "./types";
