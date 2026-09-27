@@ -4,6 +4,11 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { usePlanStore } from "./usePlanStore";
 import { AssetForm } from "./AssetForm";
+import {
+  DEFAULT_ANNUAL_RETURN_RATE,
+  DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
+} from "@/features/plan/domain";
+import { formatPercent, formatYen } from "@/shared/lib";
 
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -64,5 +69,19 @@ describe("AssetForm — 配当利回り", () => {
   it("注記で配当が毎年現金受取・課税口座分は約20%課税であることを伝える", () => {
     const el = mount(<AssetForm />);
     expect(el.textContent).toContain("配当・分配金は毎年現金で受け取り");
+  });
+
+  it("運用利回りの既定値を既定値定数から表示する（lp-042: 二重管理しない）", () => {
+    const el = mount(<AssetForm />);
+    expect(el.textContent).toContain(
+      `既定値は${formatPercent(DEFAULT_ANNUAL_RETURN_RATE)}`,
+    );
+  });
+
+  it("非課税口座への年間積立の既定値を既定値定数から表示する（lp-042: 二重管理しない）", () => {
+    const el = mount(<AssetForm />);
+    expect(el.textContent).toContain(
+      `既定値は${formatYen(DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION)}`,
+    );
   });
 });

@@ -6,10 +6,14 @@ import {
   STAGE_OPTION_TABLE,
   describeDepletion,
   describeDepletionDiff,
+  isReflected,
+  pendingReflectDiff,
+  unreflectedEffects,
   type GameState,
   type GameStats,
   type SatisfactionSummary,
 } from "@/features/game/domain";
+import type { PlanInput } from "@/features/plan/domain";
 import { Button, ConfirmDialog, Panel, type ConfirmDialogHandle } from "@/shared/ui";
 import { formatAssetDiff, formatYen } from "@/shared/lib";
 import {
@@ -48,8 +52,11 @@ export function GameResult({
   stats,
   baseStats,
   satisfaction,
+  planInput,
   onSave,
   onRestart,
+  onApplyToPlan,
+  onUndoApply,
 }: {
   state: GameState;
   /** ゲームの選択を反映した結果の統計 */
@@ -58,12 +65,25 @@ export function GameResult({
   baseStats: GameStats;
   /** 満足度指標の単一ソース（ヘッダ HUD と同じ値） */
   satisfaction: SatisfactionSummary;
+  /** 本プランの現在の入力（lp-034: 反映の差分プレビュー・反映判定に使う） */
+  planInput: PlanInput;
   onSave: (name: string) => void;
   onRestart: () => void;
+  /** lp-034: 本プランへゲームの効果イベントを反映する */
+  onApplyToPlan: () => void;
+  /** lp-034: 反映したイベントだけを本プランから取り消す */
+  onUndoApply: () => void;
 }) {
   const [name, setName] = useState("ゲームの結果");
   const [saved, setSaved] = useState(false);
   const confirmRef = useRef<ConfirmDialogHandle>(null);
+  const applyConfirmRef = useRef<ConfirmDialogHandle>(null);
+  const undoConfirmRef = useRef<ConfirmDialogHandle>(null);
+
+  const reflectDiff = pendingReflectDiff(planInput, state);
+  const notReflectable = unreflectedEffects(state);
+  const alreadyReflected = isReflected(planInput, state);
+  const hasReflectable = reflectDiff.length > 0 || alreadyReflected;
 
   // 満足度はヘッダ HUD と同じ単一ソース（summarizeSatisfaction）から受け取る。
   const averageSatisfaction = satisfaction.value;
@@ -124,6 +144,72 @@ export function GameResult({
           「あなたの判断が生んだ増減」ではなく「基本計画との違い」として示しています。
         </p>
       </Panel>
+
+      <Panel eyebrow="Apply" title="本プランへ反映">
+        {!hasReflectable ? (
+          <p className="text-sm leading-relaxed text-ink-soft">
+            金額を伴う選択が無かったため、本プランへ反映できるイベントはありません。
+          </p>
+        ) : alreadyReflected ? (
+          <>
+            <p className="text-sm leading-relaxed text-ink-soft">
+              このゲームの効果は本プランへ反映済みです。トップページの入力・グラフに反映されています。
+            </p>
+            <div className="mt-3">
+              <Button variant="ghost" onClick={() => undoConfirmRef.current?.open()}>
+                反映を取り消す
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm leading-relaxed text-ink-soft">
+              反映すると、以下の {reflectDiff.length} 件のイベントが本プランの入力に追加されます。
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-ink">
+              {reflectDiff.map((e) => (
+                <li key={e.id} className="flex justify-between gap-2">
+                  <span>
+                    {e.year}年 {e.label}
+                  </span>
+                  <span className={e.amount < 0 ? "text-danger" : "text-ink"}>
+                    {formatYen(e.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3">
+              <Button variant="primary" onClick={() => applyConfirmRef.current?.open()}>
+                本プランへ反映する
+              </Button>
+            </div>
+          </>
+        )}
+        {notReflectable.length > 0 && (
+          <p className="mt-3 text-[11px] leading-relaxed text-ink-mute">
+            満足度のみに影響した選択（{notReflectable.length} 件）は金額を伴わないため反映されません。
+          </p>
+        )}
+        <p className="mt-2 text-[11px] leading-relaxed text-ink-mute">
+          反映は明示的な操作でのみ行われます。反映後もいつでも取り消せます。
+        </p>
+      </Panel>
+
+      <ConfirmDialog
+        ref={applyConfirmRef}
+        title="本プランへ反映しますか？"
+        description="このゲームの効果イベントを本プランの入力に追加します。あとから取り消せます。"
+        confirmLabel="反映する"
+        onConfirm={onApplyToPlan}
+      />
+
+      <ConfirmDialog
+        ref={undoConfirmRef}
+        title="反映を取り消しますか？"
+        description="このゲームで追加したイベントだけを本プランの入力から取り除きます。"
+        confirmLabel="取り消す"
+        onConfirm={onUndoApply}
+      />
 
       <Panel eyebrow="Save" title="この進行をシナリオとして保存">
         <div className="flex flex-wrap items-center gap-2">

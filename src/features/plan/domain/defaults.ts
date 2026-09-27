@@ -14,6 +14,20 @@ const CURRENT_YEAR = new Date().getFullYear();
 const DEFAULT_SELF_BIRTH_YEAR = CURRENT_YEAR - 35;
 
 /**
+ * 既定の資産運用リターン（lp-042）。
+ * フォームの初期値であり、UI のヘルプ表示（AssetForm）と「計算の前提」
+ * パネル（assumptions.ts）の説明文がここから生成される。値そのものは
+ * 変更していない（従来からの 0.03 を切り出しただけ）。
+ */
+export const DEFAULT_ANNUAL_RETURN_RATE = 0.03;
+
+/** 既定の非課税口座への年間積立額（lp-042）。NISA のつみたて投資枠の年間上限を想定。 */
+export const DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION = 480_000;
+
+/** 既定の退職一時金（本人分、lp-042）。大企業の大卒定年退職の目安として採用。 */
+export const DEFAULT_RETIREMENT_BENEFIT = 20_000_000;
+
+/**
  * 初期表示に使うサンプル世帯。
  * 30代の共働き夫婦＋子1人を想定した、もっともらしい初期値。
  *
@@ -32,7 +46,7 @@ export const defaultPlanInput: PlanInput = {
     retirementAge: 65,
     pensionStartAge: 65,
     annualPension: estimateAnnualPension(5_000_000),
-    retirementBenefit: 20_000_000,
+    retirementBenefit: DEFAULT_RETIREMENT_BENEFIT,
   },
   spouse: {
     name: "配偶者",
@@ -60,9 +74,9 @@ export const defaultPlanInput: PlanInput = {
   assets: {
     taxableAssets: 5_000_000,
     taxFreeAssets: 0,
-    annualReturnRate: 0.03,
+    annualReturnRate: DEFAULT_ANNUAL_RETURN_RATE,
     annualDividendYield: 0,
-    annualTaxFreeContribution: 480_000,
+    annualTaxFreeContribution: DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
   },
   events: [
     {
