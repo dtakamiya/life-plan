@@ -1,5 +1,6 @@
 /** plan/ui の公開 API。他機能・app からはこの index 経由で import する。plan/ui 内のファイルはこの index を import しない。 */
 export { AssetForm } from "./AssetForm";
+export { AssumptionPresetSelector } from "./AssumptionPresetSelector";
 export { EventForm } from "./EventForm";
 export { ExpenseForm } from "./ExpenseForm";
 export { HouseholdForm } from "./HouseholdForm";

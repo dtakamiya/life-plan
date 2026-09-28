@@ -1,4 +1,12 @@
 /** plan/domain の公開 API。他機能・app・同一機能の他層からはこの index 経由で import する。 */
+export {
+  ASSUMPTION_PRESETS,
+  matchAssumptionPreset,
+  type AssumptionPreset,
+  type AssumptionPresetKey,
+  type AssumptionPresetSnapshot,
+  type AssumptionPresetValues,
+} from "./assumptionPresets";
 export { correctDateRange, type DateRangeCorrection } from "./dateRange";
 export {
   defaultPlanInput,

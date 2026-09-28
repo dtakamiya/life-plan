@@ -1,4 +1,5 @@
 /** plan/application の公開 API。他機能・app・同一機能の他層からはこの index 経由で import する。 */
+export { applyAssumptionPreset } from "./assumptionPresets";
 export {
   addChild,
   removeChild,

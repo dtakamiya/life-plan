@@ -56,7 +56,7 @@ function makeInput(overrides: Partial<PlanInput> = {}): PlanInput {
 describe("buildAssumptionRows", () => {
   it("returns one row per assumption with label/value/note fields", () => {
     const rows = buildAssumptionRows(makeInput());
-    expect(rows).toHaveLength(19);
+    expect(rows).toHaveLength(20);
     for (const row of rows) {
       expect(typeof row.label).toBe("string");
       expect(row.label.length).toBeGreaterThan(0);
@@ -67,6 +67,7 @@ describe("buildAssumptionRows", () => {
     }
     expect(rows.map((r) => r.label)).toEqual([
       "試算の終了年齢",
+      "前提プリセット（運用利回り・物価上昇率・年収上昇率）",
       "物価上昇率（インフレ）",
       "年収上昇率",
       "資産運用の年間リターン",

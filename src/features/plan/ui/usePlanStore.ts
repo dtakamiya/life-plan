@@ -6,6 +6,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
   defaultPlanInput,
+  type AssumptionPresetKey,
   type Child,
   type IncomeAdjustment,
   type LifeEvent,
@@ -22,6 +23,7 @@ import {
   addLoan,
   addProperty,
   addRecurringExpense,
+  applyAssumptionPreset,
   removeChild,
   removeEvent,
   removeIncomeAdjustment,
@@ -65,6 +67,8 @@ type PlanState = {
   updateSpouse: (patch: Partial<Person>) => void;
   updateExpenses: (patch: Partial<PlanInput["expenses"]>) => void;
   updateAssets: (patch: Partial<PlanInput["assets"]>) => void;
+  /** lp-032: 前提プリセット（楽観・標準・悲観）を適用する。 */
+  applyAssumptionPreset: (key: AssumptionPresetKey) => void;
   addChild: () => void;
   updateChild: (id: string, patch: Partial<Child>) => void;
   removeChild: (id: string) => void;
@@ -134,6 +138,9 @@ export const usePlanStore = create<PlanState>()(
         set((s) => ({ input: updateExpenses(s.input, patch) })),
 
       updateAssets: (patch) => set((s) => ({ input: updateAssets(s.input, patch) })),
+
+      applyAssumptionPreset: (key) =>
+        set((s) => ({ input: applyAssumptionPreset(s.input, key) })),
 
       addChild: () => set((s) => ({ input: addChild(s.input, makeId) })),
 
