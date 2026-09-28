@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import {
   AssetForm,
+  AssumptionPresetSelector,
   EventForm,
   ExpenseForm,
   HouseholdForm,
@@ -70,7 +71,12 @@ export default function Home() {
           </span>
           <div>
             <Eyebrow>Life Plan Simulator</Eyebrow>
-            <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-ink sm:text-[34px]">
+            {/* lp-024: 640px未満は text-3xl から一段階下げ（text-2xl）、
+                「ライフプラン・シミュレーター」が単語途中で改行されないよう
+                text-wrap: balance + word-break: keep-all を付与。
+                640px以上は従来どおり（sm: で text-3xl/wrap指定なしへ戻す。
+                見た目・サイズを不変にするため sm: 側は初期値へ明示的にリセット）。 */}
+            <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink [text-wrap:balance] [word-break:keep-all] sm:[text-wrap:wrap] sm:[word-break:normal] sm:text-[34px]">
               ライフプラン・シミュレーター
             </h1>
             <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-soft">
@@ -108,6 +114,7 @@ export default function Home() {
             <>
               <HouseholdForm />
               <IncomeAdjustmentForm />
+              <AssumptionPresetSelector />
               <ExpenseForm />
               <RecurringExpenseForm />
               <AssetForm />

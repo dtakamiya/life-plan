@@ -29,6 +29,7 @@ import {
   RESIDENCE_TAX_CREDIT_CAP,
 } from "./housingLoanCredit";
 import {
+  ASSUMPTION_PRESETS,
   BASIC_PENSION_ANNUAL,
   DEFAULT_ANNUAL_RETURN_RATE,
   DEFAULT_ANNUAL_TAX_FREE_CONTRIBUTION,
@@ -39,6 +40,7 @@ import {
   HOUSEHOLD_DEFAULT_CONSTANTS,
   PROPERTY_VALUE_FLOOR_RATIO,
   endYearToEndAge,
+  matchAssumptionPreset,
   type PlanInput,
 } from "@/features/plan/domain";
 
@@ -58,6 +60,26 @@ function summarizeBrackets(): string {
   const first = rates[0];
   const last = rates[rates.length - 1];
   return `${first}〜${last}（${INCOME_TAX_BRACKETS.length}区分の簡易累進）`;
+}
+
+/**
+ * lp-032: 現在の運用利回り・物価上昇率・年収上昇率がどのプリセットと
+ * 一致するか（一致しなければ「カスタム」）を表す文字列。
+ */
+function currentPresetLabel(input: PlanInput): string {
+  const key = matchAssumptionPreset({
+    annualReturnRate: input.assets.annualReturnRate,
+    inflationRate: input.expenses.inflationRate,
+    selfIncomeGrowthRate: input.self.incomeGrowthRate,
+    spouseIncomeGrowthRate: input.spouse ? input.spouse.incomeGrowthRate : null,
+  });
+  const preset = ASSUMPTION_PRESETS.find((p) => p.key === key);
+  return preset?.label ?? "カスタム";
+}
+
+/** 3つのプリセットの値と根拠を一覧化した説明文。 */
+function presetsNote(): string {
+  return ASSUMPTION_PRESETS.map((p) => `${p.label}: ${p.rationale}`).join(" ");
 }
 
 /**
@@ -82,6 +104,12 @@ export function buildAssumptionRows(input: PlanInput): AssumptionRow[] {
       label: "試算の終了年齢",
       value: `${endAge}歳（${input.endYear}年）`,
       note: `既定は${DEFAULT_END_AGE}歳。厚生労働省の簡易生命表で男女とも9割近くが到達する年齢帯の上限に近く、長寿化を見込んだ資産寿命試算の目安として採用（変更可）。`,
+    },
+    {
+      // lp-032: 運用利回り・物価上昇率・年収上昇率のプリセット。
+      label: "前提プリセット（運用利回り・物価上昇率・年収上昇率）",
+      value: currentPresetLabel(input),
+      note: `いずれも調査済みの予測値ではなく、PO/Ryoko が置いた仮定。${presetsNote()}`,
     },
     {
       label: "物価上昇率（インフレ）",
